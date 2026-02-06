@@ -331,10 +331,10 @@ function AIAdvisor({ issues }) {
     setLoading(true); setError(null);
     try {
       const prompt = q ? `Expert Claude ecosystem advisor. Issues:\n${summary}\nVraag: ${q}\nNederlands, kort, actionable.` : `Expert Claude ecosystem advisor. Issues:\n${summary}\nGeef: 1) TOP 5 acties NU 2) Lange termijn 3) Risico's. Nederlands, kort.`;
-      const r = await api.askAI([{ role: "user", content: prompt }]);
-      if (!r) throw new Error("Geen verbinding met AI backend");
-      if (r.error) throw new Error(r.error?.message || "API fout");
-      setAdvice(r.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "Geen antwoord.");
+      const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }) });
+      if (!r.ok) throw new Error(`API ${r.status}`);
+      const d = await r.json();
+      setAdvice(d.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "Geen antwoord.");
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [summary]);
 
@@ -460,7 +460,7 @@ function GitDeployCenter() {
     { name: "Claude-Ecosystem-Dashboard", status: "clean", branch: "main", lastPush: "now", cloudflare: "claude-ecosystem-dashboard.pages.dev" },
     { name: "Claude-Code-Mac-Sync", status: "clean", branch: "main", lastPush: "1 day ago", cloudflare: null },
     { name: "Econation", status: "dirty", branch: "main", lastPush: "3 days ago", dirtyFiles: 10, cloudflare: null },
-    { name: "BlackFuelWhiskey", status: "clean", branch: "main", lastPush: "5 days ago", cloudflare: "blackfuel-whiskey.franky-f29.workers.dev" },
+    { name: "BlackFuelWhiskey", status: "clean", branch: "main", lastPush: "5 days ago", cloudflare: "blackfuelwhiskey.pages.dev" },
     { name: "HRM-Core-Brain", status: "dirty", branch: "main", lastPush: "1 week ago", dirtyFiles: 4, cloudflare: null },
   ]);
   const [actionLog, setActionLog] = useState([]);
@@ -501,27 +501,17 @@ function GitDeployCenter() {
 // V2 TAB: VERSION SNAPSHOTS
 // ═══════════════════════════════════════════════════════════════════════════════
 function VersionSnapshots() {
-  const [snapshots, setSnapshots] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [snapshots, setSnapshots] = useState([
+    { id: 1, name: "v1.0.0 - Initial Dashboard", date: "2026-02-05 17:30", project: "Claude-Ecosystem-Dashboard", type: "manual", commit: "384543d" },
+    { id: 2, name: "v2.0.0 - Control Center", date: "2026-02-06 00:55", project: "Claude-Ecosystem-Dashboard", type: "auto", commit: "fd6d490" },
+    { id: 3, name: "v3.0.0 - Merged v1+v2", date: "2026-02-06 01:15", project: "Claude-Ecosystem-Dashboard", type: "manual", commit: "current" },
+  ]);
   const [newSnapshot, setNewSnapshot] = useState({ name: "", project: "Claude-Ecosystem-Dashboard" });
 
-  const fetchSnapshots = useCallback(async () => {
-    try {
-      const data = await api.getSnapshots();
-      setSnapshots(data);
-    } catch (e) { console.error("Failed to load snapshots:", e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetchSnapshots(); }, [fetchSnapshots]);
-
-  const createSnapshot = async () => {
+  const createSnapshot = () => {
     if (!newSnapshot.name.trim()) return;
-    const result = await api.createSnapshot(newSnapshot.name, newSnapshot.project, "manual");
-    if (result?.success) {
-      setNewSnapshot({ ...newSnapshot, name: "" });
-      fetchSnapshots();
-    }
+    setSnapshots(prev => [{ id: Date.now(), name: newSnapshot.name, date: new Date().toLocaleString("nl-BE"), project: newSnapshot.project, type: "manual", commit: "pending" }, ...prev]);
+    setNewSnapshot({ ...newSnapshot, name: "" });
   };
 
   return (
@@ -541,30 +531,23 @@ function VersionSnapshots() {
       <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#60a5fa", marginBottom: 12 }}>🕐 Snapshot History</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {loading ? (
-            <div style={{ textAlign: "center", padding: 20, color: "#6b7280" }}>⏳ Laden...</div>
-          ) : snapshots.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 20, color: "#6b7280" }}>Nog geen snapshots</div>
-          ) : snapshots.map(snap => {
-            const d = snap.timestamp ? new Date(snap.timestamp).toLocaleString("nl-BE") : snap.date || "?";
-            return (
-              <div key={snap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12, flexWrap: "wrap", gap: 8 }}>
-                <div style={{ minWidth: 150 }}>
-                  <div style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>{snap.name}</div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 10, color: "#6b7280" }}>{d}</span>
-                    <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "#22c55e22", color: "#4ade80" }}>{snap.project}</span>
-                    {snap.commit && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "#3b82f622", color: "#60a5fa", fontFamily: "monospace" }}>{snap.commit}</span>}
-                    <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: snap.type === "auto" ? "#f59e0b22" : "#8b5cf622", color: snap.type === "auto" ? "#fbbf24" : "#c4b5fd" }}>{snap.type}</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 11, cursor: "pointer" }}>🔄 Restore</button>
-                  <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>👁️ View</button>
+          {snapshots.map(snap => (
+            <div key={snap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
+              <div>
+                <div style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>{snap.name}</div>
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  <span style={{ fontSize: 10, color: "#6b7280" }}>{snap.date}</span>
+                  <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "#22c55e22", color: "#4ade80" }}>{snap.project}</span>
+                  <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "#3b82f622", color: "#60a5fa", fontFamily: "monospace" }}>{snap.commit}</span>
                 </div>
               </div>
-            );
-          })}
+              <div style={{ display: "flex", gap: 6 }}>
+                <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 11, cursor: "pointer" }}>🔄 Restore</button>
+                <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>👁️ View</button>
+                <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>🌿 Clone</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -575,57 +558,41 @@ function VersionSnapshots() {
 // V2 TAB: ACTIVITY LOG
 // ═══════════════════════════════════════════════════════════════════════════════
 function ActivityLog() {
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
-  
-  const fetchLogs = useCallback(async () => {
-    try {
-      const logs = await api.getLogs(50);
-      setActivities(logs);
-    } catch (e) { console.error("Failed to load logs:", e); }
-    finally { setLoading(false); }
-  }, []);
-  
-  useEffect(() => { fetchLogs(); const interval = setInterval(fetchLogs, 15000); return () => clearInterval(interval); }, [fetchLogs]);
-  
-  const typeColors = { change: { bg: "#22c55e22", color: "#4ade80" }, deploy: { bg: "#06b6d422", color: "#22d3ee" }, git: { bg: "#a78bfa22", color: "#c4b5fd" }, file: { bg: "#3b82f622", color: "#60a5fa" }, config: { bg: "#f59e0b22", color: "#fbbf24" }, session: { bg: "#ec489922", color: "#f472b6" }, memory: { bg: "#8b5cf622", color: "#a78bfa" }, snapshot: { bg: "#8b5cf622", color: "#a78bfa" }, ai_request: { bg: "#a78bfa22", color: "#c4b5fd" }, ai_response: { bg: "#a78bfa22", color: "#c4b5fd" }, action: { bg: "#3b82f622", color: "#60a5fa" }, restore: { bg: "#f59e0b22", color: "#fbbf24" } };
-  const filtered = filter === "All" ? activities : activities.filter(a => a.source === filter);
+  const [activities] = useState([
+    { id: 1, time: "01:15", source: "Chat", mac: "MBA", action: "Dashboard v3 merged", detail: "v1 + v2 combined", type: "deploy" },
+    { id: 2, time: "00:55", source: "Chat", mac: "MBA", action: "Dashboard v2 deployed", detail: "Control Center features", type: "deploy" },
+    { id: 3, time: "00:35", source: "Chat", mac: "MBA", action: "Memory inject", detail: "Claude Code updated v2.1.32", type: "change" },
+    { id: 4, time: "00:30", source: "Chat", mac: "MBA", action: "Cloudflare deploy", detail: "claude-ecosystem-dashboard.pages.dev", type: "deploy" },
+    { id: 5, time: "00:25", source: "Chat", mac: "MBA", action: "Git push", detail: "GitHub Actions auto-deploy", type: "git" },
+    { id: 6, time: "00:20", source: "Chat", mac: "MBA", action: "File created", detail: "bridge/claude-mem-bridge.py", type: "file" },
+    { id: 7, time: "00:15", source: "Chat", mac: "MBA", action: "API Token created", detail: "Cloudflare GitHub Actions", type: "config" },
+    { id: 8, time: "23:30", source: "CLI", mac: "MBA", action: "Session start", detail: "Econation project", type: "session" },
+    { id: 9, time: "23:00", source: "CLI", mac: "MBA", action: "Brain save", detail: "12 observations stored", type: "memory" },
+  ]);
+  const typeColors = { change: { bg: "#22c55e22", color: "#4ade80" }, deploy: { bg: "#06b6d422", color: "#22d3ee" }, git: { bg: "#a78bfa22", color: "#c4b5fd" }, file: { bg: "#3b82f622", color: "#60a5fa" }, config: { bg: "#f59e0b22", color: "#fbbf24" }, session: { bg: "#ec489922", color: "#f472b6" }, memory: { bg: "#8b5cf622", color: "#a78bfa" } };
 
   return (
     <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#f472b6" }}>📜 Activity Log</div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <button onClick={fetchLogs} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#6b7280", fontSize: 11, cursor: "pointer" }}>🔄</button>
-          {["All", "Chat", "CLI", "Dashboard"].map(f => <button key={f} onClick={() => setFilter(f)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: filter === f ? "#1e1b4b" : "#111", color: filter === f ? "#c4b5fd" : "#6b7280", fontSize: 11, cursor: "pointer" }}>{f}</button>)}
+        <div style={{ display: "flex", gap: 6 }}>
+          {["All", "Chat", "CLI"].map(f => <button key={f} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: f === "All" ? "#1e1b4b" : "#111", color: f === "All" ? "#c4b5fd" : "#6b7280", fontSize: 11, cursor: "pointer" }}>{f}</button>)}
         </div>
       </div>
-      {loading ? (
-        <div style={{ textAlign: "center", padding: 20, color: "#6b7280" }}>⏳ Laden...</div>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 20, color: "#6b7280" }}>Geen activiteiten gevonden</div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {filtered.map(act => {
-            const t = act.timestamp ? new Date(act.timestamp) : null;
-            const time = t ? t.toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" }) : "??:??";
-            const tc = typeColors[act.type] || { bg: "#37415122", color: "#9ca3af" };
-            return (
-              <div key={act.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: "10px 12px", flexWrap: "wrap" }}>
-                <div style={{ fontSize: 11, color: "#4b5563", fontFamily: "monospace", minWidth: 45 }}>{time}</div>
-                <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: act.source === "Chat" ? "#3b82f622" : act.source === "Dashboard" ? "#a78bfa22" : "#22c55e22", color: act.source === "Chat" ? "#60a5fa" : act.source === "Dashboard" ? "#c4b5fd" : "#4ade80", minWidth: 50, textAlign: "center" }}>{act.source || "?"}</div>
-                {act.mac && <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#1f2937", color: "#9ca3af", minWidth: 30, textAlign: "center" }}>{act.mac}</div>}
-                <div style={{ flex: 1, minWidth: 120 }}>
-                  <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{act.action}</span>
-                  {act.detail && <span style={{ color: "#6b7280", fontSize: 12 }}> — {act.detail}</span>}
-                </div>
-                <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, ...tc }}>{act.type}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {activities.map(act => (
+          <div key={act.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: "10px 14px" }}>
+            <div style={{ fontSize: 11, color: "#4b5563", fontFamily: "monospace", width: 50 }}>{act.time}</div>
+            <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: act.source === "Chat" ? "#3b82f622" : "#22c55e22", color: act.source === "Chat" ? "#60a5fa" : "#4ade80", width: 40, textAlign: "center" }}>{act.source}</div>
+            <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#1f2937", color: "#9ca3af", width: 35, textAlign: "center" }}>{act.mac}</div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{act.action}</span>
+              <span style={{ color: "#6b7280", fontSize: 12 }}> — {act.detail}</span>
+            </div>
+            <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, ...typeColors[act.type] }}>{act.type}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -636,8 +603,8 @@ function ActivityLog() {
 function StagingVariants() {
   const [projects] = useState([
     { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: "claude-ecosystem-staging.pages.dev", variants: [] },
-    { name: "Econation", production: "econation.be", staging: "econation-b-dev.franky-f29.workers.dev", variants: [] },
-    { name: "BlackFuelWhiskey", production: "blackfuel-whiskey.franky-f29.workers.dev", staging: null, variants: [] },
+    { name: "Econation", production: "econation.be", staging: null, variants: [] },
+    { name: "BlackFuelWhiskey", production: null, staging: null, variants: [] },
   ]);
 
   return (
@@ -648,11 +615,11 @@ function StagingVariants() {
             <div style={{ fontSize: 16, fontWeight: 700, color: "#e5e5e5" }}>🌐 {proj.name}</div>
             <button style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>➕ Create Staging</button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div style={{ background: proj.production ? "#052e16" : "#1a1a1a", border: `1px solid ${proj.production ? "#166534" : "#374151"}`, borderRadius: 8, padding: 12 }}>
               <div style={{ fontSize: 11, color: proj.production ? "#4ade80" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.production ? "🟢 PRODUCTION" : "⚫ PRODUCTION"}</div>
               {proj.production ? (
-                <a href={`https://${proj.production}`} target="_blank" rel="noopener noreferrer" style={{ color: "#86efac", fontSize: 12, wordBreak: "break-all" }}>{proj.production}</a>
+                <a href={`https://${proj.production}`} target="_blank" rel="noopener noreferrer" style={{ color: "#86efac", fontSize: 13 }}>{proj.production}</a>
               ) : (
                 <span style={{ color: "#6b7280", fontSize: 13, fontStyle: "italic" }}>Not deployed</span>
               )}
@@ -660,7 +627,7 @@ function StagingVariants() {
             <div style={{ background: proj.staging ? "#1a1400" : "#1a1a1a", border: `1px solid ${proj.staging ? "#854d0e" : "#374151"}`, borderRadius: 8, padding: 12 }}>
               <div style={{ fontSize: 11, color: proj.staging ? "#fbbf24" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.staging ? "🟡 STAGING" : "⚫ STAGING"}</div>
               {proj.staging ? (
-                <a href={`https://${proj.staging}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fde68a", fontSize: 12, wordBreak: "break-all" }}>{proj.staging}</a>
+                <a href={`https://${proj.staging}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fde68a", fontSize: 13 }}>{proj.staging}</a>
               ) : (
                 <span style={{ color: "#6b7280", fontSize: 13, fontStyle: "italic" }}>Not deployed</span>
               )}
