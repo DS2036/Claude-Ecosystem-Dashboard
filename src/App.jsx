@@ -68,34 +68,42 @@ const api = {
 // v3.8 - Advisor multi-turn conversatie + Fullscreen mode + Chat thread
 // v3.9 - Device auto-detect + Persistent Q&A log + Delete vragen + Navigatie links
 // v3.9.1 - FIX: MBA default + GEEN auto-opgelost + Antwoorden zichtbaar in Alle Vragen
+// v3.9.5 - Device selectie popup: Eenmalig kiezen, daarna voor altijd opgeslagen
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
+// iPhone = automatisch via user agent
+// Mac (MBA/MM4/MM2) = eerste keer popup kiezen, daarna VOOR ALTIJD opgeslagen in localStorage
 function detectDevice() {
   const ua = navigator.userAgent.toLowerCase();
 
-  // iPhone detectie
+  // iPhone detectie - automatisch
   if (/iphone|ipod/.test(ua) || (/mobile/.test(ua) && /safari/.test(ua))) {
     return 'iPhone';
   }
 
-  // Desktop: auto-detect via schermresolutie
-  // MBA 13": screen.width = 1470 (of 1440, 1280 bij lagere scaling)
-  // MM4 met externe monitor: screen.width = 1920, 2560, 3440, etc.
-  const screenWidth = window.screen.width;
-
-  // MM4 heeft een externe monitor (breed scherm)
-  if (screenWidth >= 1920) {
-    return 'MM4';
+  // Mac: check localStorage (gebruiker heeft eerder gekozen - blijft voor altijd)
+  const storedDevice = localStorage.getItem('ccc-device');
+  if (storedDevice && ['MBA', 'MM4', 'MM2'].includes(storedDevice)) {
+    return storedDevice;
   }
 
-  // MBA (laptop scherm, smaller)
-  return 'MBA';
+  // Nog niet gekozen - return null zodat popup getoond wordt
+  return null;
 }
 
-// Niet meer nodig - we detecteren nu automatisch
-function isNewDesktop() {
-  return false;
+// Check of gebruiker nog een Mac device moet kiezen
+function needsDeviceSelection() {
+  const ua = navigator.userAgent.toLowerCase();
+  // iPhone = automatisch, geen selectie nodig
+  if (/iphone|ipod|mobile/.test(ua)) return false;
+  // Mac: check of al gekozen in localStorage
+  return !localStorage.getItem('ccc-device');
+}
+
+// Sla gekozen device PERMANENT op (voor altijd in deze browser)
+function setDeviceChoice(device) {
+  localStorage.setItem('ccc-device', device);
 }
 
 // ─── ACTIVITY LOGGER ───
@@ -1899,7 +1907,7 @@ export default function ControlCenter() {
 
   // Device auto-detection
   const [currentDevice, setCurrentDevice] = useState(() => detectDevice());
-  const [showDeviceSelector, setShowDeviceSelector] = useState(() => isNewDesktop());
+  const [showDeviceSelector, setShowDeviceSelector] = useState(() => needsDeviceSelection());
 
   // Log page load
   useEffect(() => {
@@ -1941,7 +1949,7 @@ export default function ControlCenter() {
   ];
 
   return (
-    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0a0a0a", color: "#e5e5e5", minHeight: "100vh", padding: 12 }}>
+    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "linear-gradient(180deg, #0a0a1a 0%, #0a0a0a 5%, #0a0a0a 95%, #0a0a1a 100%)", color: "#e5e5e5", minHeight: "100vh", padding: 12, borderLeft: "3px solid #1e1b4b", borderRight: "3px solid #1e1b4b" }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
@@ -1949,7 +1957,8 @@ export default function ControlCenter() {
           <div style={{ background: "#0f0f23", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 16 }}>🖥️</div>
             <h2 style={{ color: "#a78bfa", margin: "0 0 8px 0", fontSize: 20 }}>Welkom op Cloud Control Center!</h2>
-            <p style={{ color: "#9ca3af", fontSize: 13, marginBottom: 20 }}>Op welk device ben je nu?</p>
+            <p style={{ color: "#9ca3af", fontSize: 13, marginBottom: 6 }}>Op welk Mac device ben je nu?</p>
+            <p style={{ color: "#22c55e", fontSize: 12, marginBottom: 20 }}>✓ Eenmalig kiezen — wordt voor altijd onthouden</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               {[
                 { id: "MBA", label: "MacBook Air", icon: "💻", color: "#22c55e" },
@@ -1990,7 +1999,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.1 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.5 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
