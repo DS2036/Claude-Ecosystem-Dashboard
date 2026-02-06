@@ -73,28 +73,18 @@ const api = {
 // ─── DEVICE DETECTION ───
 function detectDevice() {
   const ua = navigator.userAgent.toLowerCase();
-  const width = window.innerWidth;
 
-  // FIRST check localStorage - user's manual choice takes priority
-  const storedDevice = localStorage.getItem('ccc-device');
-  if (storedDevice && ['MBA', 'MM4', 'MM2', 'iPhone'].includes(storedDevice)) {
-    return storedDevice;
-  }
-
-  // Check for iPhone/iPad - only on actual iOS devices
+  // iPhone detectie - alleen echte iOS devices
   if (/iphone|ipod/.test(ua)) {
     return 'iPhone';
   }
-  if (/ipad/.test(ua)) {
-    return 'iPhone'; // Treat iPad as iPhone for now
+
+  // Mobile Safari = iPhone
+  if (/mobile/.test(ua) && /safari/.test(ua)) {
+    return 'iPhone';
   }
 
-  // Check hostname for Mac identification (when running locally)
-  const hostname = window.location.hostname;
-  if (hostname.includes('mm4') || hostname.includes('mini4')) return 'MM4';
-  if (hostname.includes('mm2') || hostname.includes('mini2')) return 'MM2';
-
-  // Default to MBA for desktop browsers
+  // Desktop = MBA (default voor MacBook Air)
   return 'MBA';
 }
 
