@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.6
+// CLAUDE CONTROL CENTER v3.7
 // Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -64,6 +64,7 @@ const api = {
 // v3.1 - Added Cross-Sync, InfraNodus, Agents tabs
 // v3.5 - Added Knowledge Base, Cloudflare deployment, version tracking
 // v3.6 - Added Claude Updates + OpenClaw Bot monitoring (14 tabs total)
+// v3.7 - Advisor met vraag-historie + Responsive menu + iPhone device + Advisor prominent
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── STATUS DEFINITIONS ───
@@ -330,41 +331,179 @@ function TreeNode({ node, depth = 0, searchTerm }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// V1 COMPONENT: AI ADVISOR
+// V3.7 COMPONENT: AI ADVISOR - Met vraag-historie en mini-agent capabilities
 // ═══════════════════════════════════════════════════════════════════════════════
-function AIAdvisor({ issues }) {
+function AIAdvisor({ issues, compact = false }) {
   const [advice, setAdvice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [question, setQuestion] = useState("");
-  const summary = issues.filter(i => i.status === STATUS.ERROR || i.status === STATUS.WARN).map(i => `[${i.status === STATUS.ERROR ? "ERR" : "WARN"}] ${i.path}: ${i.detail || i.name}${i.recommendation ? " | Fix: " + i.recommendation : ""}`).join("\n");
-  
-  const ask = useCallback(async (q) => {
-    setLoading(true); setError(null);
+  const [history, setHistory] = useState(() => {
     try {
-      const prompt = q ? `Expert Claude ecosystem advisor. Issues:\n${summary}\nVraag: ${q}\nNederlands, kort, actionable.` : `Expert Claude ecosystem advisor. Issues:\n${summary}\nGeef: 1) TOP 5 acties NU 2) Lange termijn 3) Risico's. Nederlands, kort.`;
+      const saved = localStorage.getItem("advisor-history");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [showHistory, setShowHistory] = useState(false);
+  const [agentMode, setAgentMode] = useState(false);
+
+  const summary = issues.filter(i => i.status === STATUS.ERROR || i.status === STATUS.WARN).map(i => `[${i.status === STATUS.ERROR ? "ERR" : "WARN"}] ${i.path}: ${i.detail || i.name}${i.recommendation ? " | Fix: " + i.recommendation : ""}`).join("\n");
+
+  // Save history to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("advisor-history", JSON.stringify(history.slice(0, 50))); // Keep last 50
+    } catch {}
+  }, [history]);
+
+  const ask = useCallback(async (q, isAgent = false) => {
+    setLoading(true); setError(null);
+    const timestamp = new Date().toISOString();
+    try {
+      let prompt;
+      if (isAgent) {
+        prompt = `Je bent een MINI-AGENT voor het Claude ecosystem. Je kunt helpen met:
+- Analyseren van problemen
+- Suggesties voor verbetering van Cloud Control Center
+- Detecteren en oplossen van issues
+- Adviseren over SDK-HRM, InfraNodus, sync, etc.
+
+Huidige issues in het systeem:
+${summary}
+
+Vraag/Opdracht: ${q}
+
+Antwoord in het Nederlands. Geef concrete stappen die uitgevoerd kunnen worden. Als je een probleem kunt oplossen, geef dan exacte instructies.`;
+      } else if (q) {
+        prompt = `Expert Claude ecosystem advisor. Issues:\n${summary}\nVraag: ${q}\nNederlands, kort, actionable.`;
+      } else {
+        prompt = `Expert Claude ecosystem advisor. Issues:\n${summary}\nGeef: 1) TOP 5 acties NU 2) Lange termijn 3) Risico's. Nederlands, kort.`;
+      }
+
       const r = await api.askAI([{ role: "user", content: prompt }]);
       if (!r) throw new Error("Geen verbinding met AI backend");
       if (r.error) throw new Error(r.error?.message || "API fout");
-      setAdvice(r.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "Geen antwoord.");
+      const answer = r.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "Geen antwoord.";
+      setAdvice(answer);
+
+      // Save to history
+      const newEntry = {
+        id: Date.now(),
+        timestamp,
+        question: q || "Volledige analyse",
+        answer,
+        type: isAgent ? "agent" : (q ? "question" : "analysis"),
+      };
+      setHistory(prev => [newEntry, ...prev]);
+
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }, [summary]);
 
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem("advisor-history");
+  };
+
+  const loadFromHistory = (entry) => {
+    setAdvice(entry.answer);
+    setShowHistory(false);
+  };
+
+  // Compact mode for header bar
+  if (compact) {
+    return (
+      <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 10, padding: 10, marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 16 }}>🤖</span>
+          <span style={{ fontWeight: 700, fontSize: 12, color: "#a78bfa" }}>Advisor</span>
+          <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question, agentMode), setQuestion(""))} placeholder="Stel een vraag of geef een opdracht..." style={{ flex: 1, minWidth: 200, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 11, outline: "none" }} />
+          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
+          <button onClick={() => { if (question.trim()) { ask(question, agentMode); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{loading ? "⏳" : "→"}</button>
+          <button onClick={() => setShowHistory(!showHistory)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>📜 {history.length}</button>
+        </div>
+        {error && <div style={{ color: "#f87171", fontSize: 10, padding: "6px 0" }}>❌ {error}</div>}
+        {advice && <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap", maxHeight: 150, overflow: "auto", marginTop: 8 }}>{advice}</div>}
+        {showHistory && history.length > 0 && (
+          <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, marginTop: 8, maxHeight: 200, overflow: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: "#6b7280" }}>Geschiedenis ({history.length})</span>
+              <button onClick={clearHistory} style={{ fontSize: 9, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }}>🗑️ Wissen</button>
+            </div>
+            {history.slice(0, 10).map(h => (
+              <div key={h.id} onClick={() => loadFromHistory(h)} style={{ padding: 6, borderBottom: "1px solid #1f2937", cursor: "pointer", fontSize: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#6b7280" }}>
+                  <span style={{ color: h.type === "agent" ? "#4ade80" : "#a78bfa" }}>{h.type === "agent" ? "🤖" : "💬"} {h.question.substring(0, 40)}...</span>
+                  <span>{new Date(h.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full mode for tab
   return (
     <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 12, padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>🤖</span>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#a78bfa" }}>AI Ecosystem Advisor</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 20 }}>🤖</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: "#a78bfa" }}>AI Ecosystem Advisor</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "6px 12px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 11, cursor: "pointer" }}>{agentMode ? "🤖 Agent Mode" : "💬 Vraag Mode"}</button>
+          <button onClick={() => setShowHistory(!showHistory)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>📜 Geschiedenis ({history.length})</button>
+        </div>
       </div>
+
+      {agentMode && (
+        <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 10, marginBottom: 12 }}>
+          <p style={{ color: "#4ade80", fontSize: 11, margin: 0 }}>🤖 <strong>Agent Mode actief</strong> — De Advisor kan nu helpen met probleemoplossing, Cloud Control Center verbeteringen, en concrete acties voorstellen.</p>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button onClick={() => ask(null)} disabled={loading} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 12, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Analyse"}</button>
+        <button onClick={() => ask(null, false)} disabled={loading} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 12, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Volledige Analyse"}</button>
       </div>
+
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))} placeholder="Stel een vraag..." style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12, outline: "none" }} />
-        <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 12, cursor: "pointer" }}>Vraag</button>
+        <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question, agentMode), setQuestion(""))} placeholder={agentMode ? "Geef een opdracht aan de agent..." : "Stel een vraag..."} style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: `1px solid ${agentMode ? "#166534" : "#374151"}`, background: "#111", color: "#e5e5e5", fontSize: 12, outline: "none" }} />
+        <button onClick={() => { if (question.trim()) { ask(question, agentMode); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "10px 18px", borderRadius: 8, border: `1px solid ${agentMode ? "#166534" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#312e81", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>{agentMode ? "Uitvoeren" : "Vraag"}</button>
       </div>
+
       {error && <div style={{ color: "#f87171", fontSize: 12, padding: 8 }}>❌ {error}</div>}
       {advice && <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: 400, overflow: "auto" }}>{advice}</div>}
+
+      {/* History Panel */}
+      {showHistory && (
+        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 8, padding: 12, marginTop: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontWeight: 600, color: "#a78bfa", fontSize: 13 }}>📜 Vraag Geschiedenis</span>
+            <button onClick={clearHistory} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}>🗑️ Wis alles</button>
+          </div>
+          {history.length === 0 ? (
+            <p style={{ color: "#6b7280", fontSize: 11 }}>Nog geen vragen gesteld</p>
+          ) : (
+            <div style={{ maxHeight: 300, overflow: "auto" }}>
+              {history.map(h => (
+                <div key={h.id} onClick={() => loadFromHistory(h)} style={{ padding: 10, borderBottom: "1px solid #1f2937", cursor: "pointer", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#1a1a2e"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ color: h.type === "agent" ? "#4ade80" : h.type === "analysis" ? "#60a5fa" : "#a78bfa", fontSize: 11 }}>
+                        {h.type === "agent" ? "🤖 Agent" : h.type === "analysis" ? "🔍 Analyse" : "💬 Vraag"}
+                      </span>
+                      <p style={{ color: "#e5e5e5", fontSize: 12, margin: "4px 0 0 0" }}>{h.question}</p>
+                    </div>
+                    <span style={{ color: "#6b7280", fontSize: 10, whiteSpace: "nowrap", marginLeft: 10 }}>{new Date(h.timestamp).toLocaleDateString("nl-BE")} {new Date(h.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}</span>
+                  </div>
+                  <p style={{ color: "#6b7280", fontSize: 10, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.answer.substring(0, 100)}...</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1421,10 +1560,10 @@ export default function ControlCenter() {
   const issues = collectIssues(ECOSYSTEM);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
+  // Tabs - reorganized for better visibility
   const tabs = [
     { id: "ecosystem", label: "🗺️ Ecosystem", color: "#22c55e" },
     { id: "issues", label: "⚠️ Issues", color: "#f59e0b" },
-    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
     { id: "memory", label: "🧠 Memory", color: "#60a5fa" },
     { id: "git", label: "📂 Git", color: "#06b6d4" },
     { id: "versions", label: "📸 Versions", color: "#f472b6" },
@@ -1436,6 +1575,7 @@ export default function ControlCenter() {
     { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
     { id: "updates", label: "📡 Updates", color: "#06b6d4" },
     { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
+    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" }, // Moved to end, but prominent via compact bar
   ];
 
   return (
@@ -1445,12 +1585,13 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.6 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.7 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", border: "1px solid #166534" }}>● MBA</span>
             <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#a78bfa22", color: "#c4b5fd", border: "1px solid #5b21b6" }}>◌ MM4</span>
             <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#a78bfa22", color: "#c4b5fd", border: "1px solid #5b21b6" }}>◌ MM2</span>
+            <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#60a5fa22", color: "#93c5fd", border: "1px solid #1e40af" }}>📱 iPhone</span>
           </div>
         </div>
         {/* Status Bar */}
@@ -1467,10 +1608,29 @@ export default function ControlCenter() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 12, overflowX: "auto", paddingBottom: 4 }}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 12px", borderRadius: 8, minWidth: 80, border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`, background: tab === t.id ? t.color + "22" : "#111", color: tab === t.id ? t.color : "#6b7280", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{t.label}</button>
+      {/* ADVISOR - Prominent bar (always visible) */}
+      <AIAdvisor issues={issues} compact={true} />
+
+      {/* Tabs - Responsive grid layout (wraps instead of scrolling) */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+        gap: 4,
+        marginBottom: 12
+      }}>
+        {tabs.filter(t => t.id !== "advisor").map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            padding: "8px 10px",
+            borderRadius: 8,
+            border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
+            background: tab === t.id ? t.color + "22" : "#111",
+            color: tab === t.id ? t.color : "#6b7280",
+            fontSize: 10,
+            fontWeight: 600,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            textAlign: "center"
+          }}>{t.label}</button>
         ))}
       </div>
 
@@ -1510,7 +1670,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.6 • {total} nodes • 14 tabs • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.7 • {total} nodes • 14 tabs • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
