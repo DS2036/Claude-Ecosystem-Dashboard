@@ -50,8 +50,9 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.6
-// Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v3.5
+// Complete Dashboard: Ecosystem + Memory + Git + Deploy + Versions + Activity + Staging
+// + Cross-Device Sync + InfraNodus Dashboard + Agent Hierarchy + Knowledge Base
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -63,7 +64,6 @@ const api = {
 // v3.0 - Original merged version (Ecosystem + Memory + Git + Deploy)
 // v3.1 - Added Cross-Sync, InfraNodus, Agents tabs
 // v3.5 - Added Knowledge Base, Cloudflare deployment, version tracking
-// v3.6 - Added Claude Updates + OpenClaw Bot monitoring (14 tabs total)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── STATUS DEFINITIONS ───
@@ -1062,260 +1062,6 @@ function SystemKnowledgeBase() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// V3.6 TAB: CLAUDE UPDATES - Dagelijkse updates over nieuwe features
-// Franky wil NIET 7000 video's kijken - Claude moet dit zelf bijhouden
-// ═══════════════════════════════════════════════════════════════════════════════
-function ClaudeUpdates() {
-  // Recente Claude/Anthropic updates (handmatig bijgehouden tot API beschikbaar)
-  const [updates] = useState([
-    { id: 1, date: "2026-02-06", type: "feature", title: "Claude Code CLI v2.1.32", description: "Nieuwe versie met verbeterde context handling", relevance: "high", implemented: true },
-    { id: 2, date: "2026-02-05", type: "feature", title: "Claude-Mem Plugin v9.0.16", description: "Memory plugin met SQLite en vector DB", relevance: "high", implemented: true },
-    { id: 3, date: "2026-02-04", type: "announcement", title: "Opus 4.5 Extended Context", description: "1M token context window beschikbaar", relevance: "high", implemented: true },
-    { id: 4, date: "2026-02-03", type: "plugin", title: "MCP Registry Connector", description: "Zoek en verbind externe MCP servers", relevance: "medium", implemented: true },
-    { id: 5, date: "2026-02-01", type: "feature", title: "CoWork Desktop Beta", description: "Desktop app voor collaborative coding", relevance: "medium", implemented: false },
-    { id: 6, date: "2026-01-28", type: "sdk", title: "Claude Agent SDK", description: "Bouw custom agents met Anthropic SDK", relevance: "critical", implemented: false },
-  ]);
-
-  // Nieuwe features die Franky zou moeten kennen
-  const [recommendations] = useState([
-    { feature: "Claude Agent SDK", reason: "Perfect voor je Telegram bot plannen - agents draaien op MM4", priority: "P1", action: "Onderzoek starten" },
-    { feature: "CoWork", reason: "Collaborative coding - handig voor grotere projecten", priority: "P2", action: "Testen wanneer stabiel" },
-    { feature: "Extended Thinking", reason: "Diepere analyse voor SDK-HRM ontwikkeling", priority: "P2", action: "Beschikbaar in Opus" },
-  ]);
-
-  // Tools en plugins status
-  const [toolsStatus] = useState([
-    { name: "Serena IDE", status: "broken", note: "Niet geconfigureerd - verwijder of herinstalleer", action: "Review needed" },
-    { name: "Ralph Wiggins Loop", status: "active", note: "Marketplace plugin - functioneel", action: "Keep" },
-    { name: "Claude-Mem", status: "active", note: "v9.0.16 - werkt goed", action: "Keep" },
-    { name: "InfraNodus MCP", status: "active", note: "API key actief", action: "Keep" },
-    { name: "Mac-Hub MCP", status: "active", note: "System automation", action: "Keep" },
-  ]);
-
-  const typeColors = { feature: "#4ade80", announcement: "#60a5fa", plugin: "#a78bfa", sdk: "#fbbf24" };
-  const statusColors = { active: "#4ade80", broken: "#ef4444", pending: "#fbbf24" };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)", border: "1px solid #0e7490", borderRadius: 12, padding: 16 }}>
-        <div style={{ fontWeight: 800, color: "#22d3ee", fontSize: 18, display: "flex", alignItems: "center", gap: 10 }}>
-          <span>📡</span> Claude/Anthropic Updates
-        </div>
-        <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 6 }}>Dagelijkse updates - Franky hoeft geen 7000 video's te kijken</p>
-        <p style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>Laatst gecheckt: {new Date().toLocaleDateString("nl-BE")}</p>
-      </div>
-
-      {/* Recommendations - Wat Franky moet weten */}
-      <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>💡</span> AANBEVELINGEN VOOR FRANKY
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {recommendations.map((rec, idx) => (
-            <div key={idx} style={{ background: "#0a0a0a", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <span style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13 }}>{rec.feature}</span>
-                  <p style={{ color: "#e5e5e5", fontSize: 11, marginTop: 4 }}>{rec.reason}</p>
-                </div>
-                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: rec.priority === "P1" ? "#ef444422" : "#fbbf2422", color: rec.priority === "P1" ? "#ef4444" : "#fbbf24" }}>{rec.priority}</span>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <button style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 10, cursor: "pointer" }}>{rec.action}</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Updates */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#22d3ee", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📰</span> RECENTE UPDATES
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {updates.map(upd => (
-            <div key={upd.id} style={{ display: "flex", alignItems: "center", gap: 10, background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[upd.type] }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{upd.title}</span>
-                  {upd.relevance === "critical" && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: "#ef444422", color: "#ef4444" }}>CRITICAL</span>}
-                </div>
-                <p style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>{upd.description}</p>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <span style={{ fontSize: 10, color: "#6b7280" }}>{upd.date}</span>
-                <div style={{ marginTop: 4 }}>
-                  <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: upd.implemented ? "#22c55e22" : "#37415122", color: upd.implemented ? "#4ade80" : "#6b7280" }}>{upd.implemented ? "✓ Actief" : "○ Pending"}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tools Status */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#a78bfa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>🔧</span> TOOLS & PLUGINS STATUS
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {toolsStatus.map((tool, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: statusColors[tool.status] }} />
-                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{tool.name}</span>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <span style={{ color: "#9ca3af", fontSize: 10 }}>{tool.note}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
-        <p><strong>Doel:</strong> Franky hoeft niet constant video's te kijken - dit dashboard houdt alles bij</p>
-        <p style={{ marginTop: 4 }}><strong>Toekomst:</strong> Automatische checks via Anthropic API/changelog</p>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// V3.6 TAB: OPENCLAW - Agent/Telegram monitoring (NIET installeren, alleen voorbereiden)
-// Evolutie: ClawdBot → MoldBot → OpenClaw
-// Franky heeft 3 agents gebouwd maar afgebouwd - dit bereidt de infrastructuur voor
-// ═══════════════════════════════════════════════════════════════════════════════
-function OpenClaudeBot() {
-  // Agent configuraties (voorbereid, nog niet actief)
-  const [agents] = useState([
-    { id: "agent-1", name: "Telegram Commander", status: "planned", description: "Commands via Telegram terwijl Franky onderweg is", platform: "Telegram", mm4Required: true },
-    { id: "agent-2", name: "MM4 Monitor", status: "planned", description: "Monitort training jobs op Mac Mini M4", platform: "Local", mm4Required: true },
-    { id: "agent-3", name: "Sync Watcher", status: "planned", description: "Notificaties bij sync issues tussen devices", platform: "Multi", mm4Required: false },
-  ]);
-
-  // Franky's eerdere agent ervaringen
-  const [history] = useState([
-    { date: "2026-01", event: "3 agents gebouwd", outcome: "Afgebouwd wegens problemen", lesson: "Te vroeg, infrastructuur nog niet klaar" },
-    { date: "2026-02", event: "Cloud Control Center v3.5", outcome: "Stabiele basis", lesson: "Eerst monitoring, dan agents" },
-  ]);
-
-  // Vereisten voor agent deployment
-  const [requirements] = useState([
-    { req: "MM4 setup compleet", status: "pending", note: "Scripts klaar, nog niet uitgevoerd" },
-    { req: "Syncthing actief op alle Macs", status: "partial", note: "Alleen MBA gekoppeld" },
-    { req: "Claude Agent SDK geïnstalleerd", status: "not_started", note: "Wacht op Franky's beslissing" },
-    { req: "Telegram Bot Token", status: "not_started", note: "Nog aan te maken" },
-    { req: "Stabiele internet op MM4", status: "unknown", note: "Te verifiëren" },
-  ]);
-
-  const statusColors = { planned: "#60a5fa", active: "#4ade80", paused: "#fbbf24", failed: "#ef4444", pending: "#fbbf24", partial: "#f59e0b", not_started: "#6b7280", unknown: "#9ca3af" };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Header - WAARSCHUWING */}
-      <div style={{ background: "linear-gradient(135deg, #1a0a2e, #2d1b4e)", border: "1px solid #7c3aed", borderRadius: 12, padding: 16 }}>
-        <div style={{ fontWeight: 800, color: "#a78bfa", fontSize: 18, display: "flex", alignItems: "center", gap: 10 }}>
-          <span>🤖</span> OpenClaw (ClawdBot → MoldBot → OpenClaw)
-        </div>
-        <p style={{ color: "#c4b5fd", fontSize: 12, marginTop: 6 }}>Monitoring & Voorbereiding - NIET actief</p>
-        <div style={{ marginTop: 10, padding: 10, background: "#1a140033", border: "1px solid #854d0e", borderRadius: 8 }}>
-          <p style={{ color: "#fbbf24", fontSize: 11 }}>⚠️ STATUS: Alleen monitoring - nog NIETS installeren per Franky's instructie</p>
-        </div>
-      </div>
-
-      {/* Geplande Agents */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📋</span> GEPLANDE AGENTS
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {agents.map(agent => (
-            <div key={agent.id} style={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 13 }}>{agent.name}</span>
-                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: `${statusColors[agent.status]}22`, color: statusColors[agent.status] }}>{agent.status}</span>
-                  </div>
-                  <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{agent.description}</p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#37415122", color: "#9ca3af" }}>{agent.platform}</span>
-                  {agent.mm4Required && <p style={{ color: "#6b7280", fontSize: 9, marginTop: 4 }}>Vereist MM4</p>}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Requirements Checklist */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>✓</span> VEREISTEN VOOR DEPLOYMENT
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {requirements.map((req, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: statusColors[req.status] }} />
-                <span style={{ color: "#e5e5e5", fontSize: 12 }}>{req.req}</span>
-              </div>
-              <span style={{ color: "#6b7280", fontSize: 10 }}>{req.note}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* History */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#9ca3af", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📜</span> FRANKY'S AGENT ERVARING
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {history.map((h, idx) => (
-            <div key={idx} style={{ background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{h.event}</span>
-                <span style={{ color: "#6b7280", fontSize: 10 }}>{h.date}</span>
-              </div>
-              <p style={{ color: "#9ca3af", fontSize: 10, marginTop: 4 }}>Outcome: {h.outcome}</p>
-              <p style={{ color: "#fbbf24", fontSize: 10, marginTop: 2 }}>Les: {h.lesson}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Telegram Concept */}
-      <div style={{ background: "#001a33", border: "1px solid #1e40af", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📱</span> TELEGRAM INTEGRATIE CONCEPT
-        </div>
-        <p style={{ color: "#93c5fd", fontSize: 12 }}>Doel: Franky rijdt in de wagen → stuurt Telegram command → MM4 voert uit</p>
-        <div style={{ marginTop: 10, padding: 10, background: "#0a0a0a", borderRadius: 8 }}>
-          <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/status - Check MM4 training status</p>
-          <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/sync - Trigger sync naar alle devices</p>
-          <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/stop - Pauzeer huidige training</p>
-        </div>
-        <p style={{ color: "#4b5563", fontSize: 10, marginTop: 10 }}>Status: Concept - wacht op MM4 setup + Franky's go-ahead</p>
-      </div>
-
-      {/* Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
-        <p><strong>Huidige status:</strong> Alleen monitoring - geen installaties</p>
-        <p style={{ marginTop: 4 }}><strong>Volgende stap:</strong> MM4 setup voltooien, dan agents heroverwegen</p>
-        <p style={{ marginTop: 4 }}><strong>Franky's beslissing:</strong> Agents ZULLEN geïmplementeerd worden, timing TBD</p>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: AGENT HIERARCHY (voor 10-100 agenten orchestratie)
 // ═══════════════════════════════════════════════════════════════════════════════
 function AgentHierarchy() {
@@ -1434,8 +1180,6 @@ export default function ControlCenter() {
     { id: "infranodus", label: "🕸️ InfraNodus", color: "#a855f7" },
     { id: "agents", label: "👥 Agents", color: "#f59e0b" },
     { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
-    { id: "updates", label: "📡 Updates", color: "#06b6d4" },
-    { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
   ];
 
   return (
@@ -1445,7 +1189,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.6 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.5 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", border: "1px solid #166534" }}>● MBA</span>
@@ -1505,12 +1249,10 @@ export default function ControlCenter() {
       {tab === "infranodus" && <InfraNodusDashboard />}
       {tab === "agents" && <AgentHierarchy />}
       {tab === "knowledge" && <SystemKnowledgeBase />}
-      {tab === "updates" && <ClaudeUpdates />}
-      {tab === "openbot" && <OpenClaudeBot />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.6 • {total} nodes • 14 tabs • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.5 • {total} nodes • 12 tabs • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
