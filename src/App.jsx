@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.8
+// CLAUDE CONTROL CENTER v3.9
 // Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -66,7 +66,60 @@ const api = {
 // v3.6 - Added Claude Updates + OpenClaw Bot monitoring (14 tabs total)
 // v3.7 - Advisor met vraag-historie + Responsive menu + iPhone device + Advisor prominent
 // v3.8 - Advisor multi-turn conversatie + Fullscreen mode + Chat thread
+// v3.9 - Device auto-detect + Persistent Q&A log + Delete vragen + Navigatie links
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── DEVICE DETECTION ───
+function detectDevice() {
+  const ua = navigator.userAgent.toLowerCase();
+  const width = window.innerWidth;
+
+  // Check for iPhone/iPad
+  if (/iphone|ipod/.test(ua) || (ua.includes('safari') && width < 500)) {
+    return 'iPhone';
+  }
+  if (/ipad/.test(ua) || (ua.includes('safari') && width >= 500 && width < 1024)) {
+    return 'iPad';
+  }
+
+  // Check hostname for Mac identification (when running locally)
+  const hostname = window.location.hostname;
+  if (hostname.includes('mm4') || hostname.includes('mini4')) return 'MM4';
+  if (hostname.includes('mm2') || hostname.includes('mini2')) return 'MM2';
+
+  // Check screen size heuristics for desktop Macs
+  if (width >= 1024) {
+    // Could be MBA, MM4, or MM2 - default to where the dashboard was opened
+    // Store device preference in localStorage
+    const storedDevice = localStorage.getItem('ccc-device');
+    if (storedDevice) return storedDevice;
+    return 'MBA'; // Default
+  }
+
+  return 'Unknown';
+}
+
+// ─── ACTIVITY LOGGER ───
+function logActivity(action, detail, device) {
+  const entry = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    action,
+    detail,
+    device: device || detectDevice(),
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('ccc-activity-log') || '[]');
+    existing.unshift(entry);
+    localStorage.setItem('ccc-activity-log', JSON.stringify(existing.slice(0, 500))); // Keep 500 entries
+  } catch {}
+
+  // Also send to API for central logging
+  api.log(action, detail, 'activity', 'Dashboard', device || detectDevice());
+
+  return entry;
+}
 
 // ─── STATUS DEFINITIONS ───
 const STATUS = {
@@ -332,18 +385,32 @@ function TreeNode({ node, depth = 0, searchTerm }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// V3.8 COMPONENT: AI ADVISOR - Multi-turn conversatie + Fullscreen mode
+// V3.9 COMPONENT: AI ADVISOR - Persistent Q&A log + Delete + Navigation links
 // ═══════════════════════════════════════════════════════════════════════════════
-function AIAdvisor({ issues, compact = false, onExpand }) {
+function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevice }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [question, setQuestion] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [agentMode, setAgentMode] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
 
-  // Chat thread for multi-turn conversations
-  const [chatThread, setChatThread] = useState([]);
+  // Chat thread for multi-turn conversations - PERSISTED
+  const [chatThread, setChatThread] = useState(() => {
+    try {
+      const saved = localStorage.getItem("advisor-current-thread");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  // ALL questions ever asked - PERSISTENT LOG
+  const [allQuestions, setAllQuestions] = useState(() => {
+    try {
+      const saved = localStorage.getItem("advisor-all-questions");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
 
   // Saved sessions history
   const [savedSessions, setSavedSessions] = useState(() => {
@@ -355,12 +422,54 @@ function AIAdvisor({ issues, compact = false, onExpand }) {
 
   const summary = issues.filter(i => i.status === STATUS.ERROR || i.status === STATUS.WARN).map(i => `[${i.status === STATUS.ERROR ? "ERR" : "WARN"}] ${i.path}: ${i.detail || i.name}${i.recommendation ? " | Fix: " + i.recommendation : ""}`).join("\n");
 
-  // Save sessions to localStorage
+  // Save everything to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem("advisor-sessions", JSON.stringify(savedSessions.slice(0, 20))); // Keep last 20 sessions
+      localStorage.setItem("advisor-current-thread", JSON.stringify(chatThread));
+    } catch {}
+  }, [chatThread]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("advisor-all-questions", JSON.stringify(allQuestions.slice(0, 200))); // Keep 200
+    } catch {}
+  }, [allQuestions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("advisor-sessions", JSON.stringify(savedSessions.slice(0, 20)));
     } catch {}
   }, [savedSessions]);
+
+  // Detect tab references in answer text
+  const detectTabLinks = (text) => {
+    const tabKeywords = {
+      ecosystem: ["ecosystem", "boomstructuur", "hardware", "machines", "mcp"],
+      issues: ["issues", "problemen", "waarschuwingen", "errors", "kritiek"],
+      memory: ["memory", "geheugen", "claude-mem", "observations"],
+      git: ["git", "repository", "commit", "push", "dirty"],
+      versions: ["versions", "snapshots", "rollback", "versie"],
+      activity: ["activity", "log", "activiteit", "geschiedenis"],
+      staging: ["staging", "deploy", "cloudflare", "productie"],
+      sync: ["sync", "syncthing", "synchronisatie", "devices"],
+      infranodus: ["infranodus", "knowledge graph", "seo"],
+      agents: ["agents", "orchestrator", "worker", "hiërarchie"],
+      knowledge: ["knowledge", "base", "kennis"],
+      updates: ["updates", "claude", "anthropic", "nieuw"],
+      openbot: ["openclaw", "telegram", "bot", "clawdbot", "moldbot"],
+    };
+
+    const foundTabs = [];
+    const lowerText = text.toLowerCase();
+
+    for (const [tabId, keywords] of Object.entries(tabKeywords)) {
+      if (keywords.some(kw => lowerText.includes(kw))) {
+        foundTabs.push(tabId);
+      }
+    }
+
+    return [...new Set(foundTabs)]; // Remove duplicates
+  };
 
   // Build conversation context from thread
   const buildMessages = useCallback((newQuestion) => {
@@ -370,17 +479,17 @@ Je kunt helpen met: problemen analyseren, Cloud Control Center verbeteren, issue
 Huidige systeem issues:
 ${summary}
 
+BELANGRIJK: Als je verwijst naar een specifiek onderdeel (Ecosystem, Memory, Git, etc.), vermeld dit duidelijk zodat de gebruiker ernaar kan navigeren.
+
 Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw voort op de conversatie.`;
 
     const messages = [{ role: "user", content: systemContext }];
 
-    // Add previous conversation turns
     chatThread.forEach(turn => {
       messages.push({ role: "user", content: turn.question });
       messages.push({ role: "assistant", content: turn.answer });
     });
 
-    // Add new question
     if (newQuestion) {
       messages.push({ role: "user", content: newQuestion });
     }
@@ -400,6 +509,9 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
       if (r.error) throw new Error(r.error?.message || "API fout");
       const answer = r.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "Geen antwoord.";
 
+      // Detect linked tabs
+      const linkedTabs = detectTabLinks(answer);
+
       // Add to chat thread
       const newTurn = {
         id: Date.now(),
@@ -407,22 +519,43 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
         question: questionText,
         answer,
         type: isAnalysis ? "analysis" : (agentMode ? "agent" : "question"),
+        linkedTabs,
+        device: currentDevice || detectDevice(),
+        resolved: false,
       };
       setChatThread(prev => [...prev, newTurn]);
 
+      // Also add to ALL questions log
+      setAllQuestions(prev => [newTurn, ...prev]);
+
+      // Log activity
+      logActivity("advisor_question", questionText.substring(0, 100), currentDevice);
+
     } catch (e) { setError(e.message); } finally { setLoading(false); }
-  }, [buildMessages, agentMode]);
+  }, [buildMessages, agentMode, currentDevice]);
+
+  const deleteTurn = (turnId) => {
+    setChatThread(prev => prev.filter(t => t.id !== turnId));
+    setAllQuestions(prev => prev.filter(t => t.id !== turnId));
+    logActivity("advisor_delete", `Vraag ${turnId} verwijderd`, currentDevice);
+  };
+
+  const markResolved = (turnId) => {
+    setAllQuestions(prev => prev.map(t => t.id === turnId ? { ...t, resolved: true } : t));
+    logActivity("advisor_resolved", `Vraag ${turnId} opgelost`, currentDevice);
+  };
 
   const startNewSession = () => {
     if (chatThread.length > 0) {
-      // Save current session
       const session = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
         turns: chatThread,
-        summary: chatThread[0]?.question.substring(0, 50) + "..."
+        summary: chatThread[0]?.question.substring(0, 50) + "...",
+        device: currentDevice || detectDevice(),
       };
       setSavedSessions(prev => [session, ...prev]);
+      logActivity("advisor_new_session", `Sessie opgeslagen: ${session.summary}`, currentDevice);
     }
     setChatThread([]);
   };
@@ -430,6 +563,10 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   const loadSession = (session) => {
     setChatThread(session.turns);
     setShowHistory(false);
+  };
+
+  const deleteSession = (sessionId) => {
+    setSavedSessions(prev => prev.filter(s => s.id !== sessionId));
   };
 
   const clearAllSessions = () => {
@@ -440,6 +577,22 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   const toggleExpand = () => {
     setExpanded(!expanded);
     if (onExpand) onExpand(!expanded);
+  };
+
+  // Tab navigation handler
+  const navigateToTab = (tabId) => {
+    if (onNavigate) {
+      onNavigate(tabId);
+      if (expanded) setExpanded(false);
+    }
+  };
+
+  // Tab label map
+  const tabLabels = {
+    ecosystem: "🗺️ Ecosystem", issues: "⚠️ Issues", memory: "🧠 Memory", git: "📂 Git",
+    versions: "📸 Versions", activity: "📜 Activity", staging: "🌐 Staging", sync: "🔄 Sync",
+    infranodus: "🕸️ InfraNodus", agents: "👥 Agents", knowledge: "🧠 Knowledge",
+    updates: "📡 Updates", openbot: "🤖 OpenClaw"
   };
 
   // Compact mode for header bar
@@ -453,21 +606,56 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
           <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{loading ? "⏳" : "→"}</button>
           <button onClick={toggleExpand} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Open fullscreen">⛶</button>
-          {chatThread.length > 0 && <span style={{ fontSize: 9, color: "#6b7280" }}>({chatThread.length} berichten)</span>}
+          <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Alle vragen">📋 {allQuestions.length}</button>
+          {chatThread.length > 0 && <span style={{ fontSize: 9, color: "#6b7280" }}>({chatThread.length} in gesprek)</span>}
         </div>
         {error && <div style={{ color: "#f87171", fontSize: 10, padding: "6px 0" }}>❌ {error}</div>}
 
-        {/* Show last response + input for follow-up */}
+        {/* Show last response + linked tabs */}
         {chatThread.length > 0 && (
           <div style={{ marginTop: 8 }}>
             <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap", maxHeight: 120, overflow: "auto" }}>
-              <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 4 }}>💬 {chatThread[chatThread.length - 1].question.substring(0, 60)}...</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <span style={{ fontSize: 9, color: "#6b7280" }}>💬 {chatThread[chatThread.length - 1].question.substring(0, 50)}...</span>
+                <button onClick={() => deleteTurn(chatThread[chatThread.length - 1].id)} style={{ fontSize: 9, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }}>🗑️</button>
+              </div>
               {chatThread[chatThread.length - 1].answer}
             </div>
+            {/* Linked tabs */}
+            {chatThread[chatThread.length - 1].linkedTabs?.length > 0 && (
+              <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 9, color: "#6b7280" }}>Ga naar:</span>
+                {chatThread[chatThread.length - 1].linkedTabs.map(tabId => (
+                  <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId] || tabId}</button>
+                ))}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              <button onClick={startNewSession} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", cursor: "pointer" }}>🔄 Nieuw gesprek</button>
-              <button onClick={toggleExpand} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>⛶ Volledig scherm</button>
+              <button onClick={startNewSession} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", cursor: "pointer" }}>🔄 Nieuw</button>
+              <button onClick={toggleExpand} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>⛶ Volledig</button>
             </div>
+          </div>
+        )}
+
+        {/* All questions panel (compact) */}
+        {showAllQuestions && (
+          <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, marginTop: 8, maxHeight: 250, overflow: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: "#a78bfa", fontWeight: 600 }}>📋 Alle vragen ({allQuestions.length})</span>
+              <span style={{ fontSize: 9, color: "#6b7280" }}>{allQuestions.filter(q => q.resolved).length} opgelost</span>
+            </div>
+            {allQuestions.slice(0, 15).map(q => (
+              <div key={q.id} style={{ padding: 6, borderBottom: "1px solid #1f2937", opacity: q.resolved ? 0.5 : 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 10, color: "#e5e5e5", flex: 1 }}>{q.resolved ? "✅ " : ""}{q.question.substring(0, 40)}...</span>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {!q.resolved && <button onClick={() => markResolved(q.id)} style={{ fontSize: 8, color: "#4ade80", background: "transparent", border: "none", cursor: "pointer" }} title="Markeer als opgelost">✓</button>}
+                    <button onClick={() => deleteTurn(q.id)} style={{ fontSize: 8, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }} title="Verwijder">🗑️</button>
+                  </div>
+                </div>
+                <div style={{ fontSize: 9, color: "#6b7280" }}>{new Date(q.timestamp).toLocaleDateString("nl-BE")} • {q.device}</div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -492,26 +680,26 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   return (
     <div style={containerStyle}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 24 }}>🤖</span>
           <div>
             <span style={{ fontWeight: 700, fontSize: 18, color: "#a78bfa" }}>AI Ecosystem Advisor</span>
-            {chatThread.length > 0 && <span style={{ marginLeft: 10, fontSize: 11, color: "#6b7280" }}>({chatThread.length} berichten in gesprek)</span>}
+            {chatThread.length > 0 && <span style={{ marginLeft: 10, fontSize: 11, color: "#6b7280" }}>({chatThread.length} berichten)</span>}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "8px 14px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 12, cursor: "pointer" }}>{agentMode ? "🤖 Agent Mode" : "💬 Vraag Mode"}</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "8px 14px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 12, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
+          <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #f59e0b", background: "#1a1400", color: "#fbbf24", fontSize: 12, cursor: "pointer" }}>📋 Alle vragen ({allQuestions.length})</button>
           <button onClick={() => setShowHistory(!showHistory)} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>📜 Sessies ({savedSessions.length})</button>
-          {chatThread.length > 0 && <button onClick={startNewSession} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #f59e0b", background: "#1a1400", color: "#fbbf24", fontSize: 12, cursor: "pointer" }}>🔄 Nieuw gesprek</button>}
+          {chatThread.length > 0 && <button onClick={startNewSession} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #10b981", background: "#052e16", color: "#4ade80", fontSize: 12, cursor: "pointer" }}>🔄 Nieuw gesprek</button>}
           {expanded && <button onClick={toggleExpand} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #ef4444", background: "#1a0000", color: "#f87171", fontSize: 12, cursor: "pointer" }}>✕ Sluiten</button>}
-          {!expanded && compact && <button onClick={toggleExpand} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>⛶ Fullscreen</button>}
         </div>
       </div>
 
       {agentMode && (
         <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 12, marginBottom: 16 }}>
-          <p style={{ color: "#4ade80", fontSize: 12, margin: 0 }}>🤖 <strong>Agent Mode actief</strong> — De Advisor bouwt voort op het gesprek en kan concrete acties voorstellen voor Cloud Control Center, SDK-HRM, en meer.</p>
+          <p style={{ color: "#4ade80", fontSize: 12, margin: 0 }}>🤖 <strong>Agent Mode actief</strong> — De Advisor bouwt voort op het gesprek en kan concrete acties voorstellen.</p>
         </div>
       )}
 
@@ -520,17 +708,62 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
         <button onClick={() => ask(null, true)} disabled={loading} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Volledige Analyse"}</button>
       </div>
 
+      {/* ALL QUESTIONS Panel */}
+      {showAllQuestions && (
+        <div style={{ background: "#0f0f23", border: "1px solid #f59e0b", borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontWeight: 600, color: "#fbbf24", fontSize: 14 }}>📋 Alle Gestelde Vragen ({allQuestions.length})</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontSize: 11, color: "#6b7280" }}>{allQuestions.filter(q => q.resolved).length} opgelost</span>
+              <button onClick={() => setAllQuestions(prev => prev.filter(q => !q.resolved))} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}>🗑️ Opgeloste wissen</button>
+            </div>
+          </div>
+          <div style={{ maxHeight: 300, overflow: "auto" }}>
+            {allQuestions.map(q => (
+              <div key={q.id} style={{ padding: 12, borderBottom: "1px solid #1f2937", opacity: q.resolved ? 0.6 : 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, color: q.type === "agent" ? "#4ade80" : "#a78bfa" }}>{q.type === "agent" ? "🤖" : "💬"}</span>
+                      <span style={{ fontSize: 12, color: "#e5e5e5" }}>{q.resolved ? "✅ " : ""}{q.question}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: "#6b7280" }}>
+                      {new Date(q.timestamp).toLocaleDateString("nl-BE")} {new Date(q.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })} • {q.device}
+                    </div>
+                    {/* Linked tabs */}
+                    {q.linkedTabs?.length > 0 && (
+                      <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+                        {q.linkedTabs.map(tabId => (
+                          <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId]}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {!q.resolved && <button onClick={() => markResolved(q.id)} style={{ fontSize: 10, color: "#4ade80", background: "transparent", border: "1px solid #166534", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }} title="Markeer als opgelost">✓ Opgelost</button>}
+                    <button onClick={() => deleteTurn(q.id)} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }} title="Verwijder">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Chat Thread - Conversation history */}
-      {chatThread.length > 0 && (
-        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 10, padding: 16, marginBottom: 16, maxHeight: expanded ? "calc(100vh - 350px)" : 400, overflow: "auto" }}>
+      {chatThread.length > 0 && !showAllQuestions && (
+        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 10, padding: 16, marginBottom: 16, maxHeight: expanded ? "calc(100vh - 400px)" : 350, overflow: "auto" }}>
           {chatThread.map((turn, idx) => (
             <div key={turn.id} style={{ marginBottom: idx < chatThread.length - 1 ? 16 : 0 }}>
               {/* User question */}
               <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
                 <span style={{ fontSize: 16 }}>👤</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>
-                    {turn.type === "agent" ? "🤖 Agent" : turn.type === "analysis" ? "🔍 Analyse" : "💬 Vraag"} • {new Date(turn.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontSize: 10, color: "#6b7280" }}>
+                      {turn.type === "agent" ? "🤖 Agent" : turn.type === "analysis" ? "🔍 Analyse" : "💬 Vraag"} • {new Date(turn.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                    <button onClick={() => deleteTurn(turn.id)} style={{ fontSize: 9, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }}>🗑️</button>
                   </div>
                   <div style={{ background: "#1a1a3e", border: "1px solid #312e81", borderRadius: 8, padding: 10, fontSize: 12, color: "#e5e5e5" }}>{turn.question}</div>
                 </div>
@@ -538,7 +771,18 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
               {/* Advisor response */}
               <div style={{ display: "flex", gap: 10 }}>
                 <span style={{ fontSize: 16 }}>🤖</span>
-                <div style={{ flex: 1, background: "#0a1628", border: "1px solid #1e40af", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{turn.answer}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ background: "#0a1628", border: "1px solid #1e40af", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{turn.answer}</div>
+                  {/* Linked tabs navigation */}
+                  {turn.linkedTabs?.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontSize: 10, color: "#6b7280" }}>📍 Ga naar:</span>
+                      {turn.linkedTabs.map(tabId => (
+                        <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer", transition: "all 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#312e81"} onMouseLeave={e => e.currentTarget.style.background = "#1e1b4b"}>{tabLabels[tabId]}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -552,10 +796,10 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           value={question}
           onChange={e => setQuestion(e.target.value)}
           onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))}
-          placeholder={chatThread.length > 0 ? "Stel een vervolgvraag..." : (agentMode ? "Geef een opdracht aan de agent..." : "Stel een vraag...")}
+          placeholder={chatThread.length > 0 ? "Stel een vervolgvraag..." : (agentMode ? "Geef een opdracht..." : "Stel een vraag...")}
           style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#374151"}`, background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }}
         />
-        <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "12px 24px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#312e81", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>{loading ? "⏳" : (chatThread.length > 0 ? "Vervolg →" : (agentMode ? "Uitvoeren" : "Vraag"))}</button>
+        <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "12px 24px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#312e81", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>{loading ? "⏳" : (chatThread.length > 0 ? "Vervolg →" : "Vraag")}</button>
       </div>
 
       {error && <div style={{ color: "#f87171", fontSize: 12, padding: "10px 0" }}>❌ {error}</div>}
@@ -1642,6 +1886,34 @@ export default function ControlCenter() {
   const issues = collectIssues(ECOSYSTEM);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
+  // Device auto-detection
+  const [currentDevice, setCurrentDevice] = useState(() => detectDevice());
+
+  // Update device on window resize (for responsive testing)
+  useEffect(() => {
+    const handleResize = () => {
+      const newDevice = detectDevice();
+      if (newDevice !== currentDevice) {
+        setCurrentDevice(newDevice);
+        logActivity("device_change", `Switched to ${newDevice}`, newDevice);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [currentDevice]);
+
+  // Log page load
+  useEffect(() => {
+    logActivity("page_load", `Dashboard opened on ${currentDevice}`, currentDevice);
+  }, []);
+
+  // Device selector for manual override
+  const setDeviceManually = (device) => {
+    localStorage.setItem('ccc-device', device);
+    setCurrentDevice(device);
+    logActivity("device_manual_set", `Manually set to ${device}`, device);
+  };
+
   // Tabs - reorganized for better visibility
   const tabs = [
     { id: "ecosystem", label: "🗺️ Ecosystem", color: "#22c55e" },
@@ -1657,7 +1929,15 @@ export default function ControlCenter() {
     { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
     { id: "updates", label: "📡 Updates", color: "#06b6d4" },
     { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
-    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" }, // Moved to end, but prominent via compact bar
+    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
+  ];
+
+  // Device display config
+  const devices = [
+    { id: "MBA", label: "MBA", icon: "💻" },
+    { id: "MM4", label: "MM4", icon: "🖥️" },
+    { id: "MM2", label: "MM2", icon: "🖥️" },
+    { id: "iPhone", label: "iPhone", icon: "📱" },
   ];
 
   return (
@@ -1667,13 +1947,32 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.8 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", border: "1px solid #166534" }}>● MBA</span>
-            <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#a78bfa22", color: "#c4b5fd", border: "1px solid #5b21b6" }}>◌ MM4</span>
-            <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#a78bfa22", color: "#c4b5fd", border: "1px solid #5b21b6" }}>◌ MM2</span>
-            <span style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, background: "#60a5fa22", color: "#93c5fd", border: "1px solid #1e40af" }}>📱 iPhone</span>
+          {/* Device indicators - ACTIVE device is GREEN */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {devices.map(d => {
+              const isActive = currentDevice === d.id;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => setDeviceManually(d.id)}
+                  style={{
+                    fontSize: 10,
+                    padding: "4px 10px",
+                    borderRadius: 6,
+                    background: isActive ? "#22c55e22" : "#37415122",
+                    color: isActive ? "#4ade80" : "#6b7280",
+                    border: `1px solid ${isActive ? "#166534" : "#374151"}`,
+                    cursor: "pointer",
+                    transition: "all 0.15s"
+                  }}
+                  title={isActive ? `Actief op ${d.id}` : `Klik om te wisselen naar ${d.id}`}
+                >
+                  {isActive ? "●" : "◌"} {d.icon} {d.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         {/* Status Bar */}
@@ -1691,7 +1990,7 @@ export default function ControlCenter() {
       </div>
 
       {/* ADVISOR - Prominent bar (always visible) */}
-      <AIAdvisor issues={issues} compact={true} />
+      <AIAdvisor issues={issues} compact={true} onNavigate={setTab} currentDevice={currentDevice} />
 
       {/* Tabs - Responsive grid layout (wraps instead of scrolling) */}
       <div style={{
@@ -1737,7 +2036,7 @@ export default function ControlCenter() {
         </div>
       )}
 
-      {tab === "advisor" && <AIAdvisor issues={issues} />}
+      {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} />}
       {tab === "memory" && <MemoryCenter />}
       {tab === "git" && <GitDeployCenter />}
       {tab === "versions" && <VersionSnapshots />}
@@ -1752,7 +2051,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.8 • {total} nodes • 14 tabs • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.9 • {total} nodes • 14 tabs • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
