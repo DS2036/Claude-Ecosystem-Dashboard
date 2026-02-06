@@ -69,6 +69,7 @@ const api = {
 // v3.9 - Device auto-detect + Persistent Q&A log + Delete vragen + Navigatie links
 // v3.9.1 - FIX: MBA default + GEEN auto-opgelost + Antwoorden zichtbaar in Alle Vragen
 // v3.9.5 - Device selectie popup: Eenmalig kiezen, daarna voor altijd opgeslagen
+// v3.9.6 - Advisor standaard ingeklapt + Lichter donker thema + Betere randen
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -403,6 +404,9 @@ function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevic
   const [showHistory, setShowHistory] = useState(false);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
 
+  // v3.9.6: Start ingeklapt - gebruiker moet expliciet openen
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   // Chat thread for multi-turn conversations - PERSISTED
   const [chatThread, setChatThread] = useState(() => {
     try {
@@ -602,7 +606,26 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
     updates: "📡 Updates", openbot: "🤖 OpenClaw"
   };
 
-  // Compact mode for header bar
+  // v3.9.6: INGEKLAPT - alleen titel + open knop
+  if (compact && isCollapsed && !expanded) {
+    return (
+      <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 16 }}>🤖</span>
+            <span style={{ fontWeight: 700, fontSize: 12, color: "#a78bfa" }}>AI Advisor</span>
+            {chatThread.length > 0 && <span style={{ fontSize: 10, color: "#6b7280", background: "#1e1b4b", padding: "2px 6px", borderRadius: 4 }}>{chatThread.length} in gesprek</span>}
+            {allQuestions.length > 0 && <span style={{ fontSize: 10, color: "#6b7280" }}>• {allQuestions.length} vragen totaal</span>}
+          </div>
+          <button onClick={() => setIsCollapsed(false)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            Open ▼
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Compact mode for header bar (OPEN)
   if (compact && !expanded) {
     return (
       <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 10, padding: 10, marginBottom: 12 }}>
@@ -614,6 +637,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{loading ? "⏳" : "→"}</button>
           <button onClick={toggleExpand} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Open fullscreen">⛶</button>
           <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Alle vragen">📋 {allQuestions.length}</button>
+          <button onClick={() => setIsCollapsed(true)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Inklappen">▲</button>
           {chatThread.length > 0 && <span style={{ fontSize: 9, color: "#6b7280" }}>({chatThread.length} in gesprek)</span>}
         </div>
         {error && <div style={{ color: "#f87171", fontSize: 10, padding: "6px 0" }}>❌ {error}</div>}
@@ -1949,7 +1973,7 @@ export default function ControlCenter() {
   ];
 
   return (
-    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "linear-gradient(180deg, #0a0a1a 0%, #0a0a0a 5%, #0a0a0a 95%, #0a0a1a 100%)", color: "#e5e5e5", minHeight: "100vh", padding: 12, borderLeft: "3px solid #1e1b4b", borderRight: "3px solid #1e1b4b" }}>
+    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "linear-gradient(180deg, #12122a 0%, #0f0f18 8%, #0f0f18 92%, #12122a 100%)", color: "#e5e5e5", minHeight: "100vh", padding: 12, borderLeft: "4px solid #2d2a5e", borderRight: "4px solid #2d2a5e", borderTop: "4px solid #2d2a5e", borderBottom: "4px solid #2d2a5e" }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
@@ -1999,7 +2023,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.5 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.6 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
