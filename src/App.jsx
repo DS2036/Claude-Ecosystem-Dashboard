@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.9
+// CLAUDE CONTROL CENTER v3.9.1
 // Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -67,6 +67,7 @@ const api = {
 // v3.7 - Advisor met vraag-historie + Responsive menu + iPhone device + Advisor prominent
 // v3.8 - Advisor multi-turn conversatie + Fullscreen mode + Chat thread
 // v3.9 - Device auto-detect + Persistent Q&A log + Delete vragen + Navigatie links
+// v3.9.1 - FIX: MBA default + GEEN auto-opgelost + Antwoorden zichtbaar in Alle Vragen
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -74,12 +75,18 @@ function detectDevice() {
   const ua = navigator.userAgent.toLowerCase();
   const width = window.innerWidth;
 
-  // Check for iPhone/iPad
-  if (/iphone|ipod/.test(ua) || (ua.includes('safari') && width < 500)) {
+  // FIRST check localStorage - user's manual choice takes priority
+  const storedDevice = localStorage.getItem('ccc-device');
+  if (storedDevice && ['MBA', 'MM4', 'MM2', 'iPhone'].includes(storedDevice)) {
+    return storedDevice;
+  }
+
+  // Check for iPhone/iPad - only on actual iOS devices
+  if (/iphone|ipod/.test(ua)) {
     return 'iPhone';
   }
-  if (/ipad/.test(ua) || (ua.includes('safari') && width >= 500 && width < 1024)) {
-    return 'iPad';
+  if (/ipad/.test(ua)) {
+    return 'iPhone'; // Treat iPad as iPhone for now
   }
 
   // Check hostname for Mac identification (when running locally)
@@ -87,16 +94,8 @@ function detectDevice() {
   if (hostname.includes('mm4') || hostname.includes('mini4')) return 'MM4';
   if (hostname.includes('mm2') || hostname.includes('mini2')) return 'MM2';
 
-  // Check screen size heuristics for desktop Macs
-  if (width >= 1024) {
-    // Could be MBA, MM4, or MM2 - default to where the dashboard was opened
-    // Store device preference in localStorage
-    const storedDevice = localStorage.getItem('ccc-device');
-    if (storedDevice) return storedDevice;
-    return 'MBA'; // Default
-  }
-
-  return 'Unknown';
+  // Default to MBA for desktop browsers
+  return 'MBA';
 }
 
 // ─── ACTIVITY LOGGER ───
@@ -708,7 +707,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
         <button onClick={() => ask(null, true)} disabled={loading} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Volledige Analyse"}</button>
       </div>
 
-      {/* ALL QUESTIONS Panel */}
+      {/* ALL QUESTIONS Panel - Toont VRAAG + ANTWOORD */}
       {showAllQuestions && (
         <div style={{ background: "#0f0f23", border: "1px solid #f59e0b", borderRadius: 10, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -718,32 +717,44 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
               <button onClick={() => setAllQuestions(prev => prev.filter(q => !q.resolved))} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}>🗑️ Opgeloste wissen</button>
             </div>
           </div>
-          <div style={{ maxHeight: 300, overflow: "auto" }}>
+          <div style={{ maxHeight: expanded ? "calc(100vh - 350px)" : 500, overflow: "auto" }}>
             {allQuestions.map(q => (
-              <div key={q.id} style={{ padding: 12, borderBottom: "1px solid #1f2937", opacity: q.resolved ? 0.6 : 1 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 11, color: q.type === "agent" ? "#4ade80" : "#a78bfa" }}>{q.type === "agent" ? "🤖" : "💬"}</span>
-                      <span style={{ fontSize: 12, color: "#e5e5e5" }}>{q.resolved ? "✅ " : ""}{q.question}</span>
-                    </div>
-                    <div style={{ fontSize: 10, color: "#6b7280" }}>
-                      {new Date(q.timestamp).toLocaleDateString("nl-BE")} {new Date(q.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })} • {q.device}
-                    </div>
-                    {/* Linked tabs */}
-                    {q.linkedTabs?.length > 0 && (
-                      <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
-                        {q.linkedTabs.map(tabId => (
-                          <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId]}</button>
-                        ))}
-                      </div>
-                    )}
+              <div key={q.id} style={{ padding: 14, marginBottom: 12, background: q.resolved ? "#1a1a2e55" : "#1a1a2e", borderRadius: 10, border: `1px solid ${q.resolved ? "#374151" : "#f59e0b44"}` }}>
+                {/* Header met acties */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: q.type === "agent" ? "#4ade80" : "#a78bfa" }}>{q.type === "agent" ? "🤖 Agent" : "💬 Vraag"}</span>
+                    <span style={{ fontSize: 10, color: "#6b7280" }}>{new Date(q.timestamp).toLocaleDateString("nl-BE")} {new Date(q.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#37415155", color: "#9ca3af" }}>{q.device}</span>
+                    {q.resolved && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#16653455", color: "#4ade80" }}>✅ Opgelost</span>}
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    {!q.resolved && <button onClick={() => markResolved(q.id)} style={{ fontSize: 10, color: "#4ade80", background: "transparent", border: "1px solid #166534", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }} title="Markeer als opgelost">✓ Opgelost</button>}
-                    <button onClick={() => deleteTurn(q.id)} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }} title="Verwijder">🗑️</button>
+                    {!q.resolved && <button onClick={() => markResolved(q.id)} style={{ fontSize: 10, color: "#4ade80", background: "transparent", border: "1px solid #166534", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}>✓ Opgelost</button>}
+                    <button onClick={() => deleteTurn(q.id)} style={{ fontSize: 10, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}>🗑️</button>
                   </div>
                 </div>
+
+                {/* VRAAG */}
+                <div style={{ background: "#1a1a3e", border: "1px solid #312e81", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>👤 Vraag:</div>
+                  <div style={{ fontSize: 12, color: "#e5e5e5" }}>{q.question}</div>
+                </div>
+
+                {/* ANTWOORD */}
+                <div style={{ background: "#0a1628", border: "1px solid #1e40af", borderRadius: 8, padding: 10 }}>
+                  <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>🤖 Antwoord:</div>
+                  <div style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{q.answer}</div>
+                </div>
+
+                {/* Linked tabs */}
+                {q.linkedTabs?.length > 0 && (
+                  <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontSize: 10, color: "#6b7280" }}>📍 Ga naar:</span>
+                    {q.linkedTabs.map(tabId => (
+                      <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "3px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId]}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -1947,7 +1958,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.1 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -2051,7 +2062,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.9 • {total} nodes • 14 tabs • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.9.1 • {total} nodes • 14 tabs • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
