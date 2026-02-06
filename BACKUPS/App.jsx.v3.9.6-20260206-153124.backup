@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.9.7
+// CLAUDE CONTROL CENTER v3.9.1
 // Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -70,7 +70,6 @@ const api = {
 // v3.9.1 - FIX: MBA default + GEEN auto-opgelost + Antwoorden zichtbaar in Alle Vragen
 // v3.9.5 - Device selectie popup: Eenmalig kiezen, daarna voor altijd opgeslagen
 // v3.9.6 - Advisor standaard ingeklapt + Lichter donker thema + Betere randen
-// v3.9.7 - Sessions Archive toegevoegd aan Memory tab (11 actieve sessies ~240MB)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -967,163 +966,6 @@ function MemoryCenter() {
           <input type="text" value={injectForm.title} onChange={e => setInjectForm({ ...injectForm, title: e.target.value })} placeholder="Titel..." style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
           <textarea value={injectForm.text} onChange={e => setInjectForm({ ...injectForm, text: e.target.value })} placeholder="Beschrijving..." rows={3} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", resize: "vertical" }} />
           <button style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>💾 Inject naar Claude-Mem</button>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════════════════
-          SESSIONS ARCHIVE - v3.9.7 ADDITION
-          Toont alle actieve Claude Code sessies op deze machine
-          ═══════════════════════════════════════════════════════════════════════════════ */}
-      <SessionsArchive />
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SESSIONS ARCHIVE COMPONENT - v3.9.7
-// Toont alle actieve Claude Code CLI sessies met import mogelijkheid
-// ═══════════════════════════════════════════════════════════════════════════════
-function SessionsArchive() {
-  // Hardcoded session data - wordt later vervangen door live API
-  // Data van: 2026-02-06 15:30 MBA scan
-  const sessions = [
-    { id: "econation", project: "Econation", size: "112M", messages: 3476, date: "2026-02-05", status: "massive", priority: "high", topics: ["website", "cloudflare", "zonnepanelen", "deployment"] },
-    { id: "kluizenkerk", project: "Kluizenkerk-Lier", size: "42M", messages: 2058, date: "2026-02-05", status: "large", priority: "medium", topics: ["monument", "website", "history"] },
-    { id: "clawdbot", project: "ClawdBot-Rewind", size: "34M", messages: 1077, date: "2026-02-05", status: "large", priority: "high", topics: ["mold bot", "automation", "rewind"] },
-    { id: "bfw1", project: "BlackFuelWhiskey", size: "18M", messages: 1953, date: "2026-02-05", status: "large", priority: "high", topics: ["whiskey", "brand", "e-commerce", "WIP2"] },
-    { id: "bfw2", project: "BlackFuelWhiskey", size: "15M", messages: 1694, date: "2026-02-06", status: "large", priority: "high", topics: ["whiskey", "brand", "continuation"] },
-    { id: "bfw3", project: "BlackFuelWhiskey", size: "1.8M", messages: 421, date: "2026-02-05", status: "medium", priority: "medium", topics: ["whiskey", "updates"] },
-    { id: "hrm", project: "HRM-Core-Brain", size: "14M", messages: 2692, date: "2026-02-06", status: "large", priority: "critical", topics: ["HRM v2.1", "SDK", "model", "Mac mini setup"] },
-    { id: "sdk", project: "Sapienthinc-HRM-SDK-1", size: "412K", messages: 66, date: "2026-02-06", status: "small", priority: "medium", topics: ["SDK", "transfer"] },
-    { id: "claude-sdk", project: "Claude-Code-SDK", size: "300K", messages: 83, date: "2026-02-05", status: "small", priority: "medium", topics: ["SDK", "claude", "tools"] },
-    { id: "claude-mem", project: "Claude-MEM-start", size: "388K", messages: 243, date: "2026-02-06", status: "active", priority: "critical", topics: ["memory", "install", "activation", "DEZE SESSIE"] },
-    { id: "autoclaude", project: "AutoClaude-Test-1", size: "1.4M", messages: 191, date: "2026-01-25", status: "archived", priority: "low", topics: ["testing", "automation"] },
-  ];
-
-  const totalSize = "~240MB";
-  const totalMessages = sessions.reduce((sum, s) => sum + s.messages, 0);
-
-  const statusColors = {
-    massive: { bg: "#1a0000", border: "#991b1b", color: "#ef4444" },
-    large: { bg: "#1a1400", border: "#854d0e", color: "#f59e0b" },
-    medium: { bg: "#001a33", border: "#1e40af", color: "#60a5fa" },
-    small: { bg: "#0f0f23", border: "#374151", color: "#9ca3af" },
-    active: { bg: "#052e16", border: "#166534", color: "#4ade80" },
-    archived: { bg: "#111", border: "#374151", color: "#6b7280" },
-  };
-
-  const priorityColors = {
-    critical: "#ef4444",
-    high: "#f59e0b",
-    medium: "#60a5fa",
-    low: "#6b7280",
-  };
-
-  return (
-    <div style={{ background: "#0f0f0f", border: "1px solid #5b21b6", borderRadius: 12, padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa", display: "flex", alignItems: "center", gap: 8 }}>
-            <span>📚</span> Active Sessions Archive
-            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#5b21b622", color: "#a78bfa" }}>v3.9.7</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>
-            {sessions.length} sessies • {totalMessages.toLocaleString()} berichten • {totalSize} totaal
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 11, cursor: "pointer" }}>
-            🔄 Refresh
-          </button>
-          <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #854d0e", background: "#1a1400", color: "#fbbf24", fontSize: 11, cursor: "pointer" }}>
-            📥 Export All
-          </button>
-        </div>
-      </div>
-
-      {/* Warning banner */}
-      <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 8, padding: 12, marginBottom: 16 }}>
-        <div style={{ color: "#fbbf24", fontSize: 12, fontWeight: 600 }}>⚠️ BELANGRIJK: Deze sessies bevatten kritieke project informatie!</div>
-        <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>
-          HRM v2.1 • Mac Mini setup • ClawdBot • BlackFuel WIP2 • Alle technische beslissingen
-        </div>
-        <div style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>
-          💡 Tip: Gebruik session-absorber.py om sessies naar claude-mem te importeren
-        </div>
-      </div>
-
-      {/* Sessions grid */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {sessions.map(session => {
-          const sc = statusColors[session.status] || statusColors.small;
-          return (
-            <div key={session.id} style={{
-              background: sc.bg,
-              border: `1px solid ${sc.border}`,
-              borderRadius: 8,
-              padding: 12,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{
-                    width: 8, height: 8, borderRadius: "50%",
-                    background: priorityColors[session.priority]
-                  }} />
-                  <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>
-                    {session.project}
-                  </span>
-                  {session.status === "active" && (
-                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#4ade8022", color: "#4ade80", animation: "pulse 2s infinite" }}>
-                      ● LIVE
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-                  {session.topics.slice(0, 4).map((topic, i) => (
-                    <span key={i} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#1f2937", color: "#9ca3af" }}>
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ color: sc.color, fontSize: 14, fontWeight: 700 }}>{session.size}</div>
-                  <div style={{ color: "#6b7280", fontSize: 10 }}>{session.messages.toLocaleString()} msgs</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ color: "#9ca3af", fontSize: 11 }}>{session.date}</div>
-                  <div style={{ color: "#4b5563", fontSize: 9 }}>{session.status}</div>
-                </div>
-                <button style={{
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  border: "1px solid #374151",
-                  background: "#1a1a2e",
-                  color: "#93c5fd",
-                  fontSize: 10,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap"
-                }}>
-                  📥 Absorb
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* CLI Commands reference */}
-      <div style={{ background: "#0a0a0a", border: "1px solid #1f2937", borderRadius: 8, padding: 12, marginTop: 16 }}>
-        <div style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, marginBottom: 8 }}>🖥️ CLI Commands</div>
-        <div style={{ fontFamily: "monospace", fontSize: 10, color: "#4ade80", lineHeight: 1.8 }}>
-          <div># Absorbeer sessie van clipboard:</div>
-          <div style={{ color: "#93c5fd" }}>python3 ~/Projects/Claude-Ecosystem-Dashboard/bridge/session-absorber.py --from-clipboard --project "ProjectNaam"</div>
-          <div style={{ marginTop: 8 }}># Bekijk memory stats:</div>
-          <div style={{ color: "#93c5fd" }}>python3 ~/Projects/Claude-Ecosystem-Dashboard/bridge/claude-mem-bridge.py stats</div>
         </div>
       </div>
     </div>

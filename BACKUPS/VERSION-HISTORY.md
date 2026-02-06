@@ -22,7 +22,9 @@ git push
 
 | Versie | Commit | Status | Features | Rollback Hash |
 |--------|--------|--------|----------|---------------|
-| v3.9.5 | 815cba0 | ✅ CURRENT | Device popup eenmalig + Donkere buitenrand | `815cba0` |
+| v3.9.7 | pending | 🆕 NEW | Sessions Archive in Memory tab (11 sessies ~240MB) | `pending` |
+| v3.9.6 | 815cba0 | ✅ STABLE | Advisor ingeklapt + Lichter thema | `815cba0` |
+| v3.9.5 | 815cba0 | ✅ STABLE | Device popup eenmalig + Donkere buitenrand | `815cba0` |
 | v3.9.4 | b2bfb1c | ⚠️ BROKEN | Auto-detect via scherm (werkt niet met TV) | `b2bfb1c` |
 | v3.9.3 | bedf69c | ✅ STABLE | Device selector modal | `bedf69c` |
 | v3.9.2 | 67cc89f | ✅ STABLE | MBA default, iPhone mobiel | `67cc89f` |
