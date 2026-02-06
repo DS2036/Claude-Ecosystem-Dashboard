@@ -22,7 +22,7 @@ git push
 
 | Versie | Commit | Status | Features | Rollback Hash |
 |--------|--------|--------|----------|---------------|
-| v3.9.7 | pending | 🆕 NEW | Sessions Archive in Memory tab (11 sessies ~240MB) | `pending` |
+| v3.9.7 | 6a3df8d | ✅ CURRENT | Sessions Archive in Memory tab (11 sessies ~240MB) | `6a3df8d` |
 | v3.9.6 | 815cba0 | ✅ STABLE | Advisor ingeklapt + Lichter thema | `815cba0` |
 | v3.9.5 | 815cba0 | ✅ STABLE | Device popup eenmalig + Donkere buitenrand | `815cba0` |
 | v3.9.4 | b2bfb1c | ⚠️ BROKEN | Auto-detect via scherm (werkt niet met TV) | `b2bfb1c` |
