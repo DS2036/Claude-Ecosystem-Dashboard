@@ -1973,7 +1973,7 @@ export default function ControlCenter() {
   ];
 
   return (
-    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "linear-gradient(180deg, #12122a 0%, #0f0f18 8%, #0f0f18 92%, #12122a 100%)", color: "#e5e5e5", minHeight: "100vh", padding: 12, borderLeft: "4px solid #2d2a5e", borderRight: "4px solid #2d2a5e", borderTop: "4px solid #2d2a5e", borderBottom: "4px solid #2d2a5e" }}>
+    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0f0f18", color: "#e5e5e5", minHeight: "100vh", padding: 12 }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
