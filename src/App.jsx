@@ -74,31 +74,28 @@ const api = {
 function detectDevice() {
   const ua = navigator.userAgent.toLowerCase();
 
-  // iPhone detectie - alleen echte iOS devices
-  if (/iphone|ipod/.test(ua)) {
+  // iPhone detectie
+  if (/iphone|ipod/.test(ua) || (/mobile/.test(ua) && /safari/.test(ua))) {
     return 'iPhone';
   }
 
-  // Mobile Safari = iPhone
-  if (/mobile/.test(ua) && /safari/.test(ua)) {
-    return 'iPhone';
+  // Desktop: auto-detect via schermresolutie
+  // MBA 13": screen.width = 1470 (of 1440, 1280 bij lagere scaling)
+  // MM4 met externe monitor: screen.width = 1920, 2560, 3440, etc.
+  const screenWidth = window.screen.width;
+
+  // MM4 heeft een externe monitor (breed scherm)
+  if (screenWidth >= 1920) {
+    return 'MM4';
   }
 
-  // Desktop: check localStorage voor eerder gekozen device
-  const storedDevice = localStorage.getItem('ccc-device');
-  if (storedDevice && ['MBA', 'MM4', 'MM2'].includes(storedDevice)) {
-    return storedDevice;
-  }
-
-  // Default desktop = MBA (totdat gebruiker anders kiest)
+  // MBA (laptop scherm, smaller)
   return 'MBA';
 }
 
-// Check of dit een nieuwe desktop is die nog geen device heeft gekozen
+// Niet meer nodig - we detecteren nu automatisch
 function isNewDesktop() {
-  const ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipod|mobile/.test(ua)) return false; // Mobiel = auto-detect
-  return !localStorage.getItem('ccc-device');
+  return false;
 }
 
 // ─── ACTIVITY LOGGER ───
