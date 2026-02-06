@@ -84,8 +84,21 @@ function detectDevice() {
     return 'iPhone';
   }
 
-  // Desktop = MBA (default voor MacBook Air)
+  // Desktop: check localStorage voor eerder gekozen device
+  const storedDevice = localStorage.getItem('ccc-device');
+  if (storedDevice && ['MBA', 'MM4', 'MM2'].includes(storedDevice)) {
+    return storedDevice;
+  }
+
+  // Default desktop = MBA (totdat gebruiker anders kiest)
   return 'MBA';
+}
+
+// Check of dit een nieuwe desktop is die nog geen device heeft gekozen
+function isNewDesktop() {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipod|mobile/.test(ua)) return false; // Mobiel = auto-detect
+  return !localStorage.getItem('ccc-device');
 }
 
 // ─── ACTIVITY LOGGER ───
@@ -1889,19 +1902,7 @@ export default function ControlCenter() {
 
   // Device auto-detection
   const [currentDevice, setCurrentDevice] = useState(() => detectDevice());
-
-  // Update device on window resize (for responsive testing)
-  useEffect(() => {
-    const handleResize = () => {
-      const newDevice = detectDevice();
-      if (newDevice !== currentDevice) {
-        setCurrentDevice(newDevice);
-        logActivity("device_change", `Switched to ${newDevice}`, newDevice);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [currentDevice]);
+  const [showDeviceSelector, setShowDeviceSelector] = useState(() => isNewDesktop());
 
   // Log page load
   useEffect(() => {
@@ -1912,7 +1913,8 @@ export default function ControlCenter() {
   const setDeviceManually = (device) => {
     localStorage.setItem('ccc-device', device);
     setCurrentDevice(device);
-    logActivity("device_manual_set", `Manually set to ${device}`, device);
+    setShowDeviceSelector(false);
+    logActivity("device_set", `Device set to ${device}`, device);
   };
 
   // Tabs - reorganized for better visibility
@@ -1943,6 +1945,49 @@ export default function ControlCenter() {
 
   return (
     <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0a0a0a", color: "#e5e5e5", minHeight: "100vh", padding: 12 }}>
+
+      {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
+      {showDeviceSelector && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#0f0f23", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🖥️</div>
+            <h2 style={{ color: "#a78bfa", margin: "0 0 8px 0", fontSize: 20 }}>Welkom op Cloud Control Center!</h2>
+            <p style={{ color: "#9ca3af", fontSize: 13, marginBottom: 20 }}>Op welk device ben je nu?</p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              {[
+                { id: "MBA", label: "MacBook Air", icon: "💻", color: "#22c55e" },
+                { id: "MM4", label: "Mac Mini M4", icon: "🖥️", color: "#60a5fa" },
+                { id: "MM2", label: "Mac Mini M2", icon: "🖥️", color: "#a78bfa" },
+              ].map(d => (
+                <button
+                  key={d.id}
+                  onClick={() => setDeviceManually(d.id)}
+                  style={{
+                    padding: "14px 20px",
+                    borderRadius: 10,
+                    border: `2px solid ${d.color}`,
+                    background: `${d.color}22`,
+                    color: d.color,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    minWidth: 100
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{d.icon}</span>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p style={{ color: "#6b7280", fontSize: 11, marginTop: 16 }}>Je kunt dit later wijzigen door op de device knoppen te klikken.</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ background: "linear-gradient(135deg, #0f0f23, #1a0a2e, #0a1628)", border: "1px solid #1e1b4b", borderRadius: 16, padding: "16px 20px", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
