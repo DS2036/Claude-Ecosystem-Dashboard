@@ -602,8 +602,9 @@ function ActivityLog() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function StagingVariants() {
   const [projects] = useState([
-    { name: "BlackFuelWhiskey", production: "blackfuelwhiskey.com", staging: "staging.blackfuelwhiskey.pages.dev", variants: [{ id: 1, name: "Variant A - Dark Theme", url: "bfw-variant-a.pages.dev", status: "ready" }, { id: 2, name: "Variant B - Gold Accents", url: "bfw-variant-b.pages.dev", status: "building" }] },
-    { name: "Econation", production: "econation.be", staging: "staging.econation.pages.dev", variants: [] },
+    { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: null, variants: [] },
+    { name: "Econation", production: "econation.be", staging: null, variants: [] },
+    { name: "BlackFuelWhiskey", production: null, staging: null, variants: [] },
   ]);
 
   return (
@@ -612,16 +613,24 @@ function StagingVariants() {
         <div key={proj.name} style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#e5e5e5" }}>🌐 {proj.name}</div>
-            <button style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>➕ New Variant</button>
+            <button style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>➕ Create Staging</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, marginBottom: 4 }}>🟢 PRODUCTION</div>
-              <a href={`https://${proj.production}`} target="_blank" rel="noopener noreferrer" style={{ color: "#86efac", fontSize: 13 }}>{proj.production}</a>
+            <div style={{ background: proj.production ? "#052e16" : "#1a1a1a", border: `1px solid ${proj.production ? "#166534" : "#374151"}`, borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 11, color: proj.production ? "#4ade80" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.production ? "🟢 PRODUCTION" : "⚫ PRODUCTION"}</div>
+              {proj.production ? (
+                <a href={`https://${proj.production}`} target="_blank" rel="noopener noreferrer" style={{ color: "#86efac", fontSize: 13 }}>{proj.production}</a>
+              ) : (
+                <span style={{ color: "#6b7280", fontSize: 13, fontStyle: "italic" }}>Not deployed</span>
+              )}
             </div>
-            <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 11, color: "#fbbf24", fontWeight: 600, marginBottom: 4 }}>🟡 STAGING</div>
-              <a href={`https://${proj.staging}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fde68a", fontSize: 13 }}>{proj.staging}</a>
+            <div style={{ background: proj.staging ? "#1a1400" : "#1a1a1a", border: `1px solid ${proj.staging ? "#854d0e" : "#374151"}`, borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 11, color: proj.staging ? "#fbbf24" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.staging ? "🟡 STAGING" : "⚫ STAGING"}</div>
+              {proj.staging ? (
+                <a href={`https://${proj.staging}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fde68a", fontSize: 13 }}>{proj.staging}</a>
+              ) : (
+                <span style={{ color: "#6b7280", fontSize: 13, fontStyle: "italic" }}>Not deployed</span>
+              )}
             </div>
           </div>
           {proj.variants.length > 0 && (
@@ -637,7 +646,6 @@ function StagingVariants() {
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: v.status === "ready" ? "#22c55e22" : "#f59e0b22", color: v.status === "ready" ? "#4ade80" : "#fbbf24" }}>{v.status}</span>
                       <button style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 10, cursor: "pointer" }}>🚀 Promote</button>
-                      <button style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>🔗 Share</button>
                     </div>
                   </div>
                 ))}
@@ -649,10 +657,6 @@ function StagingVariants() {
     </div>
   );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN: CONTROL CENTER v3.0 (MERGED)
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function ControlCenter() {
   const [tab, setTab] = useState("ecosystem");
   const [search, setSearch] = useState("");
