@@ -1,5 +1,54 @@
 import { useState, useCallback, useEffect } from "react";
 
+// ─── WORKER API CONFIGURATION ───
+const WORKER_API = "https://claude-control-center.franky-f29.workers.dev";
+
+// API Helper
+const api = {
+  async log(action, detail, type = "action", source = "Dashboard", mac = "MBA") {
+    try {
+      await fetch(`${WORKER_API}/api/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, detail, type, source, mac }),
+      });
+    } catch (e) { console.error("Log failed:", e); }
+  },
+  async getLogs(limit = 100) {
+    try {
+      const r = await fetch(`${WORKER_API}/api/logs?limit=${limit}`);
+      return (await r.json()).logs || [];
+    } catch (e) { console.error("Get logs failed:", e); return []; }
+  },
+  async createSnapshot(name, project, commit) {
+    try {
+      const r = await fetch(`${WORKER_API}/api/snapshot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, project, commit, type: "manual" }),
+      });
+      return await r.json();
+    } catch (e) { console.error("Snapshot failed:", e); return null; }
+  },
+  async getSnapshots(project = null) {
+    try {
+      const url = project ? `${WORKER_API}/api/snapshots?project=${project}` : `${WORKER_API}/api/snapshots`;
+      const r = await fetch(url);
+      return (await r.json()).snapshots || [];
+    } catch (e) { console.error("Get snapshots failed:", e); return []; }
+  },
+  async askAI(messages) {
+    try {
+      const r = await fetch(`${WORKER_API}/api/ai`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      return await r.json();
+    } catch (e) { console.error("AI request failed:", e); return null; }
+  },
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // CLAUDE CONTROL CENTER v3.0 - MERGED (v1 Ecosystem + v2 Features)
 // Complete Dashboard: Ecosystem Map + Memory + Git + Deploy + Versions + Activity + Staging
