@@ -348,8 +348,8 @@ function AIAdvisor({ issues }) {
         <button onClick={() => ask(null)} disabled={loading} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 12, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Analyse"}</button>
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && ask(question)} placeholder="Stel een vraag..." style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12, outline: "none" }} />
-        <button onClick={() => question.trim() && ask(question)} disabled={loading || !question.trim()} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 12, cursor: "pointer" }}>Vraag</button>
+        <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))} placeholder="Stel een vraag..." style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12, outline: "none" }} />
+        <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 12, cursor: "pointer" }}>Vraag</button>
       </div>
       {error && <div style={{ color: "#f87171", fontSize: 12, padding: 8 }}>❌ {error}</div>}
       {advice && <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: 400, overflow: "auto" }}>{advice}</div>}
