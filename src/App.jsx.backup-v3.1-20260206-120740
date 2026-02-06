@@ -889,170 +889,6 @@ function InfraNodusDashboard() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// V3.1 TAB: SYSTEM KNOWLEDGE BASE (Backup voor als claude-mem niet beschikbaar is)
-// Dit is de CENTRALE WAARHEID - onafhankelijk van externe memory systemen
-// ═══════════════════════════════════════════════════════════════════════════════
-function SystemKnowledgeBase() {
-  // KRITIEKE REGELS - NOOIT VERGETEN
-  const kritiekRegels = [
-    { id: "r1", regel: "Cloud Control Center LOCATIE", waarde: "/Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/", type: "path", prioriteit: "critical" },
-    { id: "r2", regel: "NOOIT nieuw project maken voor features", waarde: "Altijd TOEVOEGEN aan bestaande codebase", type: "regel", prioriteit: "critical" },
-    { id: "r3", regel: "ALLES loggen en backuppen", waarde: "7000x herhaald - nu PERMANENT", type: "regel", prioriteit: "critical" },
-    { id: "r4", regel: "SDK-HRM Model grootte", waarde: "6.4M parameters (NIET 27M!)", type: "feit", prioriteit: "critical" },
-    { id: "r5", regel: "Leerkurve filosofie", waarde: "4-8 weken innestelen voordat model oordeelt", type: "concept", prioriteit: "high" },
-    { id: "r6", regel: "Email spam analyse", waarde: "WACHT - Franky moet eerst inbox reviewen", type: "status", prioriteit: "warning" },
-  ];
-
-  // PROJECTEN & LOCATIES
-  const projectLocaties = [
-    { naam: "HRM-Core-Brain", path: "/Users/franky13m3/Projects/HRM-Core-Brain/", github: "DS2036/HRM-Core-Brain", status: "active" },
-    { naam: "HRM-TRANSFER-PACKAGE", path: "/Users/franky13m3/Projects/HRM-TRANSFER-PACKAGE/", github: "DS2036/HRM-TRANSFER-PACKAGE", status: "active" },
-    { naam: "Claude-Ecosystem-Dashboard", path: "/Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/", github: "DS2036/Claude-Ecosystem-Dashboard", status: "active" },
-    { naam: "Sapienthinc-HRM-SDK-1", path: "/Users/franky13m3/Projects/Sapienthinc-HRM-SDK-1/", github: "DS2036/Sapienthinc-HRM-SDK-1", status: "active" },
-  ];
-
-  // DEVICES
-  const devices = [
-    { naam: "MacBook Air", id: "MBA", role: "Primair development", status: "online" },
-    { naam: "Mac Mini M4", id: "MM4", role: "Training & compute", status: "pending setup" },
-    { naam: "Mac Mini M2", id: "MM2", role: "Backup/secondary", status: "pending setup" },
-    { naam: "iPhone", id: "iPhone", role: "Voice input in wagen", status: "planned" },
-  ];
-
-  // SYNC BESTANDEN (VERPLICHT bij elke sessie)
-  const syncBestanden = [
-    { naam: "MEMORY.json", locatie: "~/.claude/MEMORY.json", doel: "Globale entities en relaties" },
-    { naam: "FRANKY-LEARNINGS.md", locatie: "[PROJECT]/FRANKY-LEARNINGS.md", doel: "Permanente lessen per project" },
-    { naam: "SESSION-BACKLOG.md", locatie: "[PROJECT]/SESSION-BACKLOG.md", doel: "Sessie logs en beslissingen" },
-    { naam: "SYNC-PROTOCOL.md", locatie: "~/.claude/SYNC-PROTOCOL.md", doel: "Cross-device sync instructies" },
-  ];
-
-  // BESLISSINGEN LOG
-  const [beslissingen] = useState([
-    { datum: "2026-02-06 12:00", beslissing: "3 nieuwe tabs toegevoegd aan Cloud Control Center", reden: "Cross-Sync, InfraNodus, Agents nodig voor overzicht" },
-    { datum: "2026-02-06 11:45", beslissing: "FRANKY-LEARNINGS.md bijgewerkt met permanente regels", reden: "7000x herhaald - nu PERMANENT vastgelegd" },
-    { datum: "2026-02-06 10:30", beslissing: "InfraNodus competitor analyse uitgevoerd", reden: "8 nieuwe features gevonden die concurrenten hebben" },
-    { datum: "2026-02-06 10:00", beslissing: "SDK-HRM model geanalyseerd: 6.4M params", reden: "Transfer naar MM4 voorbereiden" },
-  ]);
-
-  const prioriteitKleuren = { critical: { bg: "#1a0000", border: "#991b1b", color: "#ef4444" }, high: { bg: "#1a1400", border: "#854d0e", color: "#fbbf24" }, warning: { bg: "#1a1400", border: "#854d0e", color: "#f59e0b" }, info: { bg: "#001a33", border: "#1e40af", color: "#60a5fa" } };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #0f0f23, #1a0a2e)", border: "1px solid #5b21b6", borderRadius: 12, padding: 16 }}>
-        <div style={{ fontWeight: 800, color: "#a78bfa", fontSize: 18, display: "flex", alignItems: "center", gap: 10 }}>
-          <span>🧠</span> System Knowledge Base
-        </div>
-        <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 6 }}>Centrale waarheid - backup voor als claude-mem niet beschikbaar is</p>
-        <p style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>Dit bestand synchroniseert naar alle devices via Git</p>
-      </div>
-
-      {/* KRITIEKE REGELS */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #991b1b", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#ef4444", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>🚨</span> KRITIEKE REGELS (NOOIT VERGETEN)
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {kritiekRegels.map(r => {
-            const pk = prioriteitKleuren[r.prioriteit] || prioriteitKleuren.info;
-            return (
-              <div key={r.id} style={{ background: pk.bg, border: `1px solid ${pk.border}`, borderRadius: 8, padding: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <span style={{ fontWeight: 700, color: pk.color, fontSize: 12 }}>{r.regel}</span>
-                    <p style={{ color: "#e5e5e5", fontSize: 11, marginTop: 4 }}>{r.waarde}</p>
-                  </div>
-                  <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: `${pk.color}22`, color: pk.color }}>{r.type}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* SYNC BESTANDEN */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #166534", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#4ade80", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📁</span> VERPLICHTE SYNC BESTANDEN (elke sessie lezen!)
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
-          {syncBestanden.map((b, idx) => (
-            <div key={idx} style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 10 }}>
-              <div style={{ fontWeight: 600, color: "#4ade80", fontSize: 12 }}>{b.naam}</div>
-              <div style={{ color: "#86efac", fontSize: 10, fontFamily: "monospace", marginTop: 4 }}>{b.locatie}</div>
-              <div style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>{b.doel}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* DEVICES */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>🖥️</span> DEVICES & ROLLEN
-        </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {devices.map((d, idx) => (
-            <div key={idx} style={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 10, minWidth: 140 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: d.status === "online" ? "#4ade80" : d.status === "pending setup" ? "#fbbf24" : "#6b7280" }} />
-                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{d.naam}</span>
-              </div>
-              <div style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>{d.role}</div>
-              <div style={{ color: "#4b5563", fontSize: 9, marginTop: 2 }}>{d.status}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* PROJECT LOCATIES */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#a78bfa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📂</span> ACTIEVE PROJECTEN
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {projectLocaties.map((p, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div>
-                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{p.naam}</span>
-                <div style={{ color: "#6b7280", fontSize: 10, fontFamily: "monospace" }}>{p.path}</div>
-              </div>
-              <a href={`https://github.com/${p.github}`} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", fontSize: 10, textDecoration: "none" }}>GitHub ↗</a>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* BESLISSINGEN LOG */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>📋</span> RECENTE BESLISSINGEN
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {beslissingen.map((b, idx) => (
-            <div key={idx} style={{ background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{b.beslissing}</span>
-                <span style={{ color: "#6b7280", fontSize: 10, whiteSpace: "nowrap" }}>{b.datum}</span>
-              </div>
-              <p style={{ color: "#9ca3af", fontSize: 10, marginTop: 4 }}>Reden: {b.reden}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Export Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
-        <p><strong>Backup:</strong> Dit dashboard is zelf de backup - gepusht naar GitHub na elke wijziging</p>
-        <p style={{ marginTop: 4 }}><strong>Sync:</strong> Clone dit repo op MM4/MM2 voor dezelfde kennis overal</p>
-        <p style={{ marginTop: 4 }}><strong>Onafhankelijk:</strong> Werkt zonder claude-mem - alle kritieke info staat IN de code</p>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: AGENT HIERARCHY (voor 10-100 agenten orchestratie)
 // ═══════════════════════════════════════════════════════════════════════════════
 function AgentHierarchy() {
@@ -1170,7 +1006,6 @@ export default function ControlCenter() {
     { id: "sync", label: "🔄 Cross-Sync", color: "#10b981" },
     { id: "infranodus", label: "🕸️ InfraNodus", color: "#a855f7" },
     { id: "agents", label: "👥 Agents", color: "#f59e0b" },
-    { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
   ];
 
   return (
@@ -1239,7 +1074,6 @@ export default function ControlCenter() {
       {tab === "sync" && <CrossDeviceSync />}
       {tab === "infranodus" && <InfraNodusDashboard />}
       {tab === "agents" && <AgentHierarchy />}
-      {tab === "knowledge" && <SystemKnowledgeBase />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
