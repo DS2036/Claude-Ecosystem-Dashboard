@@ -602,7 +602,7 @@ function ActivityLog() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function StagingVariants() {
   const [projects] = useState([
-    { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: null, variants: [] },
+    { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: "claude-ecosystem-staging.pages.dev", variants: [] },
     { name: "Econation", production: "econation.be", staging: null, variants: [] },
     { name: "BlackFuelWhiskey", production: null, staging: null, variants: [] },
   ]);
