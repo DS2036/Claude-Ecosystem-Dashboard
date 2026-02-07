@@ -50,8 +50,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.4.0
-// Complete Dashboard: 17 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.5.0
+// Complete Dashboard: 18 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -76,6 +76,7 @@ const api = {
 // v4.2.0 - SDK-HRM alle secties verrijkt met InfraNodus detail
 // v4.3.0 - Training & Benchmarks tab (ARC + LFM2 resultaten, commercial readiness)
 // v4.4.0 - Crypto Intelligence Hub (scam/legit classificatie, regulatory, expertise profile)
+// v4.5.0 - Session Notes & Insights (derde laags backup, copy/paste, export JSON/MD)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3174,6 +3175,322 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SESSION NOTES TAB — v4.5.0
+// Franky's sessie-logboek: kopieer inzichten, code, en ideeën uit Claude sessies
+// Derde laags controle en backup naast GitHub en Cloudflare
+// Opslag: localStorage + export naar JSON/Markdown
+// ═══════════════════════════════════════════════════════════════════════════════
+function SessionNotes() {
+  const [notes, setNotes] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("session-notes") || "[]");
+    } catch { return []; }
+  });
+  const [activeNote, setActiveNote] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editTags, setEditTags] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showNewForm, setShowNewForm] = useState(false);
+
+  // Persist to localStorage
+  useEffect(() => {
+    localStorage.setItem("session-notes", JSON.stringify(notes));
+  }, [notes]);
+
+  // Create new note
+  const createNote = () => {
+    if (!editTitle.trim()) return;
+    const newNote = {
+      id: Date.now().toString(),
+      title: editTitle.trim(),
+      content: editContent,
+      tags: editTags.split(",").map(t => t.trim()).filter(Boolean),
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      source: "manual",
+      version: "v4.5.0"
+    };
+    setNotes(prev => [newNote, ...prev]);
+    setEditTitle("");
+    setEditContent("");
+    setEditTags("");
+    setShowNewForm(false);
+    setActiveNote(newNote.id);
+  };
+
+  // Update existing note
+  const updateNote = (id) => {
+    setNotes(prev => prev.map(n => n.id === id ? {
+      ...n,
+      title: editTitle.trim() || n.title,
+      content: editContent,
+      tags: editTags.split(",").map(t => t.trim()).filter(Boolean),
+      updated: new Date().toISOString()
+    } : n));
+  };
+
+  // Delete note
+  const deleteNote = (id) => {
+    setNotes(prev => prev.filter(n => n.id !== id));
+    if (activeNote === id) setActiveNote(null);
+  };
+
+  // Export all notes as JSON
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(notes, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `session-notes-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export all notes as Markdown
+  const exportMarkdown = () => {
+    let md = `# Session Notes Export\n_Exported: ${new Date().toLocaleString("nl-BE")}_\n_Total: ${notes.length} notes_\n\n---\n\n`;
+    notes.forEach(n => {
+      md += `## ${n.title}\n`;
+      md += `_Created: ${new Date(n.created).toLocaleString("nl-BE")} | Updated: ${new Date(n.updated).toLocaleString("nl-BE")}_\n`;
+      if (n.tags.length) md += `**Tags:** ${n.tags.join(", ")}\n`;
+      md += `\n${n.content}\n\n---\n\n`;
+    });
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `session-notes-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export single note to clipboard
+  const copyToClipboard = (note) => {
+    const text = `# ${note.title}\n${note.tags.length ? `Tags: ${note.tags.join(", ")}\n` : ""}Date: ${new Date(note.created).toLocaleString("nl-BE")}\n\n${note.content}`;
+    navigator.clipboard.writeText(text);
+  };
+
+  // Filter notes
+  const filtered = notes.filter(n => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(t => t.toLowerCase().includes(q));
+  });
+
+  // Stats
+  const totalChars = notes.reduce((sum, n) => sum + n.content.length, 0);
+  const allTags = [...new Set(notes.flatMap(n => n.tags))];
+  const activeNoteData = notes.find(n => n.id === activeNote);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* ── HEADER ── */}
+      <div style={{ background: "linear-gradient(135deg, #0a1a1a, #0f1a0a, #1a0a1a)", border: "2px solid #14b8a6", borderRadius: 16, padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 24, background: "linear-gradient(90deg, #14b8a6, #22c55e, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              📋 Session Notes & Insights
+            </div>
+            <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Derde laags backup — kopieer inzichten, code en ideeën uit je Claude sessies</p>
+            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>localStorage + JSON/Markdown export • Onafhankelijk van GitHub/Cloudflare</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { label: String(notes.length), sub: "notes", color: "#14b8a6" },
+              { label: totalChars > 1000 ? `${(totalChars / 1000).toFixed(1)}K` : String(totalChars), sub: "characters", color: "#22c55e" },
+              { label: String(allTags.length), sub: "tags", color: "#60a5fa" },
+            ].map(m => (
+              <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
+                <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── TOOLBAR ── */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => { setShowNewForm(!showNewForm); setActiveNote(null); setEditTitle(""); setEditContent(""); setEditTags(""); }}
+          style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          ➕ Nieuw Document
+        </button>
+        <button onClick={exportJSON} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>
+          📥 Export JSON
+        </button>
+        <button onClick={exportMarkdown} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>
+          📄 Export Markdown
+        </button>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <input
+            type="text"
+            placeholder="🔍 Zoek in notities..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#e5e7eb", fontSize: 12, outline: "none" }}
+          />
+        </div>
+      </div>
+
+      {/* ── NEW NOTE FORM ── */}
+      {showNewForm && (
+        <div style={{ background: "#0a1a1a", border: "2px solid #14b8a6", borderRadius: 12, padding: 16 }}>
+          <div style={{ fontWeight: 700, color: "#14b8a6", fontSize: 14, marginBottom: 12 }}>📝 Nieuw Document Aanmaken</div>
+          <input
+            type="text"
+            placeholder="Titel (bijv. 'Sessie 7 feb — Crypto insights')"
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+            style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #14b8a666", background: "#0f0f0f", color: "#e5e7eb", fontSize: 14, fontWeight: 600, marginBottom: 10, outline: "none", boxSizing: "border-box" }}
+          />
+          <textarea
+            placeholder="Plak hier je tekst, code, inzichten, of wat je maar wilt opslaan...&#10;&#10;Tip: Je kunt alles plakken — code blokken, conversatie-stukken, links, ideeën.&#10;Het wordt precies opgeslagen zoals je het plakt."
+            value={editContent}
+            onChange={e => setEditContent(e.target.value)}
+            style={{ width: "100%", minHeight: 300, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0f0f0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", outline: "none", boxSizing: "border-box" }}
+          />
+          <input
+            type="text"
+            placeholder="Tags (komma-gescheiden, bijv. 'crypto, inzicht, training')"
+            value={editTags}
+            onChange={e => setEditTags(e.target.value)}
+            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#0f0f0f", color: "#9ca3af", fontSize: 12, marginTop: 10, outline: "none", boxSizing: "border-box" }}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button onClick={createNote}
+              style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#14b8a6", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              💾 Opslaan
+            </button>
+            <button onClick={() => setShowNewForm(false)}
+              style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>
+              Annuleren
+            </button>
+            <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>
+              {editContent.length > 0 && `${editContent.length.toLocaleString()} tekens`}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── NOTES LIST ── */}
+      {filtered.length === 0 && !showNewForm ? (
+        <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 40, textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+          <div style={{ color: "#6b7280", fontSize: 14 }}>Nog geen notities</div>
+          <p style={{ color: "#4b5563", fontSize: 12, marginTop: 8 }}>Klik op "➕ Nieuw Document" om je eerste sessie-notitie aan te maken.</p>
+          <p style={{ color: "#4b5563", fontSize: 11, marginTop: 4 }}>Kopieer tekst uit je Claude sessies, plak het hier, en het wordt veilig lokaal opgeslagen.</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {filtered.map(note => (
+            <div key={note.id} style={{
+              background: activeNote === note.id ? "#0a1a1a" : "#0f0f0f",
+              border: `1px solid ${activeNote === note.id ? "#14b8a6" : "#1f2937"}`,
+              borderRadius: 12,
+              overflow: "hidden"
+            }}>
+              {/* Note header - always visible */}
+              <div
+                onClick={() => {
+                  if (activeNote === note.id) {
+                    setActiveNote(null);
+                  } else {
+                    setActiveNote(note.id);
+                    setEditTitle(note.title);
+                    setEditContent(note.content);
+                    setEditTags(note.tags.join(", "));
+                  }
+                }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                  <span style={{ fontSize: 16 }}>📄</span>
+                  <div>
+                    <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{note.title}</div>
+                    <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
+                      {new Date(note.created).toLocaleString("nl-BE")} • {note.content.length.toLocaleString()} tekens
+                      {note.updated !== note.created && ` • bewerkt ${new Date(note.updated).toLocaleString("nl-BE")}`}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {note.tags.map(t => (
+                    <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
+                  ))}
+                </div>
+                <span style={{ color: "#6b7280", fontSize: 14 }}>{activeNote === note.id ? "▼" : "▶"}</span>
+              </div>
+
+              {/* Note content - expanded */}
+              {activeNote === note.id && (
+                <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1f2937" }}>
+                  <textarea
+                    value={editContent}
+                    onChange={e => setEditContent(e.target.value)}
+                    style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", marginTop: 12, outline: "none", boxSizing: "border-box" }}
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                    <button onClick={() => updateNote(note.id)}
+                      style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#14b8a6", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      💾 Bijwerken
+                    </button>
+                    <button onClick={() => copyToClipboard({ ...note, content: editContent })}
+                      style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>
+                      📋 Kopiëren
+                    </button>
+                    <button onClick={() => deleteNote(note.id)}
+                      style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>
+                      🗑️ Verwijder
+                    </button>
+                    <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>
+                      {editContent.length.toLocaleString()} tekens • {note.version || "v4.5.0"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── TAGS OVERVIEW ── */}
+      {allTags.length > 0 && (
+        <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>🏷️ Alle tags:</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {allTags.map(t => {
+              const count = notes.filter(n => n.tags.includes(t)).length;
+              return (
+                <button key={t} onClick={() => setSearchQuery(t)}
+                  style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #14b8a633", background: searchQuery === t ? "#14b8a622" : "#111", color: searchQuery === t ? "#14b8a6" : "#9ca3af", fontSize: 11, cursor: "pointer" }}>
+                  {t} ({count})
+                </button>
+              );
+            })}
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")}
+                style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #ef444433", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>
+                ✕ Reset filter
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── INFO FOOTER ── */}
+      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
+          <p><strong style={{ color: "#14b8a6" }}>Opslag:</strong> Alles wordt lokaal opgeslagen in je browser (localStorage). Exporteer regelmatig naar JSON of Markdown als backup.</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Gebruik:</strong> Kopieer tekst uit Claude sessies (Ctrl/Cmd+A, Ctrl/Cmd+C), maak een nieuw document, en plak (Ctrl/Cmd+V).</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Backup lagen:</strong> 1) GitHub repo 2) Cloudflare deploy 3) Session Notes (deze tab) 4) InfraNodus graphs 5) Obsidian</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CRYPTO INTELLIGENCE TAB — v4.4.0
 // Franky's crypto expertise: 10+ jaar ervaring, trading, DeFi, stablecoins
 // Nuanced classificatie: scam vs legitimate crypto activiteit
@@ -3594,6 +3911,7 @@ export default function ControlCenter() {
     { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
     { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa" },
     { id: "crypto", label: "🪙 Crypto", color: "#f59e0b" },
+    { id: "notes", label: "📋 Notes", color: "#14b8a6" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
   ];
 
@@ -3656,7 +3974,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.4.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.5.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -3760,10 +4078,11 @@ export default function ControlCenter() {
       {tab === "sdkhrm" && <SDKHRMHub />}
       {tab === "benchmarks" && <TrainingBenchmarks />}
       {tab === "crypto" && <CryptoIntelligence />}
+      {tab === "notes" && <SessionNotes />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.4.0 • {total} nodes • 17 tabs • Crypto Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.5.0 • {total} nodes • 18 tabs • Session Notes • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
