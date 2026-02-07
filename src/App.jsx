@@ -3919,12 +3919,37 @@ function SessionNotes() {
     navigator.clipboard.writeText(text);
   };
 
+  // Active part within a series
+  const [activePart, setActivePart] = useState(0);
+
   // Filter notes
   const filtered = notes.filter(n => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(t => t.toLowerCase().includes(q));
   });
+
+  // Group series into single entries: { type: "single", note } | { type: "series", seriesId, baseTitle, notes: [...], totalChars }
+  const grouped = (() => {
+    const seriesMap = {};
+    const singles = [];
+    for (const note of filtered) {
+      if (note.parts && note.parts.seriesId) {
+        const sid = note.parts.seriesId;
+        if (!seriesMap[sid]) seriesMap[sid] = [];
+        seriesMap[sid].push(note);
+      } else {
+        singles.push({ type: "single", note, sortKey: note.created });
+      }
+    }
+    const seriesEntries = Object.entries(seriesMap).map(([sid, parts]) => {
+      parts.sort((a, b) => (a.parts?.part || 0) - (b.parts?.part || 0));
+      const baseTitle = parts[0]?.title?.replace(/\s*\(deel \d+\/\d+\)/, "") || "Untitled";
+      const totalChars = parts.reduce((s, p) => s + p.content.length, 0);
+      return { type: "series", seriesId: sid, baseTitle, notes: parts, totalChars, sortKey: parts[0]?.created || "" };
+    });
+    return [...singles, ...seriesEntries].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+  })();
 
   // Stats
   const totalChars = notes.reduce((sum, n) => sum + n.content.length, 0);
@@ -4035,7 +4060,7 @@ function SessionNotes() {
       )}
 
       {/* ── NOTES LIST ── */}
-      {filtered.length === 0 && !showNewForm ? (
+      {grouped.length === 0 && !showNewForm ? (
         <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 40, textAlign: "center" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
           <div style={{ color: "#6b7280", fontSize: 14 }}>Nog geen notities</div>
@@ -4044,79 +4069,139 @@ function SessionNotes() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {filtered.map(note => (
-            <div key={note.id} style={{
-              background: activeNote === note.id ? "#0a1a1a" : "#0f0f0f",
-              border: `1px solid ${activeNote === note.id ? "#14b8a6" : "#1f2937"}`,
-              borderRadius: 12,
-              overflow: "hidden"
-            }}>
-              {/* Note header - always visible */}
-              <div
-                onClick={() => {
-                  if (activeNote === note.id) {
-                    setActiveNote(null);
-                  } else {
-                    setActiveNote(note.id);
-                    setEditTitle(note.title);
-                    setEditContent(note.content);
-                    setEditTags(note.tags.join(", "));
-                  }
-                }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                  <span style={{ fontSize: 16 }}>📄</span>
-                  <div>
-                    <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{note.title}</div>
-                    <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
-                      {new Date(note.created).toLocaleString("nl-BE")} • {note.content.length.toLocaleString()} tekens
-                      {note.updated !== note.created && ` • bewerkt ${new Date(note.updated).toLocaleString("nl-BE")}`}
+          {grouped.map(entry => {
+            // ── SINGLE NOTE (no series) ──
+            if (entry.type === "single") {
+              const note = entry.note;
+              return (
+                <div key={note.id} style={{
+                  background: activeNote === note.id ? "#0a1a1a" : "#0f0f0f",
+                  border: `1px solid ${activeNote === note.id ? "#14b8a6" : "#1f2937"}`,
+                  borderRadius: 12, overflow: "hidden"
+                }}>
+                  <div onClick={() => {
+                    if (activeNote === note.id) { setActiveNote(null); }
+                    else { setActiveNote(note.id); setEditTitle(note.title); setEditContent(note.content); setEditTags(note.tags.join(", ")); }
+                  }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                      <span style={{ fontSize: 16 }}>📄</span>
+                      <div>
+                        <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{note.title}</div>
+                        <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
+                          {new Date(note.created).toLocaleString("nl-BE")} • {note.content.length.toLocaleString()} tekens
+                        </div>
+                      </div>
                     </div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
+                      {note.tags.filter(t => !t.startsWith("reeks:")).map(t => (
+                        <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
+                      ))}
+                    </div>
+                    <span style={{ color: "#6b7280", fontSize: 14 }}>{activeNote === note.id ? "▼" : "▶"}</span>
                   </div>
-                </div>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
-                  {note.parts && (
-                    <span style={{ padding: "2px 8px", background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>
-                      📦 {note.parts.part}/{note.parts.total}
-                    </span>
+                  {activeNote === note.id && (
+                    <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1f2937" }}>
+                      <textarea value={editContent} onChange={e => setEditContent(e.target.value)}
+                        style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", marginTop: 12, outline: "none", boxSizing: "border-box" }} />
+                      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                        <button onClick={() => updateNote(note.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#14b8a6", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>💾 Bijwerken</button>
+                        <button onClick={() => copyToClipboard({ ...note, content: editContent })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>📋 Kopiëren</button>
+                        <button onClick={() => deleteNote(note.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>🗑️ Verwijder</button>
+                        <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>{editContent.length.toLocaleString()} tekens</div>
+                      </div>
+                    </div>
                   )}
-                  {note.tags.filter(t => !t.startsWith("reeks:")).map(t => (
-                    <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
-                  ))}
                 </div>
-                <span style={{ color: "#6b7280", fontSize: 14 }}>{activeNote === note.id ? "▼" : "▶"}</span>
-              </div>
+              );
+            }
 
-              {/* Note content - expanded */}
-              {activeNote === note.id && (
-                <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1f2937" }}>
-                  <textarea
-                    value={editContent}
-                    onChange={e => setEditContent(e.target.value)}
-                    style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", marginTop: 12, outline: "none", boxSizing: "border-box" }}
-                  />
-                  <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                    <button onClick={() => updateNote(note.id)}
-                      style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#14b8a6", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                      💾 Bijwerken
-                    </button>
-                    <button onClick={() => copyToClipboard({ ...note, content: editContent })}
-                      style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>
-                      📋 Kopiëren
-                    </button>
-                    <button onClick={() => deleteNote(note.id)}
-                      style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>
-                      🗑️ Verwijder
-                    </button>
-                    <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>
-                      {editContent.length.toLocaleString()} tekens • {note.version || "v4.5.0"}
+            // ── SERIES (grouped multi-part document) ──
+            const { seriesId, baseTitle, notes: parts, totalChars } = entry;
+            const isExpanded = activeNote === `series_${seriesId}`;
+            const currentPartIdx = activePart < parts.length ? activePart : 0;
+            const currentPart = parts[currentPartIdx];
+
+            return (
+              <div key={`series_${seriesId}`} style={{
+                background: isExpanded ? "#0a1a1a" : "#0f0f0f",
+                border: `1px solid ${isExpanded ? "#f59e0b" : "#1f2937"}`,
+                borderRadius: 12, overflow: "hidden"
+              }}>
+                {/* Series header — looks like one document */}
+                <div onClick={() => {
+                  if (isExpanded) { setActiveNote(null); }
+                  else { setActiveNote(`series_${seriesId}`); setActivePart(0); setEditTitle(parts[0]?.title || ""); setEditContent(parts[0]?.content || ""); setEditTags(parts[0]?.tags?.filter(t => !t.startsWith("reeks:")).join(", ") || ""); }
+                }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                    <span style={{ fontSize: 18 }}>📚</span>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{baseTitle}</div>
+                      <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
+                        {new Date(parts[0]?.created).toLocaleString("nl-BE")} • {totalChars.toLocaleString()} tekens totaal
+                      </div>
                     </div>
                   </div>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    <span style={{ padding: "3px 10px", background: "#f59e0b22", color: "#f59e0b", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>
+                      📦 {parts.length} delen
+                    </span>
+                    {parts[0]?.tags?.filter(t => !t.startsWith("reeks:")).map(t => (
+                      <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
+                    ))}
+                  </div>
+                  <span style={{ color: "#6b7280", fontSize: 14 }}>{isExpanded ? "▼" : "▶"}</span>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Series content — part tabs + editor */}
+                {isExpanded && (
+                  <div style={{ borderTop: "1px solid #f59e0b33" }}>
+                    {/* Part selector tabs */}
+                    <div style={{ display: "flex", gap: 0, background: "#0a0a0f", borderBottom: "1px solid #1f2937", overflowX: "auto" }}>
+                      {parts.map((part, pi) => (
+                        <button key={part.id} onClick={() => {
+                          setActivePart(pi);
+                          setEditContent(part.content);
+                          setEditTitle(part.title);
+                        }} style={{
+                          padding: "8px 16px", border: "none", borderBottom: currentPartIdx === pi ? "2px solid #f59e0b" : "2px solid transparent",
+                          background: currentPartIdx === pi ? "#f59e0b11" : "transparent",
+                          color: currentPartIdx === pi ? "#f59e0b" : "#6b7280",
+                          fontSize: 12, fontWeight: currentPartIdx === pi ? 700 : 400, cursor: "pointer", whiteSpace: "nowrap"
+                        }}>
+                          Deel {pi + 1} <span style={{ fontSize: 10, opacity: 0.7 }}>({(part.content.length / 1000).toFixed(0)}K)</span>
+                        </button>
+                      ))}
+                      {/* Copy all button */}
+                      <button onClick={() => {
+                        const allContent = parts.map(p => p.content).join("\n\n--- DEEL ---\n\n");
+                        navigator.clipboard.writeText(`# ${baseTitle}\n\n${allContent}`);
+                      }} style={{
+                        padding: "8px 12px", border: "none", background: "transparent", color: "#14b8a6",
+                        fontSize: 11, cursor: "pointer", marginLeft: "auto", whiteSpace: "nowrap"
+                      }}>
+                        📋 Kopieer alles
+                      </button>
+                    </div>
+
+                    {/* Current part content */}
+                    <div style={{ padding: "0 16px 16px" }}>
+                      <div style={{ fontSize: 10, color: "#4b5563", marginTop: 8, marginBottom: 4 }}>
+                        Deel {currentPartIdx + 1} van {parts.length} • {currentPart?.content.length.toLocaleString()} tekens
+                      </div>
+                      <textarea value={editContent} onChange={e => setEditContent(e.target.value)}
+                        style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+                      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                        <button onClick={() => currentPart && updateNote(currentPart.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#f59e0b", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>💾 Deel {currentPartIdx + 1} bijwerken</button>
+                        <button onClick={() => currentPart && copyToClipboard({ ...currentPart, content: editContent })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>📋 Kopiëren</button>
+                        <button onClick={() => { if (currentPart) { parts.forEach(p => deleteNote(p.id)); setActiveNote(null); } }} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>🗑️ Hele reeks</button>
+                        <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>{editContent.length.toLocaleString()} tekens</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
