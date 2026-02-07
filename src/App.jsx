@@ -50,8 +50,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.7.0
-// Complete Dashboard: 18 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.8.0
+// Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -79,6 +79,7 @@ const api = {
 // v4.5.0 - Session Notes & Insights (derde laags backup, copy/paste, export JSON/MD)
 // v4.6.0 - Live Training Charts in Benchmarks (SVG grafieken, Loss/Accuracy/LR curves)
 // v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
+// v4.8.0 - Revenue Intelligence tab (5 streams, Chrome roadmap, build-up checklist, projections)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3241,6 +3242,312 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// REVENUE INTELLIGENCE TAB — v4.8.0
+// Dagelijkse revenue-ideeën, Chrome extensie roadmap, build-up checklist
+// Integratie met InfraNodus voor marktinzichten
+// ═══════════════════════════════════════════════════════════════════════════════
+function RevenueIntelligence() {
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // ── Revenue Streams Ranked ──
+  const revenueStreams = [
+    { rank: 1, name: "Chrome Extensie — SDK-Guardian", timeline: "Maand 1-3", revenue: "€5K MRR", effort: "Medium", risk: "Laag",
+      description: "Freemium scam detector. Gratis: 10 scans/dag. Pro: €4.99/maand. Gezin: €9.99/maand.",
+      techStack: "WASM (LFM2 lokaal), ExtensionPay (Stripe), Chrome Web Store",
+      steps: ["Manifest v3 extensie bouwen", "LFM2 als WASM compileren", "ExtensionPay integreren", "Chrome Web Store listing", "Product Hunt launch"],
+      status: "ready", moat: "Model draait lokaal = 0 serverkosten = ~95% marge" },
+    { rank: 2, name: "WordPress Plugin — WP-Guardian", timeline: "Maand 2-4", revenue: "€3K MRR", effort: "Medium", risk: "Laag",
+      description: "Website security scanner voor WordPress sites. Scant op malware, GDPR, SSL, plugin kwetsbaarheden.",
+      techStack: "PHP plugin + API endpoint naar LFM2 model",
+      steps: ["WordPress plugin structuur", "API endpoint bouwen", "WordPress.org listing", "WooCommerce integratie"],
+      status: "planned", moat: "AI-powered vs static rules = betere detectie" },
+    { rank: 3, name: "API Service — scan.sdk-hrm.com", timeline: "Maand 3-5", revenue: "€2K MRR", effort: "Hoog", risk: "Medium",
+      description: "REST API: POST /scan → { verdict, confidence, explanation }. Voor developers en MSPs.",
+      techStack: "Cloudflare Workers + MLX model op dedicated server",
+      steps: ["API ontwerpen (OpenAPI spec)", "Rate limiting + auth", "Pricing tiers", "Developer docs", "Stripe billing"],
+      status: "planned", moat: "Multilingual + nuanced crypto = uniek" },
+    { rank: 4, name: "Shopify App — Shop-Guardian", timeline: "Maand 4-6", revenue: "€2K MRR", effort: "Medium", risk: "Laag",
+      description: "Fraud detectie voor Shopify winkels. Bestelling/klant risico scoring.",
+      techStack: "Shopify App Bridge + SDK-HRM API",
+      steps: ["Shopify partner account", "App structuur", "Order webhook integratie", "Shopify App Store listing"],
+      status: "concept", moat: "Specifiek voor Shopify = betere conversie dan generiek" },
+    { rank: 5, name: "MSP White-Label", timeline: "Maand 6-12", revenue: "€10K+ MRR", effort: "Hoog", risk: "Medium",
+      description: "White-label dashboard voor Managed Service Providers. Hun branding, onze technologie.",
+      techStack: "Multi-tenant dashboard + API + LoRA per klant",
+      steps: ["MSP outreach (België/Nederland)", "White-label UI", "Per-klant LoRA adapters", "SLA + support structuur"],
+      status: "concept", moat: "NIS2 compliance = MSPs MOETEN security bieden" },
+  ];
+
+  // ── Chrome Extension Detail Roadmap ──
+  const chromeRoadmap = [
+    { week: "Week 1-2", task: "Manifest v3 + popup UI", detail: "Basic extensie structuur, popup met scan knop, permission model", done: false },
+    { week: "Week 2-3", task: "LFM2 integratie (WASM/ONNX)", detail: "Model converteren naar browser-compatible formaat, inference in service worker", done: false },
+    { week: "Week 3-4", task: "Email scanning", detail: "Gmail/Outlook integratie, content script leest email body, model analyseert", done: false },
+    { week: "Week 4-5", task: "ExtensionPay + Stripe", detail: "Freemium model, trial period, payment flow, license verificatie", done: false },
+    { week: "Week 5-6", task: "Chrome Web Store", detail: "Screenshots, beschrijving, privacy policy, review process (~1-2 weken)", done: false },
+    { week: "Week 6-7", task: "Beta testers", detail: "10-20 beta users, feedback loop, bug fixes, model improvements", done: false },
+    { week: "Week 7-8", task: "Launch", detail: "Product Hunt, Reddit r/chrome_extensions, LinkedIn, HackerNews", done: false },
+  ];
+
+  // ── Build-Up Checklist (technisch + legaal + business) ──
+  const buildUpChecklist = {
+    technical: [
+      { item: "LFM2 model naar WASM/ONNX converteren", done: false, priority: "P0" },
+      { item: "Chrome Manifest v3 extensie skeleton", done: false, priority: "P0" },
+      { item: "ExtensionPay account + Stripe koppeling", done: false, priority: "P1" },
+      { item: "API endpoint (Cloudflare Worker)", done: false, priority: "P1" },
+      { item: "Training data pipeline (InfraNodus + Perplexity)", done: false, priority: "P1" },
+      { item: "CI/CD voor model updates (LoRA swapping)", done: false, priority: "P2" },
+    ],
+    legal: [
+      { item: "Privacy Policy schrijven (GDPR compliant)", done: false, priority: "P0" },
+      { item: "Terms of Service", done: false, priority: "P0" },
+      { item: "KBO/BTW registratie als eenmanszaak (België)", done: false, priority: "P1" },
+      { item: "Chrome Web Store developer account (€5 eenmalig)", done: false, priority: "P1" },
+      { item: "Stripe account voor betalingen", done: false, priority: "P1" },
+      { item: "LFM2 licentie check (LFM Open License v1.0)", done: false, priority: "P0" },
+    ],
+    marketing: [
+      { item: "Landing page (sdk-guardian.com of similar)", done: false, priority: "P1" },
+      { item: "Product Hunt listing voorbereiden", done: false, priority: "P2" },
+      { item: "LinkedIn posts (Franky's netwerk)", done: false, priority: "P1" },
+      { item: "Reddit launch (r/chrome_extensions, r/cybersecurity)", done: false, priority: "P2" },
+      { item: "GitHub repo open source (base model)", done: false, priority: "P1" },
+      { item: "Demo video (30 sec scan demonstratie)", done: false, priority: "P2" },
+    ],
+  };
+
+  // ── Daily Intelligence Topics ──
+  const dailyTopics = [
+    { topic: "Chrome Extension monetisation trends", source: "Perplexity", frequency: "Wekelijks", why: "Nieuwe betaalmodellen, ExtensionPay alternatieven" },
+    { topic: "AI security startup funding", source: "Perplexity", frequency: "Wekelijks", why: "Concurrentie analyse, marktvalidatie" },
+    { topic: "Nieuwe phishing/scam technieken", source: "Perplexity + InfraNodus", frequency: "Dagelijks", why: "Training data, model updates, zero-day patronen" },
+    { topic: "NIS2 compliance deadlines", source: "Perplexity", frequency: "Maandelijks", why: "MSP urgentie, sales timing" },
+    { topic: "Chrome Web Store policy updates", source: "Perplexity", frequency: "Wekelijks", why: "Manifest v3 changes, review process" },
+    { topic: "MiCA/GENIUS Act updates", source: "InfraNodus", frequency: "Wekelijks", why: "Crypto module relevantie" },
+    { topic: "LFM2/Liquid AI updates", source: "Perplexity", frequency: "Maandelijks", why: "Model updates, nieuwe versies" },
+    { topic: "Competitor Chrome security extensions", source: "Chrome Web Store", frequency: "Wekelijks", why: "Feature gap analyse, pricing" },
+  ];
+
+  // ── Financial Projection ──
+  const projections = [
+    { month: "Maand 1", users: "50", paying: "5", mrr: "€25", cumulative: "€25" },
+    { month: "Maand 2", users: "200", paying: "30", mrr: "€150", cumulative: "€175" },
+    { month: "Maand 3", users: "500", paying: "80", mrr: "€400", cumulative: "€575" },
+    { month: "Maand 6", users: "2.000", paying: "300", mrr: "€1.500", cumulative: "€4.075" },
+    { month: "Maand 9", users: "5.000", paying: "700", mrr: "€3.500", cumulative: "€14.575" },
+    { month: "Maand 12", users: "10.000", paying: "1.200", mrr: "€6.000", cumulative: "€38.575" },
+  ];
+
+  const prioColor = (p) => p === "P0" ? "#ef4444" : p === "P1" ? "#f59e0b" : "#6b7280";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* ── HEADER ── */}
+      <div style={{ background: "linear-gradient(135deg, #1a0a00, #0f1a00, #001a0a)", border: "2px solid #22c55e", borderRadius: 16, padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 24, background: "linear-gradient(90deg, #22c55e, #fbbf24, #f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              💰 Revenue Intelligence
+            </div>
+            <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Van model naar geld — dagelijkse updates, roadmap en build-up checklist</p>
+            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Chrome extensie eerst • API daarna • MSP white-label als schaalstap</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { label: "5", sub: "streams", color: "#22c55e" },
+              { label: "€5K", sub: "MRR doel", color: "#fbbf24" },
+              { label: "8 wk", sub: "tot launch", color: "#f97316" },
+              { label: "€0", sub: "startkosten", color: "#60a5fa" },
+            ].map(m => (
+              <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
+                <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── TOP 5 REVENUE STREAMS ── */}
+      <div style={{ background: "#0a0f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("streams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.streams ? "#22c55e11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🏆</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Top 5 Revenue Streams — Gerankt op snelheid + haalbaarheid</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Chrome extensie = #1 prioriteit (laagste risk, snelste revenue)</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.streams ? "▼" : "▶"}</span>
+        </div>
+        {expanded.streams && (
+          <div style={{ padding: 16, borderTop: "1px solid #22c55e33" }}>
+            {revenueStreams.map(s => (
+              <div key={s.rank} style={{ background: s.rank === 1 ? "#22c55e08" : "#111", border: `1px solid ${s.rank === 1 ? "#22c55e44" : "#1f2937"}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: s.rank === 1 ? "#22c55e" : "#6b7280" }}>#{s.rank}</span>
+                    <div>
+                      <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 14 }}>{s.name}</div>
+                      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{s.description}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <span style={{ padding: "3px 8px", background: "#22c55e22", color: "#22c55e", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{s.revenue}</span>
+                    <span style={{ padding: "3px 8px", background: "#60a5fa11", color: "#60a5fa", borderRadius: 4, fontSize: 10 }}>{s.timeline}</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 11, flexWrap: "wrap" }}>
+                  <span style={{ color: "#6b7280" }}>Tech: <span style={{ color: "#9ca3af" }}>{s.techStack}</span></span>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "#4ade80" }}>💡 Moat: {s.moat}</div>
+                <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
+                  {s.steps.map((step, i) => (
+                    <span key={i} style={{ padding: "2px 8px", background: "#ffffff08", color: "#9ca3af", borderRadius: 4, fontSize: 10 }}>{i + 1}. {step}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── CHROME EXTENSION ROADMAP ── */}
+      <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("chrome")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.chrome ? "#60a5fa11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🌐</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Chrome Extensie Roadmap — 8 Weken Tot Launch</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Week-voor-week plan van code tot Chrome Web Store</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.chrome ? "▼" : "▶"}</span>
+        </div>
+        {expanded.chrome && (
+          <div style={{ padding: 16, borderTop: "1px solid #60a5fa33" }}>
+            {chromeRoadmap.map((w, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
+                <div style={{ minWidth: 70, padding: "4px 8px", background: "#60a5fa11", border: "1px solid #60a5fa33", borderRadius: 6, fontSize: 11, color: "#60a5fa", fontWeight: 700, textAlign: "center" }}>{w.week}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: "#e5e7eb", fontSize: 12 }}>{w.task}</div>
+                  <div style={{ color: "#6b7280", fontSize: 11, marginTop: 2 }}>{w.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── BUILD-UP CHECKLIST ── */}
+      <div style={{ background: "#0f0a00", border: "1px solid #fbbf2466", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("buildup")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.buildup ? "#fbbf2411" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>📋</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Build-Up Checklist — Technisch + Legaal + Marketing</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Alles wat er moet gebeuren vóór de eerste euro binnenkomt</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.buildup ? "▼" : "▶"}</span>
+        </div>
+        {expanded.buildup && (
+          <div style={{ padding: 16, borderTop: "1px solid #fbbf2433" }}>
+            {Object.entries(buildUpChecklist).map(([cat, items]) => (
+              <div key={cat} style={{ marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, color: cat === "technical" ? "#60a5fa" : cat === "legal" ? "#f97316" : "#a855f7", fontSize: 13, marginBottom: 8, textTransform: "uppercase" }}>
+                  {cat === "technical" ? "⚙️ Technisch" : cat === "legal" ? "⚖️ Legaal" : "📣 Marketing"}
+                </div>
+                {items.map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid #1f293733" }}>
+                    <span style={{ fontSize: 14 }}>{item.done ? "✅" : "⬜"}</span>
+                    <span style={{ flex: 1, color: item.done ? "#6b7280" : "#d1d5db", fontSize: 12, textDecoration: item.done ? "line-through" : "none" }}>{item.item}</span>
+                    <span style={{ padding: "2px 6px", background: `${prioColor(item.priority)}22`, color: prioColor(item.priority), borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{item.priority}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── DAILY INTELLIGENCE MONITORING ── */}
+      <div style={{ background: "#0a0a1a", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("daily")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.daily ? "#a855f711" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>📡</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Dagelijkse Intelligence Monitoring</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Wat moet er dagelijks/wekelijks gescand worden via Perplexity + InfraNodus</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.daily ? "▼" : "▶"}</span>
+        </div>
+        {expanded.daily && (
+          <div style={{ padding: 16, borderTop: "1px solid #a855f733" }}>
+            <div style={{ background: "#14b8a611", border: "1px solid #14b8a633", borderRadius: 8, padding: 10, marginBottom: 12 }}>
+              <div style={{ color: "#14b8a6", fontSize: 12, fontWeight: 600 }}>💡 Perplexity API = beste optie (~€1/maand)</div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>Doorzoekt heel het web (incl. X, Reddit, HN). Geen aparte X API nodig (die kost €200/maand). Reddit API is gratis maar beperkt tot niet-commercieel.</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {dailyTopics.map((t, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, color: "#e5e7eb", fontSize: 12 }}>{t.topic}</div>
+                    <div style={{ color: "#6b7280", fontSize: 11, marginTop: 2 }}>{t.why}</div>
+                  </div>
+                  <span style={{ padding: "2px 8px", background: "#a855f722", color: "#a855f7", borderRadius: 4, fontSize: 10 }}>{t.source}</span>
+                  <span style={{ padding: "2px 8px", background: "#ffffff08", color: "#9ca3af", borderRadius: 4, fontSize: 10 }}>{t.frequency}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── FINANCIAL PROJECTION ── */}
+      <div style={{ background: "#001a00", border: "1px solid #22c55e66", borderRadius: 12, padding: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 16, color: "#22c55e", marginBottom: 12 }}>📈 Financiële Projectie — Chrome Extensie (conservatief)</div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #22c55e33" }}>
+                {["Periode", "Users", "Betalend", "MRR", "Cumulatief"].map(h => (
+                  <th key={h} style={{ padding: "8px 12px", textAlign: "left", color: "#22c55e", fontWeight: 700 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {projections.map((p, i) => (
+                <tr key={i} style={{ borderBottom: "1px solid #1f293733" }}>
+                  <td style={{ padding: "8px 12px", color: "#e5e7eb", fontWeight: 600 }}>{p.month}</td>
+                  <td style={{ padding: "8px 12px", color: "#9ca3af" }}>{p.users}</td>
+                  <td style={{ padding: "8px 12px", color: "#60a5fa" }}>{p.paying}</td>
+                  <td style={{ padding: "8px 12px", color: "#22c55e", fontWeight: 700 }}>{p.mrr}</td>
+                  <td style={{ padding: "8px 12px", color: "#fbbf24" }}>{p.cumulative}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ fontSize: 10, color: "#4b5563", marginTop: 8 }}>Aannames: 5% conversie gratis→betaald, €4.99/maand gemiddeld, organische groei + Product Hunt launch</div>
+      </div>
+
+      {/* ── FOOTER ── */}
+      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
+          <p><strong style={{ color: "#22c55e" }}>Eerste stap:</strong> Chrome extensie bouwen met LFM2 lokaal (WASM). Nul serverkosten = ~95% marge.</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#22c55e" }}>Monitoring:</strong> Perplexity API (~€1/maand) voor dagelijkse scam + markt intelligence. InfraNodus voor structurering.</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#22c55e" }}>Principe:</strong> Eerst bewijzen (Chrome extensie), dan schalen (API + MSP), dan domineren (embedded SDK).</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SESSION NOTES TAB — v4.5.0
 // Franky's sessie-logboek: kopieer inzichten, code, en ideeën uit Claude sessies
 // Derde laags controle en backup naast GitHub en Cloudflare
@@ -4031,6 +4338,7 @@ export default function ControlCenter() {
     { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
     { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa" },
     { id: "crypto", label: "🪙 Crypto", color: "#f59e0b" },
+    { id: "revenue", label: "💰 Revenue", color: "#22c55e" },
     { id: "notes", label: "📋 Notes", color: "#14b8a6" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
   ];
@@ -4094,7 +4402,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.7.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.8.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4198,11 +4506,12 @@ export default function ControlCenter() {
       {tab === "sdkhrm" && <SDKHRMHub />}
       {tab === "benchmarks" && <TrainingBenchmarks />}
       {tab === "crypto" && <CryptoIntelligence />}
+      {tab === "revenue" && <RevenueIntelligence />}
       {tab === "notes" && <SessionNotes />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.7.0 • {total} nodes • 18 tabs • Smart Session Notes • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.8.0 • {total} nodes • 19 tabs • Revenue Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
