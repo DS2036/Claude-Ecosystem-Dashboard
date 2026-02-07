@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.8.0
+// CLAUDE CONTROL CENTER v4.9.0
 // Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -80,6 +80,7 @@ const api = {
 // v4.6.0 - Live Training Charts in Benchmarks (SVG grafieken, Loss/Accuracy/LR curves)
 // v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
 // v4.8.0 - Revenue Intelligence tab (5 streams, Chrome roadmap, build-up checklist, projections)
+// v4.9.0 - Perplexity API Live Intelligence Feed (8 topics, auto-refresh, cost tracking)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3242,13 +3243,28 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REVENUE INTELLIGENCE TAB — v4.8.0
+// REVENUE INTELLIGENCE TAB — v4.9.0 (+ Perplexity Live Feed)
 // Dagelijkse revenue-ideeën, Chrome extensie roadmap, build-up checklist
 // Integratie met InfraNodus voor marktinzichten
 // ═══════════════════════════════════════════════════════════════════════════════
 function RevenueIntelligence() {
   const [expanded, setExpanded] = useState({});
+  const [feed, setFeed] = useState(null);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedError, setFeedError] = useState(null);
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Load intelligence feed from JSON
+  const loadFeed = useCallback(() => {
+    setFeedLoading(true);
+    setFeedError(null);
+    fetch("/data/intelligence_feed.json?" + Date.now())
+      .then(r => { if (!r.ok) throw new Error("Feed niet beschikbaar"); return r.json(); })
+      .then(data => { setFeed(data); setFeedLoading(false); })
+      .catch(e => { setFeedError(e.message); setFeedLoading(false); });
+  }, []);
+
+  useEffect(() => { loadFeed(); }, [loadFeed]);
 
   // ── Revenue Streams Ranked ──
   const revenueStreams = [
@@ -3533,6 +3549,129 @@ function RevenueIntelligence() {
           </table>
         </div>
         <div style={{ fontSize: 10, color: "#4b5563", marginTop: 8 }}>Aannames: 5% conversie gratis→betaald, €4.99/maand gemiddeld, organische groei + Product Hunt launch</div>
+      </div>
+
+      {/* ── LIVE INTELLIGENCE FEED (Perplexity API) ── */}
+      <div style={{ background: "#0a001a", border: "2px solid #8b5cf6", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("livefeed")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.livefeed ? "#8b5cf611" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>⚡</span>
+            <div>
+              <div style={{ fontWeight: 800, color: "#8b5cf6", fontSize: 16 }}>Live Intelligence Feed — Perplexity API</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                {feed && feed.meta?.last_scan
+                  ? `Laatste scan: ${new Date(feed.meta.last_scan).toLocaleString("nl-BE")} • ${feed.meta.topics_scanned}/${feed.meta.total_topics} topics • ${feed.meta.total_tokens_this_scan} tokens`
+                  : feedError ? `⚠️ ${feedError}` : feedLoading ? "Laden..." : "Nog geen data — run: python3 scripts/perplexity_monitor.py"}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={(e) => { e.stopPropagation(); loadFeed(); }} style={{ padding: "4px 10px", background: "#8b5cf622", border: "1px solid #8b5cf644", borderRadius: 6, color: "#8b5cf6", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>🔄 Refresh</button>
+            <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.livefeed ? "▼" : "▶"}</span>
+          </div>
+        </div>
+        {expanded.livefeed && (
+          <div style={{ padding: 16, borderTop: "1px solid #8b5cf633" }}>
+            {!feed || !feed.entries || Object.keys(feed.entries).length === 0 ? (
+              <div style={{ textAlign: "center", padding: 30 }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                <div style={{ color: "#9ca3af", fontSize: 14 }}>Nog geen intelligence data beschikbaar</div>
+                <div style={{ color: "#6b7280", fontSize: 12, marginTop: 8, lineHeight: 1.8 }}>
+                  <strong style={{ color: "#8b5cf6" }}>Setup:</strong><br/>
+                  1. Voeg <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>PERPLEXITY_API_KEY=pplx-xxx</code> toe aan <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>~/.env</code><br/>
+                  2. Run: <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>python3 scripts/perplexity_monitor.py</code><br/>
+                  3. Klik 🔄 Refresh hierboven
+                </div>
+                <div style={{ color: "#4b5563", fontSize: 11, marginTop: 12 }}>Kosten: ~$0.005-0.01 per scan (8 topics) = minder dan €1/maand bij dagelijks gebruik</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* Category filter badges */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+                  {["threats", "competition", "product", "regulation", "technology"].map(cat => {
+                    const catEntries = Object.values(feed.entries).filter(e => e.category === cat);
+                    if (catEntries.length === 0) return null;
+                    const colors = { threats: "#ef4444", competition: "#f59e0b", product: "#60a5fa", regulation: "#22c55e", technology: "#8b5cf6" };
+                    return (
+                      <span key={cat} style={{ padding: "3px 10px", background: `${colors[cat]}15`, border: `1px solid ${colors[cat]}44`, borderRadius: 6, fontSize: 11, color: colors[cat], fontWeight: 600, textTransform: "uppercase" }}>
+                        {cat} ({catEntries.length})
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {/* Feed entries */}
+                {Object.values(feed.entries).sort((a, b) => (b.scanned_at || "").localeCompare(a.scanned_at || "")).map(entry => {
+                  const catColors = { threats: "#ef4444", competition: "#f59e0b", product: "#60a5fa", regulation: "#22c55e", technology: "#8b5cf6" };
+                  const borderColor = catColors[entry.category] || "#6b7280";
+                  return (
+                    <div key={entry.id} style={{ background: "#111", border: `1px solid ${borderColor}33`, borderLeft: `3px solid ${borderColor}`, borderRadius: 8, overflow: "hidden" }}>
+                      <div onClick={() => toggle(`feed_${entry.id}`)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", cursor: "pointer", background: expanded[`feed_${entry.id}`] ? `${borderColor}08` : "transparent" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 18 }}>{entry.icon}</span>
+                          <div>
+                            <div style={{ fontWeight: 600, color: "#e5e7eb", fontSize: 13 }}>{entry.topic}</div>
+                            <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
+                              <span style={{ padding: "1px 6px", background: `${borderColor}15`, color: borderColor, borderRadius: 3, fontSize: 9, fontWeight: 600, textTransform: "uppercase" }}>{entry.category}</span>
+                              <span style={{ padding: "1px 6px", background: "#ffffff08", color: "#6b7280", borderRadius: 3, fontSize: 9 }}>{entry.frequency}</span>
+                              {entry.scanned_at && <span style={{ padding: "1px 6px", background: "#ffffff08", color: "#4b5563", borderRadius: 3, fontSize: 9 }}>{new Date(entry.scanned_at).toLocaleDateString("nl-BE")}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <span style={{ color: "#6b7280", fontSize: 14 }}>{expanded[`feed_${entry.id}`] ? "▼" : "▶"}</span>
+                      </div>
+                      {expanded[`feed_${entry.id}`] && (
+                        <div style={{ padding: "0 14px 14px 14px", borderTop: `1px solid ${borderColor}22` }}>
+                          {/* Content */}
+                          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7, marginTop: 10, whiteSpace: "pre-wrap" }}>
+                            {entry.content}
+                          </div>
+                          {/* Citations */}
+                          {entry.citations && entry.citations.length > 0 && (
+                            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1f293744" }}>
+                              <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 600, marginBottom: 4 }}>📎 BRONNEN:</div>
+                              {entry.citations.map((url, ci) => (
+                                <div key={ci} style={{ fontSize: 10, color: "#60a5fa", marginBottom: 2, wordBreak: "break-all" }}>
+                                  <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", textDecoration: "none" }}>
+                                    [{ci + 1}] {url.length > 80 ? url.substring(0, 80) + "..." : url}
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Related questions */}
+                          {entry.related_questions && entry.related_questions.length > 0 && (
+                            <div style={{ marginTop: 8 }}>
+                              <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 600, marginBottom: 4 }}>💡 GERELATEERDE VRAGEN:</div>
+                              {entry.related_questions.map((q, qi) => (
+                                <div key={qi} style={{ fontSize: 11, color: "#9ca3af", marginBottom: 2 }}>• {q}</div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Token usage */}
+                          <div style={{ marginTop: 8, fontSize: 9, color: "#4b5563" }}>
+                            {entry.tokens_used} tokens • model: {entry.model}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Cost summary */}
+                {feed.meta && (
+                  <div style={{ background: "#14b8a608", border: "1px solid #14b8a622", borderRadius: 8, padding: 10, marginTop: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 11, color: "#9ca3af" }}>
+                      <span>📊 Totaal tokens deze scan: <strong style={{ color: "#14b8a6" }}>{feed.meta.total_tokens_this_scan?.toLocaleString()}</strong></span>
+                      <span>💰 Geschatte kosten: <strong style={{ color: "#22c55e" }}>~${(feed.meta.total_tokens_this_scan / 1_000_000 * 2 + 0.005 * (feed.meta.topics_scanned || 8)).toFixed(4)}</strong></span>
+                      <span>📅 Bij dagelijks: <strong style={{ color: "#fbbf24" }}>~€{((feed.meta.total_tokens_this_scan / 1_000_000 * 2 + 0.005 * (feed.meta.topics_scanned || 8)) * 30).toFixed(2)}/maand</strong></span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── FOOTER ── */}
@@ -4402,7 +4541,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.8.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.9.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4511,7 +4650,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.8.0 • {total} nodes • 19 tabs • Revenue Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.9.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
