@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.6.0
+// CLAUDE CONTROL CENTER v4.7.0
 // Complete Dashboard: 18 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -78,6 +78,7 @@ const api = {
 // v4.4.0 - Crypto Intelligence Hub (scam/legit classificatie, regulatory, expertise profile)
 // v4.5.0 - Session Notes & Insights (derde laags backup, copy/paste, export JSON/MD)
 // v4.6.0 - Live Training Charts in Benchmarks (SVG grafieken, Loss/Accuracy/LR curves)
+// v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3263,25 +3264,60 @@ function SessionNotes() {
     localStorage.setItem("session-notes", JSON.stringify(notes));
   }, [notes]);
 
-  // Create new note
+  // localStorage usage estimate
+  const STORAGE_LIMIT = 5 * 1024 * 1024; // 5MB conservative estimate
+  const storageUsed = new Blob([JSON.stringify(notes)]).size;
+  const storagePercent = Math.round((storageUsed / STORAGE_LIMIT) * 100);
+  const CHUNK_SIZE = 200000; // ~200K characters per chunk (safe for localStorage)
+
+  // Create new note — auto-splits large content into linked parts
   const createNote = () => {
     if (!editTitle.trim()) return;
-    const newNote = {
-      id: Date.now().toString(),
-      title: editTitle.trim(),
-      content: editContent,
-      tags: editTags.split(",").map(t => t.trim()).filter(Boolean),
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
-      source: "manual",
-      version: "v4.5.0"
-    };
-    setNotes(prev => [newNote, ...prev]);
+    const tags = editTags.split(",").map(t => t.trim()).filter(Boolean);
+    const now = new Date().toISOString();
+    const baseId = Date.now().toString();
+
+    if (editContent.length <= CHUNK_SIZE) {
+      // Normal note — fits in one piece
+      const newNote = {
+        id: baseId,
+        title: editTitle.trim(),
+        content: editContent,
+        tags,
+        created: now,
+        updated: now,
+        source: "manual",
+        version: "v4.7.0",
+        parts: null
+      };
+      setNotes(prev => [newNote, ...prev]);
+      setActiveNote(baseId);
+    } else {
+      // Auto-split into linked parts
+      const totalParts = Math.ceil(editContent.length / CHUNK_SIZE);
+      const newNotes = [];
+      for (let i = 0; i < totalParts; i++) {
+        const chunk = editContent.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        const partId = `${baseId}-part${i + 1}`;
+        newNotes.push({
+          id: partId,
+          title: `${editTitle.trim()} (deel ${i + 1}/${totalParts})`,
+          content: chunk,
+          tags: [...tags, `reeks:${baseId}`],
+          created: now,
+          updated: now,
+          source: "auto-split",
+          version: "v4.7.0",
+          parts: { total: totalParts, part: i + 1, seriesId: baseId }
+        });
+      }
+      setNotes(prev => [...newNotes, ...prev]);
+      setActiveNote(newNotes[0].id);
+    }
     setEditTitle("");
     setEditContent("");
     setEditTags("");
     setShowNewForm(false);
-    setActiveNote(newNote.id);
   };
 
   // Update existing note
@@ -3365,6 +3401,7 @@ function SessionNotes() {
               { label: String(notes.length), sub: "notes", color: "#14b8a6" },
               { label: totalChars > 1000 ? `${(totalChars / 1000).toFixed(1)}K` : String(totalChars), sub: "characters", color: "#22c55e" },
               { label: String(allTags.length), sub: "tags", color: "#60a5fa" },
+              { label: `${storagePercent}%`, sub: "opslag", color: storagePercent > 80 ? "#ef4444" : storagePercent > 50 ? "#f59e0b" : "#22c55e" },
             ].map(m => (
               <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
@@ -3422,17 +3459,29 @@ function SessionNotes() {
             onChange={e => setEditTags(e.target.value)}
             style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#0f0f0f", color: "#9ca3af", fontSize: 12, marginTop: 10, outline: "none", boxSizing: "border-box" }}
           />
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          {/* Auto-split indicator */}
+          {editContent.length > CHUNK_SIZE && (
+            <div style={{ background: "#f59e0b11", border: "1px solid #f59e0b44", borderRadius: 8, padding: 10, marginTop: 10 }}>
+              <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 600 }}>
+                📦 Groot document gedetecteerd — wordt automatisch opgesplitst in {Math.ceil(editContent.length / CHUNK_SIZE)} delen
+              </div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>
+                {editContent.length.toLocaleString()} tekens → {Math.ceil(editContent.length / CHUNK_SIZE)} delen van max {(CHUNK_SIZE / 1000).toFixed(0)}K tekens. Delen worden automatisch gelinkt.
+              </div>
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center", flexWrap: "wrap" }}>
             <button onClick={createNote}
               style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#14b8a6", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              💾 Opslaan
+              {editContent.length > CHUNK_SIZE ? `💾 Opslaan (${Math.ceil(editContent.length / CHUNK_SIZE)} delen)` : "💾 Opslaan"}
             </button>
             <button onClick={() => setShowNewForm(false)}
               style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>
               Annuleren
             </button>
-            <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>
+            <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: editContent.length > CHUNK_SIZE ? "#f59e0b" : "#6b7280", alignSelf: "center" }}>
               {editContent.length > 0 && `${editContent.length.toLocaleString()} tekens`}
+              {storagePercent > 70 && <span style={{ color: "#ef4444", marginLeft: 8 }}>⚠️ Opslag {storagePercent}%</span>}
             </div>
           </div>
         </div>
@@ -3479,8 +3528,13 @@ function SessionNotes() {
                     </div>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                  {note.tags.map(t => (
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
+                  {note.parts && (
+                    <span style={{ padding: "2px 8px", background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>
+                      📦 {note.parts.part}/{note.parts.total}
+                    </span>
+                  )}
+                  {note.tags.filter(t => !t.startsWith("reeks:")).map(t => (
                     <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
                   ))}
                 </div>
@@ -3546,8 +3600,9 @@ function SessionNotes() {
       {/* ── INFO FOOTER ── */}
       <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
         <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
-          <p><strong style={{ color: "#14b8a6" }}>Opslag:</strong> Alles wordt lokaal opgeslagen in je browser (localStorage). Exporteer regelmatig naar JSON of Markdown als backup.</p>
-          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Gebruik:</strong> Kopieer tekst uit Claude sessies (Ctrl/Cmd+A, Ctrl/Cmd+C), maak een nieuw document, en plak (Ctrl/Cmd+V).</p>
+          <p><strong style={{ color: "#14b8a6" }}>Opslag:</strong> Lokaal in browser (localStorage, ~5MB). Indicator rechtsboven toont gebruik. Exporteer regelmatig als backup.</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Auto-split:</strong> Grote teksten (&gt;200K tekens) worden automatisch opgesplitst in gelinkte delen. Je plakt gewoon alles — het systeem regelt de rest.</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Gebruik:</strong> Kopieer een hele Claude sessie (Cmd+A, Cmd+C), maak een nieuw document, plak (Cmd+V), en klik Opslaan.</p>
           <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Backup lagen:</strong> 1) GitHub repo 2) Cloudflare deploy 3) Session Notes (deze tab) 4) InfraNodus graphs 5) Obsidian</p>
         </div>
       </div>
@@ -4039,7 +4094,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.6.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.7.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4147,7 +4202,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.6.0 • {total} nodes • 18 tabs • Live Training Charts • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.7.0 • {total} nodes • 18 tabs • Smart Session Notes • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
