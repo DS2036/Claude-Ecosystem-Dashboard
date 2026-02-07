@@ -1717,6 +1717,158 @@ function SystemKnowledgeBase() {
         </div>
       </div>
 
+      {/* SDK-HRM TRAINING & STRATEGIE (7 Feb 2026 — MM4 Training Sessie) */}
+      <div style={{ background: "#0f0f0f", border: "1px solid #f97316", borderRadius: 12, padding: 14 }}>
+        <div style={{ fontWeight: 700, color: "#f97316", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <span>🧠</span> SDK-HRM TRAINING & STRATEGIE (7 Feb 2026 — MM4)
+        </div>
+
+        {/* Model Overview */}
+        <div style={{ background: "#1a0a00", border: "1px solid #9a3412", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#fb923c", fontSize: 13, marginBottom: 8 }}>Sapient-HRM 27.3M — ARC Training op Mac Mini M4</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 6 }}>
+            {[
+              { label: "Parameters", value: "27.3M", color: "#f97316" },
+              { label: "Architectuur", value: "ACT+HRM", color: "#a78bfa" },
+              { label: "Device", value: "MPS M4", color: "#60a5fa" },
+              { label: "Speed", value: "~1.76s/step", color: "#22c55e" },
+              { label: "Checkpoint", value: "elke 100", color: "#f472b6" },
+              { label: "Talen", value: "NL/FR/EN", color: "#06b6d4" },
+              { label: "Domeinen", value: "66", color: "#fbbf24" },
+              { label: "Target", value: "1.05M samples", color: "#ef4444" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
+                <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Nested Architecture */}
+        <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 12, marginBottom: 8 }}>Nested Architecture — HRM inside LFM2</div>
+          <div style={{ fontFamily: "monospace", fontSize: 10, color: "#c4b5fd", lineHeight: 1.6 }}>
+            <div style={{ color: "#60a5fa" }}>LFM2-2.6B (body) — 2560-dim, ~5GB</div>
+            <div>{"    ↓ (1000 tokens)"}</div>
+            <div style={{ color: "#f59e0b" }}>DeepEncoder Bridge — 2560→512dim, 1000→50 tokens (97% info)</div>
+            <div>{"    ↓ (50 tokens)"}</div>
+            <div style={{ color: "#f97316" }}>HRM-27M (brain) — 512-dim, ~1GB → risk_score + uitleg</div>
+            <div style={{ color: "#22c55e", marginTop: 4 }}>Totaal: 6.5GB (past op 16GB Mac Mini)</div>
+          </div>
+        </div>
+
+        {/* 18 Modules */}
+        <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#4ade80", fontSize: 12, marginBottom: 8 }}>18 Beschermingsmodules</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {["Email Guardian", "Website Guardian", "Call Shield", "Mobile Agent", "Elderly Guardian", "Wearable Shield", "Social Graph", "QR Shield", "Deepfake Detector", "Identity Monitor", "Child Safety", "IoT Guardian", "Document Verifier", "Voice Clone Detector", "Marketplace Guard", "Voice Auth", "Visual Shield", "Malware Analysis"].map(m => (
+              <span key={m} style={{ fontSize: 9, padding: "3px 6px", borderRadius: 4, background: "#22c55e15", color: "#86efac", border: "1px solid #16653444" }}>{m}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Go-to-Market */}
+        <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 8 }}>Go-to-Market — 5 Fasen</div>
+          {[
+            { fase: 0, naam: "Gratis Zichtbaarheid", periode: "Week 1-4", rev: "€0" },
+            { fase: 1, naam: "Chrome Extensie (WASM)", periode: "Maand 2-3", rev: "€500-2K/mnd" },
+            { fase: 2, naam: "API + WordPress + Shopify", periode: "Maand 4-6", rev: "€2K-10K/mnd" },
+            { fase: 3, naam: "MSP White-Label", periode: "Maand 6-12", rev: "€10K-50K/mnd" },
+            { fase: 4, naam: "Embedded SDK (IoT/Auto)", periode: "Jaar 2+", rev: "€100K+/jaar" },
+          ].map(f => (
+            <div key={f.fase} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+              <span style={{ width: 24, height: 24, borderRadius: 6, background: "#f9731633", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#f97316", flexShrink: 0 }}>{f.fase}</span>
+              <div style={{ flex: 1, fontSize: 11, color: "#fde68a" }}>{f.naam} <span style={{ color: "#6b7280" }}>({f.periode})</span></div>
+              <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 600 }}>{f.rev}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Finance Track */}
+        <div style={{ background: "#001a33", border: "1px solid #1e40af", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 12, marginBottom: 8 }}>Finance Track — Value Guardian</div>
+          <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 6 }}>"Wij beschermen uw GELD, niet alleen uw netwerk"</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {["POS Terminal Guard €0.50/t/mnd", "Payment Gateway €99/mnd", "DORA Compliance €5K-50K/jr", "Claim Fraud €10K-100K/jr"].map(p => (
+              <span key={p} style={{ fontSize: 9, padding: "3px 6px", borderRadius: 4, background: "#3b82f615", color: "#93c5fd", border: "1px solid #1e40af44" }}>{p}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: "#6b7280", marginTop: 6 }}>Targets: Bancontact, Worldline (Brussel), Ethias, Billit, Aion Bank</div>
+          <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4 }}>ROI: Bank verliest €50K aan phishing, SDK-HRM kost €500/mnd = 100x ROI</div>
+        </div>
+
+        {/* Embedded Market */}
+        <div style={{ background: "#001a1a", border: "1px solid #0e7490", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#22d3ee", fontSize: 12, marginBottom: 8 }}>Embedded SDK Markt — $30.6B (2029)</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {[
+              "Automotive €0.50-2/auto", "Wearables €0.25-1/device", "Smart Home €0.10-0.50/device",
+              "Robots €5K-50K/site", "Drones €1-5/drone"
+            ].map(s => (
+              <span key={s} style={{ fontSize: 9, padding: "3px 6px", borderRadius: 4, background: "#06b6d415", color: "#67e8f9", border: "1px solid #0e749044" }}>{s}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Model Security */}
+        <div style={{ background: "#1a0000", border: "1px solid #991b1b", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#ef4444", fontSize: 12, marginBottom: 8 }}>5-Laags Model Bescherming</div>
+          {["1. Runtime Integrity — hash check bij elke start", "2. Code Obfuscation — anti-debugging", "3. Encrypted Weights — AES-256, device-locked", "4. Modulaire LoRA — open base, geheime adapters", "5. Blockchain Verificatie — tamper-proof updates"].map(s => (
+            <div key={s} style={{ fontSize: 10, color: "#fca5a5", padding: "2px 0" }}>{s}</div>
+          ))}
+          <div style={{ fontSize: 10, color: "#22c55e", marginTop: 6 }}>Strategie: Open Base + Geheime LoRA Adapters (10-50MB, versleuteld, abonnement)</div>
+        </div>
+
+        {/* Data Flywheel */}
+        <div style={{ background: "#0f000f", border: "1px solid #86198f", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#f472b6", fontSize: 12, marginBottom: 8 }}>Data Flywheel — Competitive Moat (Waze-model)</div>
+          <div style={{ fontSize: 10, color: "#f9a8d4", lineHeight: 1.6 }}>
+            User scant → Model score → User feedback (✓/✗) → GRATIS training data → Beter model → Meer users → ONVERSLAANBAAR
+          </div>
+          <div style={{ fontSize: 9, color: "#6b7280", marginTop: 4 }}>Privacy: alleen anonieme patronen, NOOIT content. Hash-based sharing. GDPR compliant.</div>
+        </div>
+
+        {/* Chrome Extension */}
+        <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#4ade80", fontSize: 12, marginBottom: 8 }}>Chrome Extensie — Eerste Revenue</div>
+          <div style={{ fontSize: 10, color: "#86efac", lineHeight: 1.6 }}>
+            <div>ExtensionPay (Stripe) • WASM model lokaal in browser • Nul hosting kosten • ~95% marge</div>
+            <div>Gratis: 10 scans/dag | Pro: €4.99/mnd | Gezin: €9.99/mnd</div>
+            <div style={{ color: "#22c55e", fontWeight: 700, marginTop: 4 }}>Doel: €5.000/maand MRR binnen 6 maanden</div>
+          </div>
+        </div>
+
+        {/* Checkpoint System */}
+        <div style={{ background: "#111", border: "1px solid #374151", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 12, marginBottom: 8 }}>Checkpoint V3 (MPS-Safe Fixes)</div>
+          {["✓ Checkpoint VÓÓR evaluatie (niet erna)", "✓ while True → for range(16) — geen MPS kernel hang", "✓ Interval: 500→100 steps, Max keep: 5", "✓ MAX_EVAL_BATCHES: 20, EVAL_TIMEOUT: 120s"].map(f => (
+            <div key={f} style={{ fontSize: 10, color: "#86efac", padding: "2px 0" }}>{f}</div>
+          ))}
+        </div>
+
+        {/* 19 InfraNodus Graphs */}
+        <div style={{ background: "#001a1a", border: "1px solid #0e7490", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontWeight: 700, color: "#06b6d4", fontSize: 12, marginBottom: 8 }}>19 InfraNodus Knowledge Graphs</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {["vision", "website_monitoring", "mobile_agent", "email_guardian", "fraud_protection", "revenue_model", "training-priorities", "franky-vision", "roadmap-gaps", "scam-patterns-v2", "website-guardian", "full-product-map", "voice-visual-shield", "model-comparison", "nested-architecture", "blockchain-trust", "model-security", "embedded-market", "finance-strategy"].map(g => (
+              <span key={g} style={{ fontSize: 8, padding: "2px 5px", borderRadius: 3, background: "#06b6d415", color: "#67e8f9", border: "1px solid #0e749033" }}>SDK-HRM-{g}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Deployment Sizes */}
+        <div style={{ background: "#111", border: "1px solid #374151", borderRadius: 8, padding: 12, marginTop: 10 }}>
+          <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 12, marginBottom: 8 }}>Deployment Groottes</div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 10, color: "#d1d5db" }}>
+            <div><strong style={{ color: "#f97316" }}>HRM-27M:</strong> 27MB (int8) — 109MB (float32)</div>
+            <div><strong style={{ color: "#a78bfa" }}>LFM2-2.6B:</strong> 1.6GB (int4) — 5.2GB (float16)</div>
+            <div><strong style={{ color: "#22c55e" }}>Gecombineerd:</strong> 2.1GB geoptimaliseerd</div>
+          </div>
+        </div>
+      </div>
+
       {/* Export Info */}
       <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Backup:</strong> Dit dashboard is zelf de backup - gepusht naar GitHub na elke wijziging</p>
@@ -2181,7 +2333,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.6 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v3.9.8 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -2285,7 +2437,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.9.1 • {total} nodes • 14 tabs • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v3.9.8 • {total} nodes • 14 tabs • SDK-HRM Knowledge Hub • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
