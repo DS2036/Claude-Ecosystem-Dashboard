@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.9.0
+// CLAUDE CONTROL CENTER v4.10.0
 // Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -81,6 +81,7 @@ const api = {
 // v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
 // v4.8.0 - Revenue Intelligence tab (5 streams, Chrome roadmap, build-up checklist, projections)
 // v4.9.0 - Perplexity API Live Intelligence Feed (8 topics, auto-refresh, cost tracking)
+// v4.10.0 - Scan Now knoppen + Local API integratie + Live status indicator
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3243,28 +3244,88 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REVENUE INTELLIGENCE TAB — v4.9.0 (+ Perplexity Live Feed)
+// REVENUE INTELLIGENCE TAB — v4.10.0 (+ Perplexity Live Feed + Scan Now)
 // Dagelijkse revenue-ideeën, Chrome extensie roadmap, build-up checklist
 // Integratie met InfraNodus voor marktinzichten
 // ═══════════════════════════════════════════════════════════════════════════════
+// Local API config — draait op Mac Mini, CCC praat ermee vanuit browser
+const LOCAL_API = "http://localhost:4900";
+
 function RevenueIntelligence() {
   const [expanded, setExpanded] = useState({});
   const [feed, setFeed] = useState(null);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState("");
+  const [apiOnline, setApiOnline] = useState(false);
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
-  // Load intelligence feed from JSON
+  // Check if local API is running
+  const checkApi = useCallback(() => {
+    fetch(`${LOCAL_API}/health`, { signal: AbortSignal.timeout(2000) })
+      .then(r => r.json())
+      .then(d => setApiOnline(d.status === "ok"))
+      .catch(() => setApiOnline(false));
+  }, []);
+
+  // Load intelligence feed — try local API first, fallback to static JSON
   const loadFeed = useCallback(() => {
     setFeedLoading(true);
     setFeedError(null);
-    fetch("/data/intelligence_feed.json?" + Date.now())
-      .then(r => { if (!r.ok) throw new Error("Feed niet beschikbaar"); return r.json(); })
-      .then(data => { setFeed(data); setFeedLoading(false); })
-      .catch(e => { setFeedError(e.message); setFeedLoading(false); });
+    fetch(`${LOCAL_API}/api/intelligence/feed`, { signal: AbortSignal.timeout(3000) })
+      .then(r => { if (!r.ok) throw new Error("API offline"); return r.json(); })
+      .then(data => { setFeed(data); setFeedLoading(false); setApiOnline(true); })
+      .catch(() => {
+        // Fallback: static JSON (werkt altijd op lokale dev server)
+        fetch("/data/intelligence_feed.json?" + Date.now())
+          .then(r => { if (!r.ok) throw new Error("Feed niet beschikbaar"); return r.json(); })
+          .then(data => { setFeed(data); setFeedLoading(false); })
+          .catch(e => { setFeedError(e.message); setFeedLoading(false); });
+      });
   }, []);
 
-  useEffect(() => { loadFeed(); }, [loadFeed]);
+  // Trigger Perplexity scan via local API
+  const triggerScan = useCallback((topicIndices = null) => {
+    if (scanning) return;
+    setScanning(true);
+    setScanProgress("Scan starten...");
+
+    const body = topicIndices ? { topics: topicIndices } : {};
+    fetch(`${LOCAL_API}/api/intelligence/scan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000)
+    })
+      .then(r => r.json())
+      .then(d => {
+        setScanProgress(d.message || "Bezig...");
+        // Poll for completion
+        const poll = setInterval(() => {
+          fetch(`${LOCAL_API}/api/intelligence/status`, { signal: AbortSignal.timeout(2000) })
+            .then(r => r.json())
+            .then(s => {
+              setScanProgress(s.progress || "Bezig...");
+              if (!s.scanning) {
+                clearInterval(poll);
+                setScanning(false);
+                setScanProgress(s.error ? `❌ ${s.error}` : s.progress);
+                loadFeed(); // Reload feed with new data
+              }
+            })
+            .catch(() => {});
+        }, 2000);
+        // Safety timeout: stop polling after 2 minutes
+        setTimeout(() => { clearInterval(poll); setScanning(false); }, 120000);
+      })
+      .catch(e => {
+        setScanning(false);
+        setScanProgress(`❌ API niet bereikbaar — start: python3 scripts/local_api.py`);
+      });
+  }, [scanning, loadFeed]);
+
+  useEffect(() => { loadFeed(); checkApi(); }, [loadFeed, checkApi]);
 
   // ── Revenue Streams Ranked ──
   const revenueStreams = [
@@ -3370,7 +3431,7 @@ function RevenueIntelligence() {
             <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Van model naar geld — dagelijkse updates, roadmap en build-up checklist</p>
             <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Chrome extensie eerst • API daarna • MSP white-label als schaalstap</p>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             {[
               { label: "5", sub: "streams", color: "#22c55e" },
               { label: "€5K", sub: "MRR doel", color: "#fbbf24" },
@@ -3382,7 +3443,32 @@ function RevenueIntelligence() {
                 <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
               </div>
             ))}
+            {/* ── SCAN NOW BUTTON ── */}
+            <button
+              onClick={() => triggerScan()}
+              disabled={scanning || !apiOnline}
+              style={{
+                padding: "12px 18px", background: scanning ? "#4b5563" : apiOnline ? "linear-gradient(135deg, #8b5cf6, #6d28d9)" : "#1f2937",
+                border: `1px solid ${apiOnline ? "#8b5cf688" : "#374151"}`, borderRadius: 10, cursor: scanning || !apiOnline ? "default" : "pointer",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 80
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{scanning ? "⏳" : apiOnline ? "⚡" : "🔌"}</span>
+              <span style={{ fontSize: 10, color: scanning ? "#9ca3af" : apiOnline ? "#c4b5fd" : "#6b7280", fontWeight: 700 }}>
+                {scanning ? "SCANNING" : apiOnline ? "SCAN NOW" : "API OFF"}
+              </span>
+            </button>
           </div>
+          {/* Scan progress bar */}
+          {(scanning || scanProgress) && (
+            <div style={{ marginTop: 8, padding: "6px 12px", background: scanning ? "#8b5cf611" : scanProgress.startsWith("❌") ? "#ef444411" : "#22c55e11",
+              border: `1px solid ${scanning ? "#8b5cf633" : scanProgress.startsWith("❌") ? "#ef444433" : "#22c55e33"}`, borderRadius: 6, fontSize: 11,
+              color: scanning ? "#a78bfa" : scanProgress.startsWith("❌") ? "#ef4444" : "#4ade80" }}>
+              {scanning && <span style={{ marginRight: 6 }}>●</span>}
+              {scanProgress}
+              {!apiOnline && !scanning && <span style={{ marginLeft: 8, color: "#6b7280" }}>Start: python3 scripts/local_api.py</span>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -3565,8 +3651,17 @@ function RevenueIntelligence() {
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <button onClick={(e) => { e.stopPropagation(); loadFeed(); }} style={{ padding: "4px 10px", background: "#8b5cf622", border: "1px solid #8b5cf644", borderRadius: 6, color: "#8b5cf6", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>🔄 Refresh</button>
+            {apiOnline && (
+              <button onClick={(e) => { e.stopPropagation(); triggerScan(); }} disabled={scanning}
+                style={{ padding: "4px 10px", background: scanning ? "#4b556322" : "#22c55e22", border: `1px solid ${scanning ? "#4b556344" : "#22c55e44"}`, borderRadius: 6, color: scanning ? "#6b7280" : "#22c55e", fontSize: 11, cursor: scanning ? "default" : "pointer", fontWeight: 600 }}>
+                {scanning ? "⏳ Bezig..." : "⚡ Scan Now"}
+              </button>
+            )}
+            <span style={{ padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 700, background: apiOnline ? "#22c55e22" : "#ef444422", color: apiOnline ? "#22c55e" : "#ef4444" }}>
+              {apiOnline ? "● LIVE" : "● OFFLINE"}
+            </span>
             <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.livefeed ? "▼" : "▶"}</span>
           </div>
         </div>
@@ -4541,7 +4636,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.9.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.10.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4650,7 +4745,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.9.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.10.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
