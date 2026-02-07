@@ -3251,6 +3251,13 @@ function TrainingBenchmarks() {
 // Local API config — draait op Mac Mini, CCC praat ermee vanuit browser
 const LOCAL_API = "http://localhost:4900";
 
+// Timeout helper — compatibel met alle browsers (Safari, Chrome, Firefox)
+function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function RevenueIntelligence() {
   const [expanded, setExpanded] = useState({});
   const [feed, setFeed] = useState(null);
@@ -3263,7 +3270,7 @@ function RevenueIntelligence() {
 
   // Check if local API is running
   const checkApi = useCallback(() => {
-    fetch(`${LOCAL_API}/health`, { signal: AbortSignal.timeout(2000) })
+    fetchWithTimeout(`${LOCAL_API}/health`, {}, 2000)
       .then(r => r.json())
       .then(d => setApiOnline(d.status === "ok"))
       .catch(() => setApiOnline(false));
@@ -3273,7 +3280,7 @@ function RevenueIntelligence() {
   const loadFeed = useCallback(() => {
     setFeedLoading(true);
     setFeedError(null);
-    fetch(`${LOCAL_API}/api/intelligence/feed`, { signal: AbortSignal.timeout(3000) })
+    fetchWithTimeout(`${LOCAL_API}/api/intelligence/feed`, {}, 3000)
       .then(r => { if (!r.ok) throw new Error("API offline"); return r.json(); })
       .then(data => { setFeed(data); setFeedLoading(false); setApiOnline(true); })
       .catch(() => {
@@ -3292,18 +3299,17 @@ function RevenueIntelligence() {
     setScanProgress("Scan starten...");
 
     const body = topicIndices ? { topics: topicIndices } : {};
-    fetch(`${LOCAL_API}/api/intelligence/scan`, {
+    fetchWithTimeout(`${LOCAL_API}/api/intelligence/scan`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(5000)
-    })
+    }, 5000)
       .then(r => r.json())
       .then(d => {
         setScanProgress(d.message || "Bezig...");
         // Poll for completion
         const poll = setInterval(() => {
-          fetch(`${LOCAL_API}/api/intelligence/status`, { signal: AbortSignal.timeout(2000) })
+          fetchWithTimeout(`${LOCAL_API}/api/intelligence/status`, {}, 2000)
             .then(r => r.json())
             .then(s => {
               setScanProgress(s.progress || "Bezig...");
