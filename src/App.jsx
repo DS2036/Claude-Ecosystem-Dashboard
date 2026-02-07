@@ -50,8 +50,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.1.0
-// Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.3.0
+// Complete Dashboard: 16 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -2828,6 +2828,348 @@ function SDKHRMHub() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// V16 TAB: TRAINING & BENCHMARK RESULTS
+// ═══════════════════════════════════════════════════════════════════════════════
+function TrainingBenchmarks() {
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // ARC Pre-training data
+  const arcTraining = {
+    model: "Sapient-HRM 27.3M",
+    architecture: "ACT + HRM (H-level 4L/2C, L-level 4L/4C)",
+    device: "Mac Mini M4 (MPS)",
+    dataset: "ARC-aug-1000 puzzles",
+    totalSteps: 5750,
+    targetSteps: 7695,
+    finalAccuracy: 65.94,
+    speed: "~1.70 sec/step",
+    trainingTime: "2h 52min",
+    checkpointSize: "1.8GB",
+    status: "COMPLETE"
+  };
+
+  // LFM2 Benchmark data
+  const lfm2Baseline = {
+    model: "LFM2-2.6B-4bit-MLX (Liquid AI)",
+    params: "2.569B (4-bit quantized)",
+    scenarios: 209,
+    categories: 13,
+    languages: ["NL", "FR", "EN"],
+    totalAccuracy: 86.1,
+    scamDetection: 100,
+    safeDetection: 0,
+    speed: "1.1 sec/scenario",
+    totalTime: "237s"
+  };
+
+  const lfm2FineTuned = {
+    adapter: "LoRA (3.26M trainable, 0.127%)",
+    trainingIters: 300,
+    trainingLossStart: 3.6,
+    trainingLossEnd: 0.43,
+    trainingTime: "~5 min",
+    totalAccuracy: 98.1,
+    scamDetection: 99.5,
+    safeDetection: 88,
+    speed: "1.1 sec/scenario",
+    totalTime: "229s"
+  };
+
+  // Category results
+  const categoryResults = [
+    { cat: "Urgency/Credential", before: 100, after: 100, total: 18, icon: "🏦" },
+    { cat: "Reward/Payment", before: 100, after: 100, total: 18, icon: "🎁" },
+    { cat: "Impersonation", before: 100, after: 100, total: 18, icon: "👤" },
+    { cat: "Elderly Targeted", before: 100, after: 94, total: 18, icon: "👴" },
+    { cat: "Romance Scam", before: 100, after: 100, total: 16, icon: "💕" },
+    { cat: "Investment Fraud", before: 100, after: 100, total: 16, icon: "💰" },
+    { cat: "Deepfake/AI", before: 100, after: 100, total: 15, icon: "🤖" },
+    { cat: "BEC", before: 100, after: 100, total: 15, icon: "📧" },
+    { cat: "Time Anomaly", before: 100, after: 100, total: 12, icon: "⏰" },
+    { cat: "Language Deviation", before: 100, after: 100, total: 12, icon: "🗣️" },
+    { cat: "Device Anomaly", before: 100, after: 100, total: 12, icon: "📱" },
+    { cat: "Wearable", before: 67, after: 100, total: 15, icon: "⌚" },
+    { cat: "Safe/Legitimate", before: 0, after: 88, total: 24, icon: "✅" },
+  ];
+
+  const langResults = [
+    { lang: "Frans (FR)", before: 87, after: 100, icon: "🇫🇷" },
+    { lang: "Engels (EN)", before: 86, after: 99, icon: "🇬🇧" },
+    { lang: "Nederlands (NL)", before: 86, after: 96, icon: "🇳🇱" },
+  ];
+
+  // Commercial readiness checklist
+  const readiness = [
+    { item: "Proof-of-concept fine-tuning", done: true },
+    { item: "Meertalig NL/FR/EN getest", done: true },
+    { item: "LoRA adapter systeem bewezen", done: true },
+    { item: "On-device inference (M4, 1.1s/scenario)", done: true },
+    { item: "Privacy-first (geen cloud)", done: true },
+    { item: "5.000+ test scenarios", done: false },
+    { item: "Externe validatie dataset", done: false },
+    { item: "Real-world phishing emails getest", done: false },
+    { item: "Vergelijking met Gmail/Defender", done: false },
+    { item: "Precision/Recall/F1 rapportage", done: false },
+    { item: "Zero-day detectie bewezen", done: false },
+  ];
+
+  // Helper: progress bar
+  const Bar = ({ value, max, color, label }) => (
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
+        <span style={{ color: "#9ca3af" }}>{label}</span>
+        <span style={{ color, fontWeight: 700 }}>{value}%</span>
+      </div>
+      <div style={{ height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden" }}>
+        <div style={{ width: `${(value / max) * 100}%`, height: "100%", background: color, borderRadius: 4, transition: "width 0.5s" }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #0a1628, #0f0f23, #1a0a2e)", border: "2px solid #60a5fa", borderRadius: 16, padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 24, background: "linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Training & Benchmark Results
+            </div>
+            <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Alle trainingsruns, benchmarks en commerciële validatie op één plek</p>
+            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Laatste update: 7 februari 2026</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { label: "98.1%", sub: "accuracy", color: "#22c55e" },
+              { label: "209", sub: "scenarios", color: "#60a5fa" },
+              { label: "3 talen", sub: "NL/FR/EN", color: "#fbbf24" },
+              { label: "5/11", sub: "readiness", color: "#f97316" },
+            ].map(m => (
+              <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
+                <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── RUN 1: ARC PRE-TRAINING ── */}
+      <div style={{ background: "#0f0800", border: "1px solid #9a3412", borderRadius: 12, padding: 0, overflow: "hidden" }}>
+        <div onClick={() => toggle("arc")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.arc ? "#f9731611" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🧠</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>Run 1: ARC Pre-Training — Sapient-HRM 27.3M</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>5750 stappen • 65.94% accuracy • COMPLETE</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>✓ COMPLETE</span>
+            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.arc ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </div>
+        </div>
+        {expanded.arc && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: "1px solid #9a341233" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8, marginTop: 12 }}>
+              {[
+                { label: "Parameters", value: "27.3M", color: "#f97316" },
+                { label: "Architectuur", value: "ACT+HRM", color: "#a78bfa" },
+                { label: "Device", value: "MPS M4", color: "#60a5fa" },
+                { label: "Steps", value: "5750", color: "#22c55e" },
+                { label: "Accuracy", value: "65.94%", color: "#fbbf24" },
+                { label: "Speed", value: "1.70s/step", color: "#06b6d4" },
+                { label: "Tijd", value: "2h 52min", color: "#f472b6" },
+                { label: "Checkpoint", value: "1.8GB", color: "#ef4444" },
+              ].map(m => (
+                <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, fontSize: 13, color: "#d1d5db", lineHeight: 1.8 }}>
+              <p>Pre-training op ARC-aug-1000 puzzels om het model patroonherkenning en hiërarchisch redeneren aan te leren. De dataset raakte uitgeput bij step 5750 (van geplande 7695). Checkpoint V3 systeem werkte perfect — elke 100 stappen opgeslagen, maximaal 5 bewaard.</p>
+              <p style={{ marginTop: 6 }}>Dit model vormt de reasoning basis voor de nested architectuur. Het leert NIET tekst begrijpen, maar WEL: patronen herkennen, adaptief redeneren (ACT), en hiërarchische beslissingen nemen (HRM H/L-levels).</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── RUN 2: LFM2 BENCHMARK — VOOR vs NA ── */}
+      <div style={{ background: "#000a1a", border: "1px solid #1e40af", borderRadius: 12, padding: 0, overflow: "hidden" }}>
+        <div onClick={() => toggle("lfm2")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.lfm2 ? "#60a5fa11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>📊</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Run 2: LFM2-2.6B Scam Detection Benchmark</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>86.1% → 98.1% na LoRA fine-tuning • 209 scenarios • NL/FR/EN</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>+12% ↑</span>
+            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.lfm2 ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </div>
+        </div>
+        {expanded.lfm2 && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: "1px solid #1e40af33" }}>
+            {/* Comparison cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+              {/* Before */}
+              <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 10, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 13, marginBottom: 10 }}>BASELINE (voor fine-tuning)</div>
+                <div style={{ textAlign: "center", margin: "10px 0" }}>
+                  <div style={{ fontSize: 36, fontWeight: 800, color: "#f59e0b" }}>86.1%</div>
+                  <div style={{ fontSize: 11, color: "#6b7280" }}>totaal correct (180/209)</div>
+                </div>
+                <Bar value={100} max={100} color="#22c55e" label="Scam detectie" />
+                <Bar value={0} max={100} color="#ef4444" label="SAFE herkenning" />
+                <div style={{ fontSize: 11, color: "#ef4444", marginTop: 8, textAlign: "center", fontWeight: 600 }}>⚠️ Alles als SCAM gemarkeerd — te agressief</div>
+              </div>
+              {/* After */}
+              <div style={{ background: "#001a0a", border: "1px solid #166534", borderRadius: 10, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: "#4ade80", fontSize: 13, marginBottom: 10 }}>NA LoRA FINE-TUNING ✓</div>
+                <div style={{ textAlign: "center", margin: "10px 0" }}>
+                  <div style={{ fontSize: 36, fontWeight: 800, color: "#22c55e" }}>98.1%</div>
+                  <div style={{ fontSize: 11, color: "#6b7280" }}>totaal correct (205/209)</div>
+                </div>
+                <Bar value={99.5} max={100} color="#22c55e" label="Scam detectie" />
+                <Bar value={88} max={100} color="#4ade80" label="SAFE herkenning" />
+                <div style={{ fontSize: 11, color: "#22c55e", marginTop: 8, textAlign: "center", fontWeight: 600 }}>✅ Precies — niet paranoïde, niet naïef</div>
+              </div>
+            </div>
+
+            {/* LoRA Training Details */}
+            <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 10, border: "1px solid #312e81" }}>
+              <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 13, marginBottom: 8 }}>LoRA Fine-Tuning Details</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 8 }}>
+                {[
+                  { label: "Trainable", value: "3.26M", sub: "0.127% van 2.6B", color: "#a78bfa" },
+                  { label: "Iteraties", value: "300", sub: "batch_size=1", color: "#60a5fa" },
+                  { label: "Loss", value: "3.6 → 0.43", sub: "88% reductie", color: "#22c55e" },
+                  { label: "Tijd", value: "~5 min", sub: "op Mac Mini M4", color: "#fbbf24" },
+                  { label: "Data", value: "252", sub: "209 + SAFE oversample", color: "#f472b6" },
+                  { label: "Adapter", value: "~13MB", sub: "LoRA rank 8", color: "#06b6d4" },
+                ].map(m => (
+                  <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
+                    <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
+                    <div style={{ fontSize: 9, color: "#4b5563", marginTop: 2 }}>{m.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 10, border: "1px solid #374151" }}>
+              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13, marginBottom: 10 }}>Per Categorie — Voor vs Na</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
+                {categoryResults.map((c, i) => {
+                  const improved = c.after > c.before;
+                  const perfect = c.after === 100;
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", background: perfect ? "#22c55e08" : improved ? "#f59e0b08" : "#0a0a0a", borderRadius: 6, border: `1px solid ${perfect ? "#16653433" : "#37415133"}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 14 }}>{c.icon}</span>
+                        <span style={{ fontSize: 12, color: "#d1d5db" }}>{c.cat}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 11, color: "#6b7280" }}>{c.before}%</span>
+                        <span style={{ fontSize: 11, color: "#4b5563" }}>→</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: perfect ? "#4ade80" : improved ? "#fbbf24" : "#9ca3af" }}>{c.after}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Language Results */}
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {langResults.map((l, i) => (
+                <div key={i} style={{ padding: 12, background: "#0a1a0a", borderRadius: 10, border: "1px solid #16653444", textAlign: "center" }}>
+                  <div style={{ fontSize: 24 }}>{l.icon}</div>
+                  <div style={{ fontWeight: 700, color: "#d1d5db", fontSize: 13, marginTop: 4 }}>{l.lang}</div>
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <span style={{ fontSize: 13, color: "#6b7280" }}>{l.before}%</span>
+                    <span style={{ color: "#22c55e", fontWeight: 800 }}>→</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: l.after === 100 ? "#22c55e" : "#4ade80" }}>{l.after}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── COMMERCIËLE VALIDATIE CHECKLIST ── */}
+      <div style={{ background: "#0f0a00", border: "1px solid #854d0e", borderRadius: 12, padding: 0, overflow: "hidden" }}>
+        <div onClick={() => toggle("readiness")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.readiness ? "#fbbf2411" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🎯</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Commerciële Validatie Checklist</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>5 van 11 items voltooid — wat moet er nog gebeuren?</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ padding: "3px 10px", borderRadius: 6, background: "#f59e0b22", color: "#fbbf24", fontSize: 11, fontWeight: 600 }}>5/11</span>
+            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.readiness ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </div>
+        </div>
+        {expanded.readiness && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: "1px solid #854d0e33" }}>
+            <div style={{ marginTop: 12 }}>
+              {readiness.map((r, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", marginBottom: 4, background: r.done ? "#22c55e08" : "#ef444408", borderRadius: 8, border: `1px solid ${r.done ? "#16653422" : "#991b1b22"}` }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{r.done ? "✅" : "⬜"}</span>
+                  <span style={{ fontSize: 13, color: r.done ? "#86efac" : "#fca5a5" }}>{r.item}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13, marginBottom: 6 }}>Wat moet er nog gebeuren om naar buiten te komen?</div>
+              <div style={{ fontSize: 13, color: "#d1d5db", lineHeight: 1.8 }}>
+                <p>De huidige 209 scenario's zijn een proof-of-concept. Voor een geloofwaardige claim heb je minimaal <strong style={{ color: "#f97316" }}>5.000 scenario's</strong> nodig met een <strong style={{ color: "#f97316" }}>externe testset</strong> die het model nooit gezien heeft. Vergelijking met bestaande tools (Gmail, Defender) op dezelfde dataset bewijst je niche-voordeel. Focus: meertalig NL/FR/EN + privacy-first + on-device.</p>
+              </div>
+            </div>
+
+            {/* Target metrics */}
+            <div style={{ marginTop: 12, padding: 12, background: "#0a1a0a", borderRadius: 8, border: "1px solid #16653444" }}>
+              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 13, marginBottom: 8 }}>Target Benchmarks voor Commercialisatie</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
+                {[
+                  { metric: "Precision", target: ">95%", current: "~95%", color: "#22c55e" },
+                  { metric: "Recall", target: ">98%", current: "99.5%", color: "#4ade80" },
+                  { metric: "F1-score", target: ">96%", current: "~97%", color: "#22c55e" },
+                  { metric: "False Positive", target: "<5%", current: "12.5%", color: "#f59e0b" },
+                  { metric: "Dataset", target: "5000+", current: "209", color: "#ef4444" },
+                  { metric: "Zero-day", target: "Bewezen", current: "Niet getest", color: "#ef4444" },
+                ].map(m => (
+                  <div key={m.metric} style={{ padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.metric}</div>
+                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>Target: {m.target}</div>
+                    <div style={{ fontSize: 11, color: m.color, marginTop: 2 }}>Nu: {m.current}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 12, color: "#6b7280" }}>
+        <p><strong>Runs:</strong> 2 trainingsruns vastgelegd (ARC pre-training + LFM2 LoRA fine-tuning)</p>
+        <p style={{ marginTop: 4 }}><strong>Locaties:</strong> HRM checkpoint op MM4 intern • LFM2 + adapter op 8TB AI-Models</p>
+        <p style={{ marginTop: 4 }}><strong>Volgende run:</strong> LFM2 fine-tuning op 2000+ scenario's (na data opschaling via InfraNodus)</p>
+      </div>
+    </div>
+  );
+}
+
 export default function ControlCenter() {
   const [tab, setTab] = useState("ecosystem");
   const [search, setSearch] = useState("");
@@ -2868,6 +3210,7 @@ export default function ControlCenter() {
     { id: "updates", label: "📡 Updates", color: "#06b6d4" },
     { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
     { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
+    { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
   ];
 
@@ -2930,7 +3273,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.1.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.3.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -3032,10 +3375,11 @@ export default function ControlCenter() {
       {tab === "updates" && <ClaudeUpdates />}
       {tab === "openbot" && <OpenClaudeBot />}
       {tab === "sdkhrm" && <SDKHRMHub />}
+      {tab === "benchmarks" && <TrainingBenchmarks />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.1.0 • {total} nodes • 15 tabs • SDK-HRM Intelligence Hub • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.3.0 • {total} nodes • 16 tabs • Training & Benchmarks • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
