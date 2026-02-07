@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v3.9.7
+// CLAUDE CONTROL CENTER v4.1.0
 // Complete Dashboard: 14 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -71,6 +71,8 @@ const api = {
 // v3.9.5 - Device selectie popup: Eenmalig kiezen, daarna voor altijd opgeslagen
 // v3.9.6 - Advisor standaard ingeklapt + Lichter donker thema + Betere randen
 // v3.9.7 - Sessions Archive toegevoegd aan Memory tab (11 actieve sessies ~240MB)
+// v4.0.0 - SDK-HRM Knowledge Hub toegevoegd in Knowledge tab
+// v4.1.0 - SDK-HRM als EIGEN tab met expandable/collapsible volledige uitleg teksten
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -2232,6 +2234,551 @@ function AgentHierarchy() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// V4.1 TAB: SDK-HRM — Volledig overzicht Sapient-HRM project
+// Aparte tab met expandable/collapsible secties en volledige uitleg teksten
+// ═══════════════════════════════════════════════════════════════════════════════
+function SDKHRMHub() {
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Reusable expandable section component
+  const Section = ({ id, icon, title, color, border, bg, summary, children }) => (
+    <div style={{ background: bg || "#0f0f0f", border: `1px solid ${border || "#374151"}`, borderRadius: 12, padding: 0, overflow: "hidden" }}>
+      <div
+        onClick={() => toggle(id)}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 16px", cursor: "pointer", transition: "background 0.15s",
+          background: expanded[id] ? `${color}11` : "transparent"
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = `${color}11`}
+        onMouseLeave={e => { if (!expanded[id]) e.currentTarget.style.background = "transparent"; }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 18 }}>{icon}</span>
+          <div>
+            <div style={{ fontWeight: 700, color: color, fontSize: 14 }}>{title}</div>
+            {summary && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{summary}</div>}
+          </div>
+        </div>
+        <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded[id] ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+      </div>
+      {expanded[id] && (
+        <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${border || "#374151"}33` }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #1a0a00, #0f0f23, #001a1a)", border: "2px solid #f97316", borderRadius: 16, padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 22, background: "linear-gradient(90deg, #f97316, #fbbf24, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              SDK-HRM Intelligence Hub
+            </div>
+            <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 6 }}>Sapient-HRM 27.3M — Volledig overzicht training, strategie & architectuur</p>
+            <p style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>Klik op elk item om de volledige uitleg te openen</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { label: "27.3M", sub: "params", color: "#f97316" },
+              { label: "66", sub: "domeinen", color: "#fbbf24" },
+              { label: "18", sub: "modules", color: "#22c55e" },
+              { label: "19", sub: "graphs", color: "#06b6d4" },
+            ].map(m => (
+              <div key={m.sub} style={{ textAlign: "center", padding: "8px 12px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.label}</div>
+                <div style={{ fontSize: 8, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 1. MODEL & TRAINING ── */}
+      <Section id="model" icon="🧠" title="Sapient-HRM 27.3M — Model & Training" color="#f97316" border="#9a3412" bg="#0f0800"
+        summary="ACT-architectuur, MPS M4 training, 66 domeinen, checkpoint V3">
+        <div style={{ marginTop: 12 }}>
+          {/* Quick Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 6, marginBottom: 16 }}>
+            {[
+              { label: "Parameters", value: "27.3M", color: "#f97316" },
+              { label: "Architectuur", value: "ACT+HRM", color: "#a78bfa" },
+              { label: "Device", value: "MPS M4", color: "#60a5fa" },
+              { label: "Speed", value: "~1.76s/step", color: "#22c55e" },
+              { label: "Checkpoint", value: "elke 100", color: "#f472b6" },
+              { label: "Talen", value: "NL/FR/EN", color: "#06b6d4" },
+              { label: "Domeinen", value: "66", color: "#fbbf24" },
+              { label: "Target", value: "1.05M samples", color: "#ef4444" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
+                <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Full explanation */}
+          <div style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+            <p>Het Sapient-HRM model is een 27.3 miljoen parameter neuraal netwerk dat specifiek ontworpen is voor het detecteren van online fraude, scams, phishing en andere digitale bedreigingen. Het draait lokaal op een Mac Mini M4 met Apple's Metal Performance Shaders (MPS) als GPU-acceleratie.</p>
+            <p style={{ marginTop: 8 }}>De architectuur combineert twee innovatieve technieken:</p>
+            <ul style={{ paddingLeft: 20, marginTop: 4 }}>
+              <li><strong style={{ color: "#f97316" }}>Adaptive Computation Time (ACT)</strong> — het model beslist zelf hoeveel rekenstappen nodig zijn per invoer. Eenvoudige gevallen (duidelijke spam) worden snel afgehandeld, complexe gevallen (subtiele social engineering) krijgen meer denktijd.</li>
+              <li><strong style={{ color: "#a78bfa" }}>Hierarchical Reasoning Model (HRM)</strong> — twee niveaus van redeneren: H-level (strategisch, 4 lagen, 2 cycli) voor het grote plaatje en L-level (detail, 4 lagen, 4 cycli) voor gedetailleerde analyse.</li>
+            </ul>
+            <p style={{ marginTop: 8 }}>Het model traint op 66 verschillende domeinen verdeeld over 10 lagen, van core scam detection tot financiele fraude en platform-specifieke patronen. Het doel is uiteindelijk 1.051.000 training samples te verzamelen.</p>
+            <p style={{ marginTop: 8 }}>De training draait met ~1.76 seconden per stap op MPS. Checkpoints worden elke 100 stappen opgeslagen met maximaal 5 behouden (de laatste 5). De gehele pipeline is privacy-first: alles draait lokaal, geen cloud, geen data die het apparaat verlaat.</p>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 2. CHECKPOINT V3 FIXES ── */}
+      <Section id="checkpoint" icon="💾" title="Checkpoint V3 — MPS-Safe Training Fixes" color="#22c55e" border="#166534" bg="#020f06"
+        summary="Kritieke fixes na 2x dataverlies door MPS GPU hangs">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p><strong style={{ color: "#ef4444" }}>Probleem:</strong> Twee keer is alle trainingsvoortgang verloren gegaan doordat de MPS GPU vastliep in een evaluatie-loop. De eerste keer 5750 stappen, de tweede keer 228 stappen. Dit komt omdat MPS GPU-calls op kernel-niveau blokkeren (Uninterruptible Sleep / UN state) — Python code wordt simpelweg niet meer uitgevoerd, dus timeouts en while-loop checks werken niet.</p>
+
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ fontWeight: 700, color: "#22c55e", marginBottom: 8 }}>3 Kritieke Fixes:</div>
+            {[
+              { fix: "Checkpoint VÓÓR evaluatie", detail: "Het model wordt nu opgeslagen VOORDAT de evaluatie begint. Als de eval vastloopt, is de trainingsvoortgang al veilig opgeslagen. Voorheen werd pas NA de eval opgeslagen, waardoor alles verloren ging." },
+              { fix: "while True → for range(16)", detail: "De gevaarlijke while True evaluatie-loop is vervangen door een vaste for-loop met maximaal 16 cycli. Zelfs als het model niet convergeert, stopt de loop na 16 iteraties in plaats van eindeloos te draaien." },
+              { fix: "Lager interval + cleanup", detail: "Checkpoint interval verlaagd van 500 naar 100 stappen. Maximaal 5 checkpoints behouden (automatische cleanup). MAX_EVAL_BATCHES=20 en EVAL_TIMEOUT=120s als extra veiligheid." },
+            ].map((f, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ color: "#86efac", fontWeight: 600 }}>✓ {f.fix}</div>
+                <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 2 }}>{f.detail}</div>
+              </div>
+            ))}
+          </div>
+
+          <p><strong style={{ color: "#fbbf24" }}>MPS Kernel-Level Hang Verklaring:</strong> Apple's Metal Performance Shaders maken GPU-calls die op besturingssysteem-niveau blokkeren. Wanneer een MPS operatie vastloopt, gaat het hele Python-proces in UN (Uninterruptible Sleep) status. Dit betekent dat Python's eigen time.time() check nooit bereikt wordt, want de thread wacht in kernel space. De enige oplossingen zijn: voorkom de situatie (vaste loop grenzen) of gebruik een apart subprocess met OS-level kill.</p>
+        </div>
+      </Section>
+
+      {/* ── 3. NESTED ARCHITECTURE ── */}
+      <Section id="nested" icon="🏗️" title="Nested Architecture — HRM inside LFM2" color="#a78bfa" border="#5b21b6" bg="#080020"
+        summary="Brain-inside-Body concept met DeepEncoder compression bridge">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Franky's kern-innovatie: het combineren van twee AI-modellen in een geneste architectuur die op een enkel edge device draait. Het concept is "Brain inside Body" — het kleine maar krachtige HRM-model (het brein) draait binnen het grotere LFM2-model (het lichaam).</p>
+
+          {/* Architecture Diagram */}
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e81", fontFamily: "monospace", fontSize: 11, lineHeight: 1.8 }}>
+            <div style={{ color: "#60a5fa", fontWeight: 700 }}>LFM2-2.6B (body) — ontvangt alle input (tekst, email, voice, beeld)</div>
+            <div style={{ color: "#6b7280" }}>{"    ↓ 1000 tokens (2560-dim embeddings)"}</div>
+            <div style={{ color: "#f59e0b", fontWeight: 700 }}>DeepEncoder Bridge — comprimeert 2560→512 dim, 1000→50 tokens (97% info behoud)</div>
+            <div style={{ color: "#6b7280" }}>{"    ↓ 50 tokens (512-dim compressed)"}</div>
+            <div style={{ color: "#f97316", fontWeight: 700 }}>HRM-27M (brain) — diep redeneren → risk_score + uitleg</div>
+            <div style={{ color: "#22c55e", fontWeight: 700, marginTop: 8 }}>Totaal geheugen: LFM2 ~5GB + Bridge ~0.5GB + HRM ~1GB = 6.5GB (past op 16GB Mac Mini)</div>
+          </div>
+
+          <p><strong style={{ color: "#60a5fa" }}>LFM2-2.6B (Liquid AI):</strong> Een hybrid model van 2.6 miljard parameters met GQA (Grouped Query Attention) en Gated Convolutions, 30 lagen (22 convolutie + 8 attention), getraind op 10 biljoen tokens in 8 talen. Het heeft native tool calling, MLX support voor Apple Silicon, en een context window van 32K tokens. Dit model fungeert als de "taalschil" die alle binnenkomende informatie begrijpt en verwerkt.</p>
+
+          <p style={{ marginTop: 8 }}><strong style={{ color: "#f59e0b" }}>DeepEncoder Bridge:</strong> Gebaseerd op DeepSeek OCR compressie-technologie. Reduceert het aantal tokens met factor 10-20x terwijl 97% van de informatie behouden blijft. De bridge comprimeert LFM2's output (2560-dimensionale embeddings) naar HRM's input (512-dimensionaal), en verlaagt het tokenaantal van 1000 naar 50. Dit maakt de communicatie tussen de twee modellen extreem efficient.</p>
+
+          <p style={{ marginTop: 8 }}><strong style={{ color: "#f97316" }}>HRM-27M (Brain):</strong> Het compacte maar krachtige kernmodel dat diep redeneert over bedreigingen. Met slechts 27MB (int8 kwantisatie) biedt het adaptief redeneren via ACT, hierarchische analyse via H/L-levels, en Q-learning-gebaseerde halting. Het ontvangt de gecomprimeerde context van de bridge en levert een risk_score plus menselijk leesbare uitleg.</p>
+
+          <div style={{ marginTop: 12, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>3 Strategieen onder overweging:</div>
+            {[
+              "1. HRM inside LFM2 — HRM als reasoning core, LFM2 als language/context shell",
+              "2. Compressed LFM2 inside HRM — LoRA adapters injecteren LFM2 kennis in HRM framework",
+              "3. Dual model met DeepEncoder bridge — beide modellen draaien, compressed tokens ertussen",
+            ].map((s, i) => (
+              <div key={i} style={{ fontSize: 11, color: "#e5e5e5", padding: "3px 0" }}>{s}</div>
+            ))}
+          </div>
+
+          <p style={{ marginTop: 12 }}><strong style={{ color: "#22c55e" }}>Google Nested Learning (NeurIPS 2025):</strong> Multi-timescale aanpak met snelle modules (nieuwe scams, maandelijks updatebaar) en trage modules (core reasoning, stabiel). Het Continuum Memory System voorkomt catastrophic forgetting. Maandelijkse updates gaan naar de snelle modules ZONDER het basismodel te hertrainen. Perfect voor een abonnementsmodel: nieuwe bedreigingen maandelijks, core blijft stabiel.</p>
+        </div>
+      </Section>
+
+      {/* ── 4. 18 BESCHERMINGSMODULES ── */}
+      <Section id="modules" icon="🛡️" title="18 Beschermingsmodules — Volledige Product Map" color="#4ade80" border="#166534" bg="#020f06"
+        summary="7 core + 11 expansie modules voor complete digitale bescherming">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>SDK-HRM is ontworpen als een modulair beveiligingsplatform met 18 beschermingsmodules, verdeeld in 7 kern-modules en 11 uitbreidingsmodules. Elk module kan onafhankelijk worden geactiveerd en bijgewerkt via LoRA adapters.</p>
+
+          <div style={{ fontWeight: 700, color: "#4ade80", fontSize: 13, marginTop: 12, marginBottom: 8 }}>7 Core Modules:</div>
+          {[
+            { naam: "Email Guardian", detail: "Detecteert phishing, impersonation en credential theft in e-mails. Analyseert afzender-patronen, URL-reputatie, urgentie-signalen en taalafwijkingen." },
+            { naam: "Website Guardian", detail: "Bot detectie, hack preventie, GDPR/NIS2 compliance monitoring, SSL certificaat controle, plugin kwetsbaarheid scanning, juridische AI monitoring, social media verificatie, KVK/BTW check." },
+            { naam: "Call Shield", detail: "Live telefoongesprek analyse voor impersonation detectie. Luistert naar stress-patronen, achtergrondgeluiden (callcenter), en vergelijkt stempatronen met bekende contacten. Kan bewijs opnemen." },
+            { naam: "Mobile Agent", detail: "Bescherming voor SMS, messaging apps en QR codes. Real-time scanning van binnenkomende berichten en links op mobiele apparaten." },
+            { naam: "Elderly Guardian", detail: "Speciaal ontworpen voor ouderenbescherming met familie-oversight. Proactieve screening van verdachte communicatie met wekelijkse rapporten voor familieleden." },
+            { naam: "Wearable Shield", detail: "Apple Watch integratie die hartslag en stresspatronen meet tijdens telefoongesprekken. Verhoogde stress + verdacht gesprek = automatische waarschuwing." },
+            { naam: "Social Graph", detail: "Bouwt gedragsprofielen per contact op. Detecteert afwijkingen van normaal gedrag, romance scams en account hijacking via patroonvergelijking." },
+          ].map((m, i) => (
+            <div key={i} style={{ marginBottom: 8, padding: 10, background: "#052e16", borderRadius: 8, border: "1px solid #16653444" }}>
+              <div style={{ fontWeight: 600, color: "#86efac", fontSize: 12 }}>{i + 1}. {m.naam}</div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{m.detail}</div>
+            </div>
+          ))}
+
+          <div style={{ fontWeight: 700, color: "#06b6d4", fontSize: 13, marginTop: 16, marginBottom: 8 }}>11 Uitbreidingsmodules:</div>
+          {[
+            { naam: "QR Shield", detail: "Scant QR codes op malafide links en phishing-paginas voordat je ze opent." },
+            { naam: "Deepfake Detector", detail: "Detecteert AI-gegenereerde video en afbeeldingen in videogesprekken en social media feeds." },
+            { naam: "Identity Monitor", detail: "Dark web monitoring en data breach detectie. Waarschuwt wanneer persoonlijke gegevens verschijnen in gelekte databases." },
+            { naam: "Child Safety", detail: "Online activiteit monitoring voor ouders. Beschermt kinderen tegen cyberbullying, grooming en ongeschikt content." },
+            { naam: "IoT Guardian", detail: "Beveiligt smart home apparaten tegen ongeautoriseerde toegang en firmware manipulatie." },
+            { naam: "Document Verifier", detail: "Verifieert de echtheid van contracten, facturen en certificaten via AI-analyse van opmaak, taalpatronen en metadata." },
+            { naam: "Voice Clone Detector", detail: "Detecteert AI-gegenereerde stemmen door analyse van micro-tremors, ademhalingspatronen en spectrale kenmerken die synthetische spraak mist." },
+            { naam: "Marketplace Guard", detail: "Bescherming tegen fraude op Marktplaats, 2dehands, Vinted en andere platforms. Detecteert nep-listings, escrow scams en manipulatieve verkopers." },
+            { naam: "Voice Authentication", detail: "Continue identiteitsverificatie via vocale biomarkers: toonhoogte, timbre, ademhaling en ritme. Niet een enkele check maar doorlopend." },
+            { naam: "Visual Authenticity Shield", detail: "Real-time overlay (rood/amber/groen) voor het beoordelen van de echtheid van afbeeldingen en video's. Toont direct of content AI-gegenereerd of gemanipuleerd is." },
+            { naam: "Malware Analysis Engine", detail: "Gedragsanalyse van APK's, browser extensies en desktop applicaties. Scant niet op signatures maar op verdacht GEDRAG." },
+          ].map((m, i) => (
+            <div key={i} style={{ marginBottom: 6, padding: 8, background: "#001a1a", borderRadius: 6, border: "1px solid #0e749033" }}>
+              <div style={{ fontWeight: 600, color: "#67e8f9", fontSize: 11 }}>{i + 8}. {m.naam}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 3 }}>{m.detail}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 5. GO-TO-MARKET STRATEGIE ── */}
+      <Section id="gtm" icon="🚀" title="Go-to-Market — 5 Fasen als Eenmanszaak" color="#fbbf24" border="#854d0e" bg="#0f0a00"
+        summary="Van gratis zichtbaarheid naar €100K+/jaar embedded SDK revenue">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>De go-to-market strategie is ontworpen voor een eenmanszaak die met minimale kosten maximale impact wil bereiken. Het principe is: begin met gratis, bouw autoriteit op, monetiseer geleidelijk, en schaal via partnerschappen.</p>
+
+          {[
+            { fase: 0, naam: "Gratis Zichtbaarheid", periode: "Week 1-4", rev: "€0", color: "#6b7280",
+              detail: "Publiceer het HRM base model als open source op GitHub. Schrijf technische blog posts over de ACT-architectuur en hierarchisch redeneren. Deel op LinkedIn, Hacker News en Reddit. Doel: 500+ GitHub stars en naam vestigen als security AI expert. Kosten: €0, alleen tijd. De open source publicatie bouwt vertrouwen en community — cruciaal voor een onbekend merk." },
+            { fase: 1, naam: "Chrome Extensie 'SDK-Guardian'", periode: "Maand 2-3", rev: "€500-2K/mnd", color: "#f97316",
+              detail: "Eerste betaald product. Het AI-model draait als WASM (WebAssembly) volledig lokaal in de browser — nul hosting kosten, ~95% marge. Betalingen via ExtensionPay (open source, Stripe-gebaseerd). Freemium model: gratis tier met 10 scans per dag, Pro voor €4.99/maand (onbeperkt + dashboard), Gezin voor €9.99/maand (tot 5 apparaten). Doel: €5.000/maand MRR binnen 6 maanden. Dit is het laagst hangend fruit: Chrome extensions hebben 0 infrastructuurkosten en directe toegang tot miljoenen gebruikers." },
+            { fase: 2, naam: "API + WordPress + Shopify", periode: "Maand 4-6", rev: "€2K-10K/mnd", color: "#22c55e",
+              detail: "API endpoint voor ontwikkelaars (€49-199/maand per klant). WordPress plugin voor website-eigenaren (GDPR scanner, bot detectie). Shopify app voor webshop beveiliging. Elke integratie bedient een ander klantsegment maar hergebruikt dezelfde SDK-HRM kern." },
+            { fase: 3, naam: "MSP White-Label", periode: "Maand 6-12", rev: "€10K-50K/mnd", color: "#60a5fa",
+              detail: "Managed Service Providers (MSPs) bedienen duizenden kleine bedrijven. Bied SDK-HRM aan als white-label product dat MSPs onder eigen naam doorverkopen. MSP-vriendelijk dashboard met multi-tenant support. Pricing: €2-5/eindklant/maand, MSP houdt marge. Eén MSP met 1000 klanten = €2K-5K/maand recurring." },
+            { fase: 4, naam: "Embedded SDK (IoT/Automotive)", periode: "Jaar 2+", rev: "€100K+/jaar", color: "#a78bfa",
+              detail: "De langetermijnvisie: SDK-HRM als universele embedded security SDK voor IoT, automotive, wearables, drones en robots. Volume royalties van €0.10-2.00 per device, fleet subscriptions van €1-5/device/maand, SDK licenties van €5K-50K/jaar, en enterprise site licenties van €10K-100K/jaar. De on-device AI markt groeit naar $30.6 miljard in 2029 (25%/jaar). Dit is waar de echte schaal zit." },
+          ].map(f => (
+            <div key={f.fase} style={{ marginBottom: 12, padding: 14, background: `${f.color}08`, borderRadius: 10, border: `1px solid ${f.color}33` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 8, background: `${f.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: f.color, flexShrink: 0 }}>{f.fase}</span>
+                  <div>
+                    <span style={{ fontWeight: 700, color: f.color, fontSize: 13 }}>{f.naam}</span>
+                    <span style={{ color: "#6b7280", fontSize: 11, marginLeft: 8 }}>({f.periode})</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: 12, color: "#22c55e", fontWeight: 700 }}>{f.rev}</span>
+              </div>
+              <div style={{ color: "#d1d5db", fontSize: 11, lineHeight: 1.7 }}>{f.detail}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 6. FINANCE TRACK — VALUE GUARDIAN ── */}
+      <Section id="finance" icon="🏦" title="Finance Track — Value Guardian" color="#60a5fa" border="#1e40af" bg="#000a1a"
+        summary="'Wij beschermen uw GELD, niet alleen uw netwerk' — parallel revenue stream">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Franky's overtuiging: als je de waarde van geld kunt beschermen, word je altijd serieuzer genomen. De financiele sector is een parallel spoor naast de consumer markt — niet in plaats van, maar als versterking.</p>
+
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#001a33", borderRadius: 10, border: "1px solid #1e40af" }}>
+            <div style={{ fontWeight: 700, color: "#93c5fd", fontSize: 13, marginBottom: 10 }}>Positionering: "Value Guardian"</div>
+            <p style={{ color: "#93c5fd", fontSize: 12, fontStyle: "italic" }}>"Wij beschermen uw GELD, niet alleen uw netwerk"</p>
+            <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 8 }}>Dit onderscheidt SDK-HRM van traditionele security vendors die netwerken beschermen. Value Guardian beschermt direct de financiele waarde — elke euro die niet gestolen wordt is directe, meetbare ROI.</p>
+          </div>
+
+          <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 13, marginTop: 16, marginBottom: 8 }}>Producten voor de financiele sector:</div>
+          {[
+            { product: "POS Terminal Guard", prijs: "€0.50/terminal/maand", detail: "Beschermt betaalterminals tegen skimming, relay attacks en firmware manipulatie. Draait als embedded agent op de terminal zelf." },
+            { product: "Payment Gateway Shield", prijs: "€99/maand", detail: "Real-time transactiemonitoring voor online betalingen. Detecteert frauduleuze transacties, gestolen creditcards en ongebruikelijke patronen." },
+            { product: "DORA/PSD2 Compliance", prijs: "€5K-50K/jaar", detail: "Automatische compliance monitoring voor de Europese DORA (Digital Operational Resilience Act) en PSD2 regelgeving. Continue scanning, rapportage en audit-trail." },
+            { product: "Claim Fraud Detection", prijs: "€10K-100K/jaar", detail: "Voor verzekeraars: detecteert frauduleuze claims via patroonanalyse. Vergelijkt claims met historische data, detecteert gecoordineerde fraude-ringen en ongebruikelijke tijdspatronen." },
+          ].map((p, i) => (
+            <div key={i} style={{ marginBottom: 8, padding: 10, background: "#0a1a33", borderRadius: 8, border: "1px solid #1e40af44" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 600, color: "#93c5fd", fontSize: 12 }}>{p.product}</span>
+                <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 600 }}>{p.prijs}</span>
+              </div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{p.detail}</div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 12, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Belgische Targets:</div>
+            <div style={{ fontSize: 11, color: "#d1d5db" }}>Bancontact/Payconiq (nationale betaalinfra), Worldline (HQ Brussel, global payment processor), Ethias (verzekeraar), Billit (facturatie), Aion Bank (digitale bank)</div>
+            <div style={{ marginTop: 8, fontSize: 11, color: "#22c55e", fontWeight: 600 }}>ROI Argument: Bank verliest €50K aan phishing, SDK-HRM kost €500/maand = 100x ROI</div>
+          </div>
+
+          <p style={{ marginTop: 12 }}><strong style={{ color: "#fbbf24" }}>Strategisch voordeel:</strong> Een reputatie in de financiele sector opent automatisch deuren naar enterprise klanten, MSPs en investeerders. Als banken je vertrouwen, vertrouwt iedereen je.</p>
+        </div>
+      </Section>
+
+      {/* ── 7. CHROME EXTENSIE & MONETISATIE ── */}
+      <Section id="chrome" icon="🌐" title="Chrome Extensie — Eerste Revenue Stream" color="#4ade80" border="#166534" bg="#020f06"
+        summary="WASM model lokaal in browser, ExtensionPay/Stripe, ~95% marge">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>De Chrome extensie is het laagst hangend fruit voor eerste revenue. Het unieke: het AI-model draait als WebAssembly (WASM) volledig in de browser van de gebruiker. Er zijn nul hosting kosten — geen servers, geen API calls, geen bandbreedte. De marge is daardoor ~95%.</p>
+
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#052e16", borderRadius: 10, border: "1px solid #166534" }}>
+            <div style={{ fontWeight: 700, color: "#86efac", fontSize: 13, marginBottom: 8 }}>Monetisatie via ExtensionPay</div>
+            <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 8 }}>ExtensionPay (extensionpay.com) is een open source bibliotheek die Stripe-betalingen integreert in Chrome extensions. Het ondersteunt maandelijkse en jaarlijkse abonnementen, gratis proefperiodes, en automatische licentie-validatie.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+              {[
+                { tier: "Gratis", prijs: "€0", features: "10 scans/dag, basis bescherming" },
+                { tier: "Pro", prijs: "€4.99/mnd", features: "Onbeperkt scans, dashboard, alerts" },
+                { tier: "Gezin", prijs: "€9.99/mnd", features: "Tot 5 apparaten, familie dashboard" },
+              ].map(t => (
+                <div key={t.tier} style={{ padding: 10, background: "#0a1a0a", borderRadius: 8, border: "1px solid #16653444", textAlign: "center" }}>
+                  <div style={{ fontWeight: 700, color: "#4ade80", fontSize: 13 }}>{t.tier}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#22c55e", margin: "6px 0" }}>{t.prijs}</div>
+                  <div style={{ fontSize: 10, color: "#6b7280" }}>{t.features}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 10, textAlign: "center", fontWeight: 700, color: "#22c55e", fontSize: 13 }}>Doel: €5.000/maand MRR binnen 6 maanden</div>
+          </div>
+
+          <p><strong style={{ color: "#f97316" }}>Waarom WASM?</strong> Het model wordt gecompileerd naar WebAssembly en draait volledig in de browser. Dit betekent: privacy (geen data verlaat het apparaat), snelheid (geen netwerk latency), en nul infrastructuurkosten. De gebruiker download de extensie en alles werkt offline. Updates van het model worden via de Chrome Web Store verspreid.</p>
+        </div>
+      </Section>
+
+      {/* ── 8. DATA FLYWHEEL ── */}
+      <Section id="flywheel" icon="🔄" title="Data Flywheel — Competitive Moat (Waze-model)" color="#f472b6" border="#86198f" bg="#0f000f"
+        summary="User feedback → beter model → meer users → ONVERSLAANBAAR">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Franky's kerninsight: de data flywheel is het echte competitief voordeel. Net als Waze wordt de service beter naarmate meer mensen hem gebruiken — en dat voordeel is cumulatief en bijna onmogelijk in te halen.</p>
+
+          {/* Flywheel Diagram */}
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#1a0a1a", borderRadius: 10, border: "1px solid #86198f", textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "#f9a8d4", lineHeight: 2.2 }}>
+              <div style={{ fontWeight: 700, color: "#f472b6" }}>De Flywheel Cyclus:</div>
+              <div>User scant email/website/bericht</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div>Model geeft risicoscore</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div>User geeft feedback (✓ correct / ✗ fout)</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div style={{ color: "#22c55e", fontWeight: 700 }}>GRATIS training data!</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div>Model wordt beter</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div>Meer tevreden users</div>
+              <div style={{ color: "#6b7280" }}>↓</div>
+              <div style={{ fontWeight: 700, color: "#f472b6" }}>Meer users → meer data → beter model → ONVERSLAANBAAR</div>
+            </div>
+          </div>
+
+          <div style={{ fontWeight: 700, color: "#f472b6", marginBottom: 6 }}>Hoe privacy behouden blijft:</div>
+          <ul style={{ paddingLeft: 20, marginBottom: 12 }}>
+            <li><strong>Hash-based sharing:</strong> Alleen SHA-256 hashes van URLs, emails en patronen worden gedeeld — nooit de werkelijke content.</li>
+            <li><strong>Anonieme patronen:</strong> Gedeelde features zijn abstract: patroontype, tijdstip, verdict, regio. Geen persoonlijke data.</li>
+            <li><strong>Federated learning:</strong> Het model leert van de patronen zonder dat de data het apparaat van de gebruiker verlaat.</li>
+            <li><strong>GDPR compliant:</strong> Geen persoonlijk identificeerbare informatie wordt ooit opgeslagen of verstuurd.</li>
+          </ul>
+
+          <div style={{ fontWeight: 700, color: "#f472b6", marginBottom: 6 }}>Collectieve intelligentie:</div>
+          <p>Wanneer een URL door 500 gebruikers als scam wordt gemeld, wordt die automatisch geblokkeerd voor alle gebruikers. Wanneer meerdere gebruikers een nieuw patroon melden dat het model niet herkent, wordt er onmiddellijk alarm geslagen — zero-day detectie door de crowd, niet door onderzoekers.</p>
+          <p style={{ marginTop: 8, color: "#22c55e", fontWeight: 600 }}>Dit is het Waze-model voor security: hoe meer mensen rijden, hoe beter de kaart. Hoe meer mensen scannen, hoe beter de bescherming.</p>
+        </div>
+      </Section>
+
+      {/* ── 9. EMBEDDED SDK MARKT ── */}
+      <Section id="embedded" icon="📡" title="Embedded SDK Markt — $30.6B (2029)" color="#22d3ee" border="#0e7490" bg="#001015"
+        summary="Software-only oplossing voor IoT, automotive, wearables, drones, robots">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>SDK-HRM als universele embedded security SDK is een software-only oplossing die op ELKE chip draait — geen custom hardware nodig. Dit maakt het complementair aan hardware security van Qualcomm/NXP, niet concurrent.</p>
+
+          <div style={{ fontWeight: 700, color: "#22d3ee", fontSize: 13, marginTop: 12, marginBottom: 8 }}>Target Markten:</div>
+          {[
+            { markt: "Automotive", prijs: "€0.50-2/auto", detail: "CAN-bus monitoring voor ongeautoriseerde communicatie, sensor spoofing detectie (GPS, LIDAR, camera), firmware integrity verificatie. Elke moderne auto heeft 100+ ECU's die beveiligd moeten worden." },
+            { markt: "Wearables", prijs: "€0.25-1/device", detail: "Voice authenticatie op smartwatches, health data bescherming, biometrische spoofing detectie. Gevoelige gezondheidsdata vereist on-device bescherming." },
+            { markt: "Smart Home", prijs: "€0.10-0.50/device", detail: "Voice command authenticatie (voorkom dat buren je smart speaker aansturen), camera privacy bescherming, brute-force login detectie op smart locks en deurbellen." },
+            { markt: "Robots & Fabrieken", prijs: "€5K-50K/site", detail: "Command verificatie (alleen geautoriseerde operators), operationele anomalie detectie (robot doet iets onverwachts), safety override bescherming." },
+            { markt: "Drones", prijs: "€1-5/drone", detail: "GPS spoofing detectie (voorkom dat drones worden ontvoerd), command authenticatie, cargo verificatie. Kritiek voor delivery drones en militaire toepassingen." },
+          ].map((m, i) => (
+            <div key={i} style={{ marginBottom: 8, padding: 10, background: "#001a1a", borderRadius: 8, border: "1px solid #0e749033" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 600, color: "#67e8f9", fontSize: 12 }}>{m.markt}</span>
+                <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 600 }}>{m.prijs}</span>
+              </div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{m.detail}</div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Marktcijfers:</div>
+            <div style={{ fontSize: 11, color: "#d1d5db" }}>On-device AI markt: $30.6 miljard in 2029 (25% groei/jaar). Embedded IoT security: $18.3 miljard in 2033 (11.5% groei/jaar). Automotive = 25% van IoT security, snelst groeiend segment.</div>
+          </div>
+
+          <div style={{ marginTop: 12, padding: 12, background: "#0a1a0a", borderRadius: 8, border: "1px solid #16653444" }}>
+            <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 12, marginBottom: 6 }}>4-Tier Revenue Model:</div>
+            {[
+              "OEM: €0.10-2.00 per device (volume royalty bij fabrikant)",
+              "Fleet: €1-5/device/maand (subscription voor vlootbeheerders)",
+              "SDK License: €5K-50K/jaar (voor developers die integreren)",
+              "Enterprise: €10K-100K/jaar (site license, NIS2 compliance)",
+            ].map((r, i) => (
+              <div key={i} style={{ fontSize: 11, color: "#86efac", padding: "3px 0" }}>{i + 1}. {r}</div>
+            ))}
+            <div style={{ marginTop: 8, fontWeight: 700, color: "#f97316", fontSize: 12 }}>Totaal potentieel: €8M+/jaar (conservatief)</div>
+          </div>
+
+          <p style={{ marginTop: 12 }}><strong style={{ color: "#22d3ee" }}>Killer argument:</strong> SDK-HRM is software-only, 27MB klein, updatebaar via LoRA in seconden, en privacy-first lokaal. Hardware security (Qualcomm/NXP) vereist een speciale chip, firmware updates duren maanden, en werken vaak via de cloud. SDK-HRM kan bovenop ELKE hardware draaien als extra beveiligingslaag.</p>
+        </div>
+      </Section>
+
+      {/* ── 10. MODEL SECURITY ── */}
+      <Section id="security" icon="🔐" title="5-Laags Model Bescherming" color="#ef4444" border="#991b1b" bg="#0f0000"
+        summary="Open base + geheime LoRA adapters = recurring revenue">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Het beschermen van het AI-model is cruciaal voor het businessmodel. De strategie: maak het basismodel open source (vertrouwen, community), maar houd de gespecialiseerde LoRA adapters geheim, versleuteld en device-locked.</p>
+
+          {[
+            { laag: 1, naam: "Runtime Integrity", detail: "Bij elke start van het model wordt een hash-check uitgevoerd. De hash van de gewichten wordt vergeleken met de officieel gepubliceerde hash (op blockchain). Als er ook maar 1 byte gewijzigd is, weigert het model te starten." },
+            { laag: 2, naam: "Code Obfuscation", detail: "De inference code wordt beschermd met anti-debugging technieken, integrity checks en verstoorde control flow. Dit maakt het veel moeilijker om het model te reverse-engineeren of te kopiëren." },
+            { laag: 3, naam: "Encrypted Weights", detail: "Model gewichten worden op schijf versleuteld met AES-256. De sleutel is gebonden aan het specifieke device (hardware ID + secure enclave). Zelfs als iemand de bestanden kopieert, zijn ze waardeloos op een ander apparaat. Anti-memory-dump bescherming voorkomt dat de gedecrypteerde gewichten uit het werkgeheugen worden gestolen." },
+            { laag: 4, naam: "Modulaire LoRA Adapters", detail: "Het basismodel (LFM2 + HRM) is open source — iedereen kan het gebruiken en vertrouwen. Maar de gespecialiseerde LoRA adapters (10-50MB per adapter) zijn GEHEIM, versleuteld, en device-locked. Nieuwe adapters worden maandelijks geleverd als onderdeel van het abonnement. Dit is het recurring revenue model: open base + betaalde specialisatie." },
+            { laag: 5, naam: "Blockchain Verificatie", detail: "Weight hashes worden op de blockchain gepubliceerd. Gebruikers kunnen verifiëren dat hun model-versie de officiele is — tamper-proof updates. Niemand kan een gewijzigd model distribueren zonder dat het detecteerbaar is." },
+          ].map((l, i) => (
+            <div key={i} style={{ marginBottom: 10, padding: 12, background: "#1a0000", borderRadius: 8, border: "1px solid #991b1b33" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 24, height: 24, borderRadius: 6, background: "#ef444422", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#ef4444", flexShrink: 0 }}>{l.laag}</span>
+                <span style={{ fontWeight: 700, color: "#fca5a5", fontSize: 12 }}>{l.naam}</span>
+              </div>
+              <div style={{ color: "#d1d5db", fontSize: 11, marginTop: 6, lineHeight: 1.7 }}>{l.detail}</div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 8, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Deployment Groottes:</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8, fontSize: 11, color: "#d1d5db" }}>
+              <div><strong style={{ color: "#f97316" }}>HRM-27M:</strong> 27MB (int8) — 109MB (float32)</div>
+              <div><strong style={{ color: "#a78bfa" }}>LFM2-2.6B:</strong> 1.6GB (int4) — 5.2GB (float16)</div>
+              <div><strong style={{ color: "#22c55e" }}>Gecombineerd geoptimaliseerd:</strong> 2.1GB</div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 11. BLOCKCHAIN TRUST LAYER ── */}
+      <Section id="blockchain" icon="⛓️" title="Blockchain Trust Layer" color="#fbbf24" border="#854d0e" bg="#0f0a00"
+        summary="Decentralized trust, ZKP privacy, tamper-proof model updates">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Franky's visie: blockchain als vertrouwenslaag voor het hele SDK-HRM ecosysteem. Niet blockchain om blockchain, maar voor concrete doelen: verificatie, privacy en decentralisatie.</p>
+
+          {[
+            { feature: "Model Integrity", detail: "Model weight hashes worden op de blockchain gepubliceerd. Gebruikers kunnen altijd verifiëren of hun lokale model-versie de officiële, ongewijzigde versie is." },
+            { feature: "Decentralized Threat Intelligence", detail: "Scam-rapporten worden als hashes op een gedistribueerd register opgeslagen. Geen enkel bedrijf controleert de database — de community bouwt collectief aan de dreigingsinformatie." },
+            { feature: "Content Authenticity", detail: "Foto's en video's krijgen een blockchain-timestamp bij creatie. Dit maakt het mogelijk om te bewijzen wanneer content origineel is gemaakt, versus wanneer het gemanipuleerd is." },
+            { feature: "Voice Authentication", detail: "Voiceprints worden opgeslagen als hash (nooit de opname zelf) voor privacy-behoudende stemverificatie." },
+            { feature: "Business Verification", detail: "KVK/BTW nummers worden geverifieerd tegen on-chain records. Bedrijfsidentiteiten zijn cryptografisch bewezen." },
+            { feature: "Zero-Knowledge Proofs", detail: "Privacy-behoudende identiteitsverificatie. Bewijs dat je 18+ bent zonder je geboortedatum te onthullen. Bewijs dat je een geldig bedrijf hebt zonder je KVK-nummer te delen." },
+            { feature: "Decentralized Model Marketplace", detail: "Community leden kunnen dreigingsmodules bijdragen aan het ecosysteem. Revenue verdeling via smart contracts — automatisch, transparant, eerlijk." },
+          ].map((f, i) => (
+            <div key={i} style={{ marginBottom: 6, padding: 8, background: "#1a1400", borderRadius: 6, border: "1px solid #854d0e33" }}>
+              <div style={{ fontWeight: 600, color: "#fde68a", fontSize: 11 }}>{f.feature}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 3 }}>{f.detail}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 12. TRAINING DOMEINEN ── */}
+      <Section id="domains" icon="📊" title="66 Training Domeinen — 10 Lagen" color="#a78bfa" border="#5b21b6" bg="#080020"
+        summary="Van core scam detection tot contextual threats — 1.05M samples target">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Het model traint op 66 specifieke domeinen, georganiseerd in 10 lagen van toenemende complexiteit. Het doel is uiteindelijk ~1.051.000 training samples te verzamelen over alle domeinen.</p>
+
+          {[
+            { laag: "Layer 1: Core Scam (11)", color: "#ef4444", items: "Phishing URL, credential theft, urgency+fear, reward+lottery, impersonation, romance scam, investment scam, BEC (Business Email Compromise), tech support scam, subscription trap, delivery scam" },
+            { laag: "Layer 2: Communication (6)", color: "#f59e0b", items: "Time anomaly detection, language deviation, sender reputation, contact baseline, context mismatch, channel anomaly" },
+            { laag: "Layer 3: Device & Identity (6)", color: "#22c55e", items: "Device fingerprint, IP geolocation, behavior biometrics, login anomaly, session hijack, MFA bypass" },
+            { laag: "Layer 4: Voice & Audio (8)", color: "#3b82f6", items: "Voiceprint match, stress/fear detection, background noise analysis, voice cloning, deepfake voice, call center detection, robocall patterns, social engineering voice" },
+            { laag: "Layer 5: Visual (7)", color: "#a855f7", items: "AI-generated image, deepfake video, manipulated document, fake screenshot, watermark analysis, EXIF metadata analysis, reverse image search" },
+            { laag: "Layer 6: Web Protection (8)", color: "#06b6d4", items: "Bot detection, SQLi/XSS prevention, credential stuffing, GDPR compliance, plugin vulnerability, social media verification, SSL/certificate anomaly, content injection" },
+            { laag: "Layer 7: Malware (6)", color: "#ec4899", items: "APK analysis, browser extension scan, desktop app scan, ransomware pattern, cryptominer detection, data exfiltration" },
+            { laag: "Layer 8: Financial (5)", color: "#f97316", items: "Transaction anomaly, invoice fraud, CEO fraud, payment redirect, money mule detection" },
+            { laag: "Layer 9: Platform-Specific (5)", color: "#10b981", items: "Marketplace fraud, review manipulation, fake listing, escrow scam, return fraud" },
+            { laag: "Layer 10: Contextual (4)", color: "#6366f1", items: "Elderly-specific patterns, regional threats (BE/NL), seasonal scams, emerging threat patterns" },
+          ].map((l, i) => (
+            <div key={i} style={{ marginBottom: 6, padding: 10, background: `${l.color}08`, borderRadius: 8, border: `1px solid ${l.color}22` }}>
+              <div style={{ fontWeight: 600, color: l.color, fontSize: 12, marginBottom: 4 }}>{l.laag}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10 }}>{l.items}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 13. INFRANODUS GRAPHS ── */}
+      <Section id="graphs" icon="🕸️" title="19 InfraNodus Knowledge Graphs" color="#06b6d4" border="#0e7490" bg="#001015"
+        summary="Complete kennisinfrastructuur op InfraNodus — alle strategische beslissingen gelogd">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Alle strategische kennis, inzichten en beslissingen zijn vastgelegd in 19 InfraNodus knowledge graphs. Elke graph bevat meerdere topical clusters die de relaties tussen concepten visualiseren.</p>
+
+          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+            {[
+              { naam: "SDK-HRM-vision", desc: "Overkoepelende productvisie en missie" },
+              { naam: "SDK-HRM-website_monitoring", desc: "10 clusters — website bescherming en compliance" },
+              { naam: "SDK-HRM-mobile_agent", desc: "Mobiele bescherming en messaging" },
+              { naam: "SDK-HRM-email_guardian", desc: "11 clusters — email security en phishing detectie" },
+              { naam: "SDK-HRM-fraud_protection", desc: "11 clusters — fraude patronen en detectie" },
+              { naam: "SDK-HRM-revenue_model", desc: "Revenue streams en pricing strategie" },
+              { naam: "SDK-HRM-training-priorities", desc: "14 clusters — training volgorde en prioriteiten" },
+              { naam: "SDK-HRM-franky-vision", desc: "16 clusters — Franky's leertraject en visie" },
+              { naam: "SDK-HRM-roadmap-gaps", desc: "16 clusters — ontbrekende features en gaps" },
+              { naam: "SDK-HRM-scam-patterns-v2", desc: "Multilinguaal — NL/FR/EN scam patronen" },
+              { naam: "SDK-HRM-website-guardian", desc: "16 clusters — compliance, GDPR, NIS2" },
+              { naam: "SDK-HRM-full-product-map", desc: "16 clusters — complete 18-module productkaart" },
+              { naam: "SDK-HRM-voice-visual-shield", desc: "16 clusters — voice/visual/malware bescherming" },
+              { naam: "SDK-HRM-model-comparison", desc: "LFM2-2.6B vs HRM-27M analyse" },
+              { naam: "SDK-HRM-nested-architecture", desc: "Nested model + compression visie" },
+              { naam: "SDK-HRM-blockchain-trust", desc: "16 clusters — blockchain + ZKP + trust" },
+              { naam: "SDK-HRM-model-security", desc: "16 clusters — 5-laags bescherming" },
+              { naam: "SDK-HRM-embedded-market", desc: "16 clusters — IoT/automotive/drones markt" },
+              { naam: "SDK-HRM-finance-strategy", desc: "8 clusters — financiele sector GTM" },
+            ].map((g, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#001a1a", borderRadius: 6, border: "1px solid #0e749022" }}>
+                <span style={{ fontSize: 8, padding: "2px 5px", borderRadius: 3, background: "#06b6d415", color: "#67e8f9", border: "1px solid #0e749033", whiteSpace: "nowrap", fontFamily: "monospace" }}>{g.naam}</span>
+                <span style={{ fontSize: 10, color: "#9ca3af" }}>{g.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 14. CONTINUOUS LEARNING ── */}
+      <Section id="learning" icon="🔬" title="Continuous Learning System" color="#8b5cf6" border="#6d28d9" bg="#0a0020"
+        summary="Federated learning, Nested Learning, LoRA swapping, adversarial training">
+        <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
+          <p>Het model is niet statisch — het leert continu bij via meerdere mechanismen die samenwerken.</p>
+
+          {[
+            { tech: "Federated Learning", detail: "Deelt patronen tussen gebruikers zonder private data te onthullen. Alleen abstracte features worden gedeeld: patroontype, tijdstip, verdict, regio. Het model op elk device leert van de collectieve intelligentie zonder dat iemands email of berichten ooit het apparaat verlaten." },
+            { tech: "Google Nested Learning (NeurIPS 2025)", detail: "Multi-timescale aanpak: snelle modules worden maandelijks bijgewerkt met nieuwe dreigingen, terwijl de trage kern-modules stabiel blijven. Het Continuum Memory System voorkomt catastrophic forgetting — nieuwe kennis overschrijft geen oude kennis." },
+            { tech: "LoRA Adapter Swapping", detail: "Kleine adapters (10-50MB) worden maandelijks geleverd als onderdeel van het abonnement. Deze adapters specialiseren het basismodel voor nieuwe dreigingen zonder het hele model te hertrainen. Swappen duurt seconden, niet uren." },
+            { tech: "Adversarial Training", detail: "Het model wordt getraind tegen adversariale aanvallen — inputs die specifiek ontworpen zijn om het model te misleiden. Dit maakt het robuuster tegen geavanceerde aanvallers die de detectie proberen te omzeilen." },
+            { tech: "Knowledge Distillation", detail: "Kennis van grotere modellen wordt gedestilleerd naar het compacte HRM-model. Het model wordt slimmer zonder groter te worden — cruciaal voor edge devices met beperkt geheugen." },
+          ].map((t, i) => (
+            <div key={i} style={{ marginBottom: 8, padding: 10, background: "#0f0033", borderRadius: 8, border: "1px solid #6d28d933" }}>
+              <div style={{ fontWeight: 600, color: "#c4b5fd", fontSize: 12 }}>{t.tech}</div>
+              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{t.detail}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Footer */}
+      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+        <p><strong>Laatste update:</strong> 7 februari 2026 — MM4 Training Sessie</p>
+        <p style={{ marginTop: 4 }}><strong>Bronnen:</strong> 19 InfraNodus graphs, ARC training logs, sessie-notities</p>
+        <p style={{ marginTop: 4 }}><strong>Opmerking:</strong> Deze tab bevat de volledige uitgesproken teksten en analyses uit de trainingssessie. Klik op elk onderdeel om de complete uitleg te lezen.</p>
+      </div>
+    </div>
+  );
+}
+
 export default function ControlCenter() {
   const [tab, setTab] = useState("ecosystem");
   const [search, setSearch] = useState("");
@@ -2271,6 +2818,7 @@ export default function ControlCenter() {
     { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
     { id: "updates", label: "📡 Updates", color: "#06b6d4" },
     { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
+    { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
   ];
 
@@ -2333,7 +2881,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.0.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.1.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -2434,10 +2982,11 @@ export default function ControlCenter() {
       {tab === "knowledge" && <SystemKnowledgeBase />}
       {tab === "updates" && <ClaudeUpdates />}
       {tab === "openbot" && <OpenClaudeBot />}
+      {tab === "sdkhrm" && <SDKHRMHub />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.0.0 • {total} nodes • 14 tabs • SDK-HRM Knowledge Hub • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.1.0 • {total} nodes • 15 tabs • SDK-HRM Intelligence Hub • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
