@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.5.0
+// CLAUDE CONTROL CENTER v4.6.0
 // Complete Dashboard: 18 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -77,6 +77,7 @@ const api = {
 // v4.3.0 - Training & Benchmarks tab (ARC + LFM2 resultaten, commercial readiness)
 // v4.4.0 - Crypto Intelligence Hub (scam/legit classificatie, regulatory, expertise profile)
 // v4.5.0 - Session Notes & Insights (derde laags backup, copy/paste, export JSON/MD)
+// v4.6.0 - Live Training Charts in Benchmarks (SVG grafieken, Loss/Accuracy/LR curves)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -2835,9 +2836,64 @@ function SDKHRMHub() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V16 TAB: TRAINING & BENCHMARK RESULTS
 // ═══════════════════════════════════════════════════════════════════════════════
+// ── SVG Mini Chart Component (reusable for all training runs) ──
+function MiniChart({ data, width = 500, height = 180, color = "#ef4444", label = "", yMin, yMax, gridLines = 5 }) {
+  if (!data || data.length === 0) return null;
+  const pad = { top: 20, right: 15, bottom: 30, left: 55 };
+  const w = width - pad.left - pad.right;
+  const h = height - pad.top - pad.bottom;
+  const dMin = yMin !== undefined ? yMin : Math.min(...data.map(d => d.y));
+  const dMax = yMax !== undefined ? yMax : Math.max(...data.map(d => d.y));
+  const xMin = data[0].x;
+  const xMax = data[data.length - 1].x;
+  const sx = (v) => pad.left + ((v - xMin) / (xMax - xMin || 1)) * w;
+  const sy = (v) => pad.top + h - ((v - dMin) / (dMax - dMin || 1)) * h;
+  const pts = data.map(d => `${sx(d.x)},${sy(d.y)}`).join(" ");
+  const areaPath = `M${sx(data[0].x)},${sy(data[0].y)} ${data.map(d => `L${sx(d.x)},${sy(d.y)}`).join(" ")} L${sx(data[data.length-1].x)},${pad.top + h} L${sx(data[0].x)},${pad.top + h} Z`;
+
+  return (
+    <div style={{ background: "#0a0a14", border: "1px solid #1f2937", borderRadius: 10, padding: 12 }}>
+      {label && <div style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb", marginBottom: 8 }}>{label}</div>}
+      <svg width={width} height={height} style={{ display: "block", maxWidth: "100%" }} viewBox={`0 0 ${width} ${height}`}>
+        {/* Grid lines */}
+        {Array.from({ length: gridLines + 1 }, (_, i) => {
+          const yVal = dMin + (dMax - dMin) * (i / gridLines);
+          const y = sy(yVal);
+          return (
+            <g key={i}>
+              <line x1={pad.left} y1={y} x2={width - pad.right} y2={y} stroke="#1f2937" strokeWidth="1" />
+              <text x={pad.left - 8} y={y + 4} textAnchor="end" fill="#6b7280" fontSize="10">{yVal < 0.01 ? yVal.toExponential(1) : yVal.toFixed(yVal >= 10 ? 0 : yVal >= 1 ? 1 : 2)}</text>
+            </g>
+          );
+        })}
+        {/* X axis labels */}
+        {[0, 0.25, 0.5, 0.75, 1].map((frac, i) => {
+          const xVal = xMin + (xMax - xMin) * frac;
+          return <text key={i} x={sx(xVal)} y={height - 5} textAnchor="middle" fill="#6b7280" fontSize="10">{Math.round(xVal).toLocaleString()}</text>;
+        })}
+        {/* Area fill */}
+        <path d={areaPath} fill={`${color}15`} />
+        {/* Line */}
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+        {/* Last value dot */}
+        <circle cx={sx(data[data.length-1].x)} cy={sy(data[data.length-1].y)} r="4" fill={color} stroke="#0a0a14" strokeWidth="2" />
+      </svg>
+    </div>
+  );
+}
+
 function TrainingBenchmarks() {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // ── ARC Training History (downsampled from 5750 points → 115) ──
+  const arcSteps = [1,51,101,151,201,251,301,351,401,451,501,551,601,651,701,751,801,851,901,951,1001,1051,1101,1151,1201,1251,1301,1351,1401,1451,1501,1551,1601,1651,1701,1751,1801,1851,1901,1951,2001,2051,2101,2151,2201,2251,2301,2351,2401,2451,2501,2551,2601,2651,2701,2751,2801,2851,2901,2951,3001,3051,3101,3151,3201,3251,3301,3351,3401,3451,3501,3551,3601,3651,3701,3751,3801,3851,3901,3951,4001,4051,4101,4151,4201,4251,4301,4351,4401,4451,4501,4551,4601,4651,4701,4751,4801,4851,4901,4951,5001,5051,5101,5151,5201,5251,5301,5351,5401,5451,5501,5551,5601,5651,5701];
+  const arcLoss = [2.7323,2.6798,2.3786,1.7949,2.1589,1.464,2.2551,1.6554,1.251,1.7287,1.8716,1.7593,1.5031,1.6786,1.4269,1.5783,1.1204,1.3658,1.1758,1.9446,1.1885,2.682,1.4007,1.5184,1.1154,1.5492,1.0048,1.6342,1.9077,1.0053,1.6566,2.5146,1.2317,1.0916,1.2589,1.0145,0.9974,1.3844,1.9494,1.9722,1.1972,0.7943,1.2775,1.4697,2.0075,0.8404,1.8418,0.766,2.3137,1.7217,0.8972,1.3614,2.0735,1.4303,0.6946,1.3476,1.0254,1.5379,1.3989,0.8474,2.2193,3.2861,1.0277,1.5361,1.5653,0.8906,1.3397,1.7072,2.2011,1.2989,1.3283,1.8093,1.3127,0.7283,1.6299,2.105,1.1624,1.5137,1.8393,0.6879,0.7499,1.5506,0.3727,0.7788,1.8101,2.0725,1.3116,0.8675,1.8862,1.3137,0.6879,1.2501,1.3001,2.121,1.3327,1.3516,0.6621,1.7765,1.9694,1.3543,1.3816,1.3178,1.3372,0.9762,0.4506,2.3025,1.1854,1.4543,0.6898,1.5618,0.6825,1.5653,2.0113,1.8494,1.7575];
+  const arcAcc = [0.0,0.0,0.0177,0.1158,0.0311,0.2711,0.0678,0.1311,0.3378,0.0689,0.0189,0.16,0.1933,0.1511,0.2478,0.12,0.4,0.2556,0.3344,0.0733,0.3067,0.0067,0.1711,0.1467,0.3867,0.1422,0.47,0.1578,0.0689,0.4456,0.12,0.0267,0.2622,0.4244,0.3244,0.4533,0.4333,0.2444,0.0256,0.0122,0.3433,0.5889,0.2333,0.2189,0.0433,0.5389,0.1267,0.6222,0.0078,0.12,0.4911,0.2356,0.0122,0.17,0.6544,0.2533,0.4089,0.1878,0.2511,0.4844,0.0478,0.0011,0.39,0.1578,0.1622,0.4667,0.25,0.0922,0.0378,0.2867,0.2278,0.0789,0.2756,0.5978,0.1133,0.0267,0.3311,0.2189,0.0744,0.6622,0.6167,0.1733,0.9283,0.5722,0.0811,0.04,0.2889,0.4811,0.0333,0.2689,0.6578,0.3,0.3478,0.0233,0.2556,0.2811,0.6767,0.0533,0.0067,0.2,0.2444,0.2733,0.2822,0.4433,0.7722,0.0078,0.3411,0.2067,0.66,0.1578,0.65,0.1489,0.0111,0.0967,0.8067];
+  const arcLR = [0.0000001,0.00000105,0.00000199,0.00000293,0.00000387,0.00000481,0.00000575,0.00000669,0.00000764,0.00000858,0.00000952,0.00001046,0.0000114,0.00001234,0.00001328,0.00001422,0.00001517,0.00001611,0.00001705,0.00001799,0.00001893,0.00001987,0.00002081,0.00002175,0.0000227,0.00002364,0.00002458,0.00002552,0.00002646,0.0000274,0.00002834,0.00002928,0.00003023,0.00003117,0.00003211,0.00003305,0.00003399,0.00003493,0.00003587,0.00003681,0.00003776,0.0000387,0.00003964,0.00004058,0.00004152,0.00004246,0.0000434,0.00004434,0.00004529,0.00004623,0.00004717,0.00004811,0.00004905,0.00004999,0.00005093,0.00005187,0.00005281,0.00005376,0.0000547,0.00005564,0.00005658,0.00005752,0.00005846,0.0000594,0.00006034,0.00006129,0.00006223,0.00006317,0.00006411,0.00006505,0.00006599,0.00006693,0.00006787,0.00006882,0.00006976,0.0000707,0.00007164,0.00007258,0.00007352,0.00007446,0.0000754,0.00007635,0.00007729,0.00007823,0.00007917,0.00008011,0.00008105,0.00008199,0.00008293,0.00008388,0.00008482,0.00008576,0.0000867,0.00008764,0.00008858,0.00008952,0.00009046,0.00009141,0.00009235,0.00009329,0.00009423,0.00009517,0.00009611,0.00009705,0.00009799,0.00009894,0.00009988,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001];
+  const arcLossData = arcSteps.map((s, i) => ({ x: s, y: arcLoss[i] }));
+  const arcAccData = arcSteps.map((s, i) => ({ x: s, y: arcAcc[i] }));
+  const arcLRData = arcSteps.map((s, i) => ({ x: s, y: arcLR[i] }));
 
   // ARC Pre-training data
   const arcTraining = {
@@ -2993,6 +3049,15 @@ function TrainingBenchmarks() {
                   <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
                 </div>
               ))}
+            </div>
+            {/* ── LIVE CHARTS (van training_status.json, 115 datapunten) ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 12, marginTop: 16 }}>
+              <MiniChart data={arcLossData} color="#ef4444" label="Training Loss" yMin={0} yMax={3.5} />
+              <MiniChart data={arcAccData} color="#4ade80" label="Training Accuracy" yMin={0} yMax={1.0} />
+              <MiniChart data={arcLRData} color="#22d3ee" label="Learning Rate" yMin={0} yMax={0.0001} />
+            </div>
+            <div style={{ marginTop: 6, fontSize: 10, color: "#4b5563", textAlign: "center" }}>
+              Data: training_status.json (5750 stappen → 115 datapunten gedownsampled) • Sapient-HRM 27.3M • MPS M4
             </div>
             <div style={{ marginTop: 12, fontSize: 13, color: "#d1d5db", lineHeight: 1.8 }}>
               <p>Pre-training op ARC-aug-1000 puzzels om het model patroonherkenning en hiërarchisch redeneren aan te leren. De dataset raakte uitgeput bij step 5750 (van geplande 7695). Checkpoint V3 systeem werkte perfect — elke 100 stappen opgeslagen, maximaal 5 bewaard.</p>
@@ -3974,7 +4039,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.5.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.6.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4082,7 +4147,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.5.0 • {total} nodes • 18 tabs • Session Notes • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.6.0 • {total} nodes • 18 tabs • Live Training Charts • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
