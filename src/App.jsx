@@ -50,8 +50,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.3.0
-// Complete Dashboard: 16 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.4.0
+// Complete Dashboard: 17 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -73,6 +73,9 @@ const api = {
 // v3.9.7 - Sessions Archive toegevoegd aan Memory tab (11 actieve sessies ~240MB)
 // v4.0.0 - SDK-HRM Knowledge Hub toegevoegd in Knowledge tab
 // v4.1.0 - SDK-HRM als EIGEN tab met expandable/collapsible volledige uitleg teksten
+// v4.2.0 - SDK-HRM alle secties verrijkt met InfraNodus detail
+// v4.3.0 - Training & Benchmarks tab (ARC + LFM2 resultaten, commercial readiness)
+// v4.4.0 - Crypto Intelligence Hub (scam/legit classificatie, regulatory, expertise profile)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3170,6 +3173,385 @@ function TrainingBenchmarks() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CRYPTO INTELLIGENCE TAB — v4.4.0
+// Franky's crypto expertise: 10+ jaar ervaring, trading, DeFi, stablecoins
+// Nuanced classificatie: scam vs legitimate crypto activiteit
+// ═══════════════════════════════════════════════════════════════════════════════
+function CryptoIntelligence() {
+  const [expanded, setExpanded] = useState({});
+  const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // ── Scam Types Data ──
+  const scamTypes = [
+    { id: "fake-exchange", name: "Fake Exchange/Wallet Phishing", risk: "CRITICAL", icon: "🏦", examples: "Nepsite imiteert Binance, Coinbase, MetaMask login", status: "active", frequency: "Zeer hoog", languages: ["EN", "NL", "FR"], detection: "URL-analyse + visuele fingerprint + certificaat check" },
+    { id: "seed-phrase", name: "Seed Phrase Theft", risk: "CRITICAL", icon: "🔑", examples: "'Validate your wallet', 'Sync your seed phrase'", status: "active", frequency: "Hoog", languages: ["EN", "NL"], detection: "Keyword pattern + intentie-analyse + context" },
+    { id: "pig-butchering", name: "Pig Butchering (Romance→Crypto)", risk: "CRITICAL", icon: "🐷", examples: "Langzame vertrouwensopbouw → crypto investering → exit", status: "active", frequency: "Hoog", languages: ["EN", "NL", "FR"], detection: "Gedragspatroon over tijd + financieel escalatie tracking" },
+    { id: "pump-dump", name: "Pump & Dump Schemes", risk: "HIGH", icon: "📈", examples: "Telegram/Discord 'guaranteed 100x moonshot'", status: "active", frequency: "Hoog", languages: ["EN"], detection: "Volume anomalie + social media sentiment + token leeftijd" },
+    { id: "rug-pull", name: "Rug Pull DeFi", risk: "HIGH", icon: "🪤", examples: "Nieuwe token zonder audit, nep TVL, liquidity niet locked", status: "active", frequency: "Medium", languages: ["EN"], detection: "Smart contract audit status + liquidity lock check + team verificatie" },
+    { id: "fake-airdrop", name: "Fake Airdrop / Malicious Contracts", risk: "HIGH", icon: "🎁", examples: "'Claim your free tokens' → unlimited approval → drain wallet", status: "active", frequency: "Zeer hoog", languages: ["EN", "NL"], detection: "Contract approval analyse + airdrop legitimiteit check" },
+    { id: "investment-ponzi", name: "Crypto Investment Ponzi", risk: "HIGH", icon: "💸", examples: "Gegarandeerd 50-100% maandelijks rendement, referral bonus", status: "active", frequency: "Medium", languages: ["EN", "NL", "FR"], detection: "Rendement realiteitscheck + Ponzi patroon detectie" },
+    { id: "nft-scam", name: "NFT Scams", risk: "MEDIUM", icon: "🖼️", examples: "Fake mints, counterfeit collecties, wash trading", status: "active", frequency: "Medium", languages: ["EN"], detection: "Collectie verificatie + creator history + volume analyse" },
+  ];
+
+  // ── Legitimate Crypto Types ──
+  const legitimateTypes = [
+    { id: "exchange-comms", name: "Exchange Communicatie", icon: "✅", examples: "Binance/Coinbase/Kraken account notificaties, 2FA alerts", confidence: "Hoog", markers: "Officieel domein, geen seed phrase requests, standaard security flow" },
+    { id: "defi-governance", name: "DeFi Governance & Staking", icon: "🗳️", examples: "Uniswap governance proposals, AAVE staking rewards, Compound yields", confidence: "Hoog", markers: "3-8% APY realistisch, audited protocol, TVL verifieerbaar" },
+    { id: "stablecoin-ops", name: "Stablecoin Operaties", icon: "💵", examples: "USDC/USDT transfers, Circle compliance, yield op gereguleerde platforms", confidence: "Hoog", markers: "Gereguleerde issuer, MiCA/GENIUS Act compliant, 1:1 backed" },
+    { id: "hardware-wallet", name: "Hardware Wallet Alerts", icon: "🔐", examples: "Ledger firmware updates, Trezor security advisories", confidence: "Medium", markers: "Officieel domein check cruciaal — meest geïmiteerd" },
+    { id: "regulatory", name: "Regulatory Updates", icon: "⚖️", examples: "MiCA implementatie, GENIUS Act, DORA compliance", confidence: "Hoog", markers: "Officiële overheidsbronn, geen actie-dwang, informatief" },
+    { id: "institutional", name: "Institutionele Adoptie", icon: "🏛️", examples: "JPMorgan crypto custody, BNP Paribas tokenization, BlackRock ETF", confidence: "Hoog", markers: "Beursgenoteerd bedrijf, publieke aankondiging, verifieerbaar" },
+  ];
+
+  // ── Regulatory Landscape ──
+  const regulations = [
+    { name: "GENIUS Act (US)", status: "Aangenomen", year: "2025", scope: "Stablecoins", impact: "Stablecoins als gereguleerde financiële instrumenten", color: "#22c55e" },
+    { name: "MiCA (EU)", status: "Van kracht", year: "2024", scope: "Alle crypto-assets", impact: "Uniforme EU-regulatie, licentie-eis voor exchanges", color: "#22c55e" },
+    { name: "DORA (EU)", status: "Van kracht", year: "2025", scope: "Financiële sector", impact: "ICT-risicobeheer, ook voor crypto service providers", color: "#22c55e" },
+    { name: "Travel Rule (FATF)", status: "Implementatie", year: "2024-2026", scope: "Cross-border transfers", impact: "KYC/AML voor alle crypto transfers >€1000", color: "#fbbf24" },
+    { name: "DAC8 (EU)", status: "Goedgekeurd", year: "2026", scope: "Belasting", impact: "Automatische rapportage crypto-inkomsten", color: "#fbbf24" },
+    { name: "Stablecoin Act (US)", status: "Pending", year: "2026", scope: "Reserve requirements", impact: "1:1 fiat backing vereist, audit-eis", color: "#f97316" },
+  ];
+
+  // ── Franky's Expertise Profile ──
+  const expertiseAreas = [
+    { area: "Trading & Technische Analyse", years: "10+", level: "Gevorderd", detail: "TradingView abonnement, chart patterns, indicatoren" },
+    { area: "DeFi & Yield Farming", years: "5+", level: "Gevorderd", detail: "AAVE, Compound, Uniswap, liquidity provisioning" },
+    { area: "Stablecoins & Regulatie", years: "4+", level: "Expert", detail: "USDC, USDT, MiCA, GENIUS Act, reserves" },
+    { area: "Blockchain Architectuur", years: "8+", level: "Gevorderd", detail: "L1/L2, consensus, smart contracts, bridges" },
+    { area: "Scam Herkenning", years: "10+", level: "Expert", detail: "Rug pulls, Ponzi's, phishing, social engineering patronen" },
+    { area: "Institutionele Adoptie", years: "3+", level: "Gevorderd", detail: "ETF's, custody, tokenization, CBDC's" },
+  ];
+
+  // ── SDK-HRM Integration Points ──
+  const integrationPoints = [
+    { module: "Email Guardian", crypto: "Phishing detectie voor exchange/wallet emails, fake airdrop links", priority: "P0", status: "ready" },
+    { module: "Website Guardian", crypto: "Fake exchange detectie, malicious dApp scanning, contract approval warnings", priority: "P0", status: "ready" },
+    { module: "Mobile Agent", crypto: "Wallet app verificatie, QR code crypto scam detectie", priority: "P1", status: "planned" },
+    { module: "Investment Fraud", crypto: "Ponzi patroon herkenning, unrealistisch rendement flagging", priority: "P1", status: "planned" },
+    { module: "Social Graph", crypto: "Romance→crypto exit patroon, pig butchering timeline detectie", priority: "P1", status: "planned" },
+    { module: "Document Verifier", crypto: "Fake whitepaper detectie, nep audit rapport herkenning", priority: "P2", status: "concept" },
+    { module: "Blockchain Trust Layer", crypto: "On-chain verificatie van adressen, contract audits, scam databases", priority: "P2", status: "concept" },
+  ];
+
+  // ── Training Data Roadmap ──
+  const trainingRoadmap = [
+    { phase: "Phase 1", target: "100 crypto scenarios", timeline: "Week 1", langs: "EN/NL/FR", focus: "Top 4 scam types + top 3 legitimate types", status: "next" },
+    { phase: "Phase 2", target: "500 crypto scenarios", timeline: "Maand 1", langs: "EN/NL/FR/DE", focus: "Alle 8 scam types + real-world phishing emails", status: "planned" },
+    { phase: "Phase 3", target: "2000 crypto scenarios", timeline: "Maand 2-3", langs: "8 talen", focus: "Edge cases, nieuwe scam patronen, regulatory context", status: "planned" },
+    { phase: "Phase 4", target: "5000+ continuous", timeline: "Ongoing", langs: "Multilingual", focus: "Data flywheel: user feedback → nieuwe training data", status: "concept" },
+  ];
+
+  // ── Key Insight: Fiat vs Crypto Timeline ──
+  const timelineEvents = [
+    { year: "2009", event: "Bitcoin genesis block", type: "crypto" },
+    { year: "2015", event: "Ethereum & smart contracts", type: "crypto" },
+    { year: "2020", event: "DeFi Summer — yield farming explosie", type: "crypto" },
+    { year: "2021", event: "El Salvador: BTC als legal tender", type: "regulation" },
+    { year: "2024", event: "MiCA van kracht in EU", type: "regulation" },
+    { year: "2024", event: "Bitcoin & Ethereum ETF's goedgekeurd", type: "institutional" },
+    { year: "2025", event: "GENIUS Act — stablecoin regulatie US", type: "regulation" },
+    { year: "2025", event: "DORA — financiële ICT-regulatie EU", type: "regulation" },
+    { year: "2026", event: "DAC8 — automatische crypto-belasting EU", type: "regulation" },
+    { year: "~2030", event: "CBDC's operationeel (digitale euro)", type: "institutional" },
+    { year: "~2035", event: "Blockchain-fiat integratie mainstream", type: "vision" },
+  ];
+
+  const riskColor = (r) => r === "CRITICAL" ? "#ef4444" : r === "HIGH" ? "#f97316" : "#fbbf24";
+  const statusColor = (s) => s === "ready" ? "#22c55e" : s === "planned" ? "#fbbf24" : "#6b7280";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* ── HEADER ── */}
+      <div style={{ background: "linear-gradient(135deg, #0a1a0a, #0f1a2e, #1a1a0a)", border: "2px solid #f59e0b", borderRadius: 16, padding: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 24, background: "linear-gradient(90deg, #f59e0b, #f97316, #ef4444)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              🪙 Crypto Intelligence Hub
+            </div>
+            <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Nuanced crypto scam vs legitimate classificatie — powered by 10+ jaar domeinexpertise</p>
+            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Franky's expertise • TradingView • DeFi • Stablecoins • MiCA/GENIUS Act</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { label: "8", sub: "scam types", color: "#ef4444" },
+              { label: "6", sub: "legit types", color: "#22c55e" },
+              { label: "6", sub: "regelgeving", color: "#60a5fa" },
+              { label: "10+", sub: "jaar expertise", color: "#f59e0b" },
+            ].map(m => (
+              <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
+                <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CORE VISION ── */}
+      <div style={{ background: "#0a0f1a", border: "1px solid #f59e0b44", borderRadius: 12, padding: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 16, color: "#f59e0b", marginBottom: 10 }}>💡 Kernvisie: Waarom Crypto Security Een Moat Is</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+          <div style={{ background: "#ef444411", border: "1px solid #ef444433", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontWeight: 700, color: "#ef4444", fontSize: 13 }}>❌ Het Probleem</div>
+            <p style={{ color: "#d1d5db", fontSize: 12, marginTop: 6, lineHeight: 1.6 }}>
+              Bestaande AI tools (Gmail, Defender) markeren ALLE crypto als verdacht. Binance emails → spam. MetaMask links → geblokkeerd.
+              Dit is alsof je elke ING-brief als phishing behandelt omdat er ooit ING-phishing bestond.
+            </p>
+          </div>
+          <div style={{ background: "#22c55e11", border: "1px solid #22c55e33", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 13 }}>✅ SDK-HRM Oplossing</div>
+            <p style={{ color: "#d1d5db", fontSize: 12, marginTop: 6, lineHeight: 1.6 }}>
+              Nuanced classificatie getraind door domeinexpert. Onderscheidt 5% yield op AAVE (legit) van "stuur 1 ETH krijg 10 terug" (scam).
+              Kent het verschil tussen MiCA-compliant exchange en offshore platform.
+            </p>
+          </div>
+          <div style={{ background: "#60a5fa11", border: "1px solid #60a5fa33", borderRadius: 8, padding: 12 }}>
+            <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 13 }}>🔮 De Toekomst</div>
+            <p style={{ color: "#d1d5db", fontSize: 12, marginTop: 6, lineHeight: 1.6 }}>
+              Blockchain-fiat integratie is onvermijdelijk. GENIUS Act + MiCA maken stablecoins gereguleerd.
+              Binnen 10 jaar: crypto volledig mainstream. SDK-HRM is klaar voor die wereld.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── SCAM TYPES (Expandable) ── */}
+      <div style={{ background: "#0f0000", border: "1px solid #ef444466", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("scams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.scams ? "#ef444411" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🚨</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#ef4444", fontSize: 15 }}>Crypto Scam Types — 8 Categorieën</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>CRITICAL en HIGH risk patronen voor SDK-HRM training</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.scams ? "▼" : "▶"}</span>
+        </div>
+        {expanded.scams && (
+          <div style={{ padding: 16, borderTop: "1px solid #ef444433" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {scamTypes.map(s => (
+                <div key={s.id} style={{ background: "#1a0000", border: `1px solid ${riskColor(s.risk)}33`, borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 18 }}>{s.icon}</span>
+                      <span style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{s.name}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <span style={{ padding: "2px 8px", background: `${riskColor(s.risk)}22`, color: riskColor(s.risk), borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{s.risk}</span>
+                      <span style={{ padding: "2px 8px", background: "#f59e0b22", color: "#f59e0b", borderRadius: 4, fontSize: 10 }}>{s.frequency}</span>
+                      {s.languages.map(l => <span key={l} style={{ padding: "2px 6px", background: "#60a5fa11", color: "#60a5fa", borderRadius: 4, fontSize: 9 }}>{l}</span>)}
+                    </div>
+                  </div>
+                  <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 6, fontStyle: "italic" }}>Voorbeeld: {s.examples}</p>
+                  <p style={{ color: "#6b7280", fontSize: 11, marginTop: 4 }}>Detectie: {s.detection}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── LEGITIMATE TYPES (Expandable) ── */}
+      <div style={{ background: "#000f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("legit")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.legit ? "#22c55e11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>✅</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Legitimate Crypto — 6 Categorieën</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>SAFE labels: wat het model NIET mag flaggen als scam</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.legit ? "▼" : "▶"}</span>
+        </div>
+        {expanded.legit && (
+          <div style={{ padding: 16, borderTop: "1px solid #22c55e33" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {legitimateTypes.map(l => (
+                <div key={l.id} style={{ background: "#001a00", border: "1px solid #22c55e33", borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 18 }}>{l.icon}</span>
+                    <span style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{l.name}</span>
+                    <span style={{ padding: "2px 8px", background: "#22c55e22", color: "#22c55e", borderRadius: 4, fontSize: 10 }}>Confidence: {l.confidence}</span>
+                  </div>
+                  <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 6, fontStyle: "italic" }}>Voorbeelden: {l.examples}</p>
+                  <p style={{ color: "#6b7280", fontSize: 11, marginTop: 4 }}>Markers: {l.markers}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── REGULATORY LANDSCAPE ── */}
+      <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("regs")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.regs ? "#60a5fa11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>⚖️</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Regulatory Landscape — Crypto Wordt Mainstream</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>GENIUS Act, MiCA, DORA, DAC8 — de wettelijke integratie</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.regs ? "▼" : "▶"}</span>
+        </div>
+        {expanded.regs && (
+          <div style={{ padding: 16, borderTop: "1px solid #60a5fa33" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10 }}>
+              {regulations.map(r => (
+                <div key={r.name} style={{ background: "#0a1020", border: `1px solid ${r.color}33`, borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{r.name}</span>
+                    <span style={{ padding: "2px 8px", background: `${r.color}22`, color: r.color, borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{r.status}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                    <span style={{ padding: "2px 6px", background: "#ffffff11", color: "#9ca3af", borderRadius: 4, fontSize: 10 }}>{r.year}</span>
+                    <span style={{ padding: "2px 6px", background: "#ffffff11", color: "#9ca3af", borderRadius: 4, fontSize: 10 }}>{r.scope}</span>
+                  </div>
+                  <p style={{ color: "#6b7280", fontSize: 11, marginTop: 6 }}>{r.impact}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── FIAT→CRYPTO TIMELINE ── */}
+      <div style={{ background: "#0a0a0f", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("timeline")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.timeline ? "#a855f711" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>📅</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Fiat → Crypto Integratie Timeline</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Van Bitcoin genesis naar blockchain-fiat convergentie</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.timeline ? "▼" : "▶"}</span>
+        </div>
+        {expanded.timeline && (
+          <div style={{ padding: 16, borderTop: "1px solid #a855f733" }}>
+            <div style={{ position: "relative", paddingLeft: 24 }}>
+              {timelineEvents.map((e, i) => {
+                const col = e.type === "crypto" ? "#f59e0b" : e.type === "regulation" ? "#60a5fa" : e.type === "institutional" ? "#22c55e" : "#a855f7";
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, position: "relative" }}>
+                    <div style={{ position: "absolute", left: -18, width: 10, height: 10, borderRadius: "50%", background: col, border: `2px solid ${col}66` }} />
+                    {i < timelineEvents.length - 1 && <div style={{ position: "absolute", left: -14, top: 14, width: 2, height: 26, background: "#1f2937" }} />}
+                    <span style={{ color: col, fontWeight: 700, fontSize: 12, minWidth: 50 }}>{e.year}</span>
+                    <span style={{ color: "#d1d5db", fontSize: 12 }}>{e.event}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+              {[{ label: "Crypto", color: "#f59e0b" }, { label: "Regulatie", color: "#60a5fa" }, { label: "Institutioneel", color: "#22c55e" }, { label: "Visie", color: "#a855f7" }].map(l => (
+                <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: l.color }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: l.color }} /> {l.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── EXPERTISE PROFILE ── */}
+      <div style={{ background: "#0f0a00", border: "1px solid #f59e0b66", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("expertise")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.expertise ? "#f59e0b11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🎓</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: 15 }}>Franky's Crypto Expertise Profile</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Domeinkennis die de training data kwaliteit bepaalt</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.expertise ? "▼" : "▶"}</span>
+        </div>
+        {expanded.expertise && (
+          <div style={{ padding: 16, borderTop: "1px solid #f59e0b33" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10 }}>
+              {expertiseAreas.map(e => (
+                <div key={e.area} style={{ background: "#1a1000", border: "1px solid #f59e0b33", borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{e.area}</span>
+                    <span style={{ padding: "2px 8px", background: e.level === "Expert" ? "#22c55e22" : "#f59e0b22", color: e.level === "Expert" ? "#22c55e" : "#f59e0b", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{e.level}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                    <span style={{ padding: "2px 6px", background: "#ffffff11", color: "#9ca3af", borderRadius: 4, fontSize: 10 }}>{e.years} jaar</span>
+                  </div>
+                  <p style={{ color: "#6b7280", fontSize: 11, marginTop: 6 }}>{e.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SDK-HRM INTEGRATION ── */}
+      <div style={{ background: "#0a0a0f", border: "1px solid #f9731666", borderRadius: 12, overflow: "hidden" }}>
+        <div onClick={() => toggle("integration")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.integration ? "#f9731611" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🔗</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>SDK-HRM Module Integratie</div>
+              <div style={{ fontSize: 11, color: "#9ca3af" }}>Hoe crypto intelligence in elk SDK-HRM module past</div>
+            </div>
+          </div>
+          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.integration ? "▼" : "▶"}</span>
+        </div>
+        {expanded.integration && (
+          <div style={{ padding: 16, borderTop: "1px solid #f9731633" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {integrationPoints.map(ip => (
+                <div key={ip.module} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10 }}>
+                  <div style={{ minWidth: 60, textAlign: "center" }}>
+                    <span style={{ padding: "2px 8px", background: ip.priority === "P0" ? "#ef444422" : ip.priority === "P1" ? "#f59e0b22" : "#6b728022", color: ip.priority === "P0" ? "#ef4444" : ip.priority === "P1" ? "#f59e0b" : "#6b7280", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{ip.priority}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 12 }}>{ip.module}</span>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor(ip.status) }} />
+                    </div>
+                    <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{ip.crypto}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── TRAINING DATA ROADMAP ── */}
+      <div style={{ background: "#0a0f0a", border: "1px solid #22c55e66", borderRadius: 12, padding: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 16, color: "#22c55e", marginBottom: 12 }}>🗺️ Training Data Roadmap — Crypto</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+          {trainingRoadmap.map(p => (
+            <div key={p.phase} style={{ background: p.status === "next" ? "#22c55e11" : "#111", border: `1px solid ${p.status === "next" ? "#22c55e" : "#1f2937"}`, borderRadius: 8, padding: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 800, color: p.status === "next" ? "#22c55e" : "#e5e7eb", fontSize: 14 }}>{p.phase}</span>
+                <span style={{ padding: "2px 8px", background: p.status === "next" ? "#22c55e22" : "#ffffff11", color: p.status === "next" ? "#22c55e" : "#6b7280", borderRadius: 4, fontSize: 10 }}>{p.status === "next" ? "VOLGENDE" : p.status.toUpperCase()}</span>
+              </div>
+              <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: 16, marginTop: 6 }}>{p.target}</div>
+              <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{p.timeline} • {p.langs}</p>
+              <p style={{ color: "#6b7280", fontSize: 10, marginTop: 4 }}>{p.focus}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── FOOTER ── */}
+      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
+          <p><strong style={{ color: "#f59e0b" }}>InfraNodus graph:</strong> SDK-HRM-crypto-security (12 clusters) — <a href="https://infranodus.com" target="_blank" rel="noreferrer" style={{ color: "#60a5fa" }}>bekijk in InfraNodus</a></p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#f59e0b" }}>Kernprincipe:</strong> Precision boven paranoia — het model moet het verschil kennen tussen een Binance security alert en een phishing mail</p>
+          <p style={{ marginTop: 4 }}><strong style={{ color: "#f59e0b" }}>Visie:</strong> Blockchain-technologie overtreft fiat in efficiëntie. Binnen 10 jaar volledig geïntegreerd. SDK-HRM bewaakt die transitie.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ControlCenter() {
   const [tab, setTab] = useState("ecosystem");
   const [search, setSearch] = useState("");
@@ -3211,6 +3593,7 @@ export default function ControlCenter() {
     { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
     { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
     { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa" },
+    { id: "crypto", label: "🪙 Crypto", color: "#f59e0b" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
   ];
 
@@ -3376,10 +3759,11 @@ export default function ControlCenter() {
       {tab === "openbot" && <OpenClaudeBot />}
       {tab === "sdkhrm" && <SDKHRMHub />}
       {tab === "benchmarks" && <TrainingBenchmarks />}
+      {tab === "crypto" && <CryptoIntelligence />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.3.0 • {total} nodes • 16 tabs • Training & Benchmarks • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.4.0 • {total} nodes • 17 tabs • Crypto Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
