@@ -193,7 +193,7 @@ const ECOSYSTEM = [
   },
   {
     id: "mcp", name: "MCP Servers", icon: "🔌", status: STATUS.WARN, detail: "8 actief, 1 verdwenen (Serena)", children: [
-      { id: "mcp-cli", name: "CLI MCP Servers", icon: "⌨️", status: STATUS.WARN, children: [
+      { id: "mcp-cli", name: "CLI MCP Servers", icon: "⌨️", status: STATUS.WARN, detail: "Serena ontbreekt — 4/5 actief", children: [
         { id: "mcp-obsidian", name: "Obsidian Vault", icon: "📓", status: STATUS.OK, tags: ["Inbox","Projects","Ideas","Brain-App"] },
         { id: "mcp-infranodus", name: "InfraNodus", icon: "🕸️", status: STATUS.OK },
         { id: "mcp-perplexity", name: "Perplexity", icon: "🔍", status: STATUS.OK },
@@ -209,7 +209,7 @@ const ECOSYSTEM = [
     ],
   },
   {
-    id: "plugins", name: "Plugins", icon: "🧩", status: STATUS.WARN, children: [
+    id: "plugins", name: "Plugins", icon: "🧩", status: STATUS.WARN, detail: "Dubbele commands + hook conflicts", children: [
       { id: "claude-mem", name: "Claude-Mem v9.0.16", icon: "🧠", status: STATUS.OK, children: [
         { id: "cm-worker", name: "Worker Service", icon: "⚙️", status: STATUS.OK, tags: ["Active"] },
         { id: "cm-db", name: "SQLite DB", icon: "🗄️", status: STATUS.OK, detail: "40 observations, ~0.5MB" },
@@ -231,10 +231,10 @@ const ECOSYSTEM = [
         { id: "mp-hookify", name: "/hookify", icon: "🪝", status: STATUS.INFO },
         { id: "mp-stripe", name: "Stripe", icon: "💳", status: STATUS.INFO },
       ]},
-      { id: "dup-cmds", name: "⚠️ Dubbele Commands", icon: "⚠️", status: STATUS.WARN, children: [
-        { id: "dup-do", name: "do.md (2×)", icon: "📄", status: STATUS.WARN },
-        { id: "dup-plan", name: "make-plan.md (2×)", icon: "📄", status: STATUS.WARN },
-        { id: "dup-help", name: "help.md (2×)", icon: "📄", status: STATUS.WARN },
+      { id: "dup-cmds", name: "⚠️ Dubbele Commands", icon: "⚠️", status: STATUS.WARN, detail: "Commands in cache én marketplace — kan conflicten geven", children: [
+        { id: "dup-do", name: "do.md (2×)", icon: "📄", status: STATUS.WARN, detail: "Eén in claude-mem, één in marketplace", recommendation: "Verwijder duplicate uit cache" },
+        { id: "dup-plan", name: "make-plan.md (2×)", icon: "📄", status: STATUS.WARN, detail: "Eén in claude-mem, één in marketplace", recommendation: "Verwijder duplicate uit cache" },
+        { id: "dup-help", name: "help.md (2×)", icon: "📄", status: STATUS.WARN, detail: "Eén in claude-mem, één in marketplace", recommendation: "Verwijder duplicate uit cache" },
       ]},
     ],
   },
@@ -277,11 +277,11 @@ const ECOSYSTEM = [
   {
     id: "sync", name: "Sync Infrastructure", icon: "🔄", status: STATUS.WARN, children: [
       { id: "s-gh", name: "GitHub (DS2036)", icon: "🐙", status: STATUS.WARN, detail: "5 repos met dirty files", children: [
-        { id: "s-d1", name: "Econation", icon: "📂", status: STATUS.WARN, detail: "10 dirty" },
-        { id: "s-d2", name: "HRM-Core-Brain", icon: "📂", status: STATUS.WARN, detail: "4 dirty" },
-        { id: "s-d3", name: "CLAUDE-CODE-MASTERY", icon: "📂", status: STATUS.WARN, detail: "1 dirty" },
-        { id: "s-d4", name: "claude-setup", icon: "📂", status: STATUS.WARN, detail: "1 dirty" },
-        { id: "s-d5", name: "mac-automation-hub", icon: "📂", status: STATUS.WARN, detail: "1 dirty" },
+        { id: "s-d1", name: "Econation", icon: "📂", status: STATUS.WARN, detail: "10 uncommitted bestanden", recommendation: "git add + commit of .gitignore" },
+        { id: "s-d2", name: "HRM-Core-Brain", icon: "📂", status: STATUS.WARN, detail: "4 uncommitted + geen CLAUDE.md", recommendation: "Commit of reset" },
+        { id: "s-d3", name: "CLAUDE-CODE-MASTERY", icon: "📂", status: STATUS.WARN, detail: "1 uncommitted bestand", recommendation: "Commit of .gitignore" },
+        { id: "s-d4", name: "claude-setup", icon: "📂", status: STATUS.WARN, detail: "1 uncommitted bestand", recommendation: "Commit of .gitignore" },
+        { id: "s-d5", name: "mac-automation-hub", icon: "📂", status: STATUS.WARN, detail: "1 uncommitted bestand", recommendation: "Commit of .gitignore" },
       ]},
       { id: "s-sync", name: "Syncthing", icon: "🔗", status: STATUS.WARN, detail: "Alleen MBA", recommendation: "Koppel MM4/MM2" },
       { id: "s-cf", name: "Cloudflare Pages", icon: "☁️", status: STATUS.OK, detail: "Auto-deploy via GitHub Actions", tags: ["NEW"] },
@@ -303,10 +303,10 @@ const ECOSYSTEM = [
         { id: "p-solar", name: "Solar-Sales-App", icon: "☀️", status: STATUS.OK },
         { id: "p-dash", name: "Claude-Ecosystem-Dashboard", icon: "📊", status: STATUS.OK, tags: ["Cloudflare","Git","NEW"] },
       ]},
-      { id: "p-dups", name: "⚠️ Duplicaten & Lege Folders", icon: "⚠️", status: STATUS.ERROR, children: [
-        { id: "dup-klui2", name: "Kluizenkerk (2×)", icon: "📂", status: STATUS.ERROR, recommendation: "Merge" },
-        { id: "dup-mon2", name: "Claude Live Mon (2×)", icon: "📂", status: STATUS.ERROR, recommendation: "Merge" },
-        { id: "dup-mem2", name: "MEM start + Memory folder", icon: "📂", status: STATUS.ERROR, recommendation: "Verwijder" },
+      { id: "p-dups", name: "⚠️ Duplicaten & Lege Folders", icon: "⚠️", status: STATUS.ERROR, detail: "8 folders nemen schijfruimte in beslag en veroorzaken verwarring", children: [
+        { id: "dup-klui2", name: "Kluizenkerk (2×)", icon: "📂", status: STATUS.ERROR, detail: "2 folders met zelfde projectnaam", recommendation: "Merge naar 1 folder" },
+        { id: "dup-mon2", name: "Claude Live Mon (2×)", icon: "📂", status: STATUS.ERROR, detail: "2 monitoring folders actief", recommendation: "Merge naar 1 folder" },
+        { id: "dup-mem2", name: "MEM start + Memory folder", icon: "📂", status: STATUS.ERROR, detail: "Verlaten memory setup bestanden", recommendation: "Verwijder na backup" },
         { id: "e1", name: "FrankySolar", icon: "📭", status: STATUS.DEAD },
         { id: "e2", name: "Last30days", icon: "📭", status: STATUS.DEAD },
         { id: "e3", name: "Solarnation", icon: "📭", status: STATUS.DEAD },
@@ -318,8 +318,8 @@ const ECOSYSTEM = [
   {
     id: "hooks", name: "Hooks", icon: "🪝", status: STATUS.WARN, detail: "CONFLICT: settings.json & claude-mem overlappen", children: [
       { id: "h-global", name: "Global (settings.json)", icon: "⚙️", status: STATUS.WARN, children: [
-        { id: "h-g1", name: "SessionStart → echo", icon: "▶️", status: STATUS.WARN, recommendation: "Verwijder" },
-        { id: "h-g2", name: "PostToolUse → echo", icon: "📝", status: STATUS.WARN, recommendation: "Verwijder" },
+        { id: "h-g1", name: "SessionStart → echo", icon: "▶️", status: STATUS.WARN, detail: "Echo hook in settings.json conflicteert met claude-mem hook", recommendation: "Verwijder uit settings.json" },
+        { id: "h-g2", name: "PostToolUse → echo", icon: "📝", status: STATUS.WARN, detail: "Echo hook in settings.json conflicteert met claude-mem hook", recommendation: "Verwijder uit settings.json" },
       ]},
       { id: "h-mem", name: "Claude-Mem Hooks", icon: "🧠", status: STATUS.OK, children: [
         { id: "h-m1", name: "Setup", icon: "🔧", status: STATUS.OK },
@@ -364,6 +364,16 @@ function collectIssues(nodes, path = []) {
     if (n.children) issues.push(...collectIssues(n.children, cp));
   }
   return issues;
+}
+
+function collectAllItems(nodes, path = []) {
+  const items = [];
+  for (const n of nodes) {
+    const cp = [...path, n.name];
+    if (n.status && !n.children?.length) items.push({ ...n, path: cp.join(" → ") });
+    if (n.children) items.push(...collectAllItems(n.children, cp));
+  }
+  return items;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -5005,7 +5015,7 @@ function CryptoIntelligence() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ISSUES PANEL — Klikbare filters + opgelost/backlog functie
 // ═══════════════════════════════════════════════════════════════════════════════
-function IssuesPanel({ issues, okCount }) {
+function IssuesPanel({ issues, allItems }) {
   const [filter, setFilter] = useState("all");
   const [resolved, setResolved] = useState(() => {
     try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch { return []; }
@@ -5030,40 +5040,46 @@ function IssuesPanel({ issues, okCount }) {
   const resolvedIssues = issues.filter(i => resolvedIds.includes(i.id));
   const errCount = activeIssues.filter(i => i.status === STATUS.ERROR).length;
   const warnCount = activeIssues.filter(i => i.status === STATUS.WARN).length;
+  const okItems = allItems.filter(i => i.status === STATUS.OK || i.status === STATUS.INFO || i.status === STATUS.SYNCING);
+  const okCount = okItems.length;
 
   const filtered = filter === "all" ? activeIssues
     : filter === "error" ? activeIssues.filter(i => i.status === STATUS.ERROR)
     : filter === "warn" ? activeIssues.filter(i => i.status === STATUS.WARN)
-    : [];
+    : filter === "ok" ? okItems
+    : activeIssues;
 
   const filterButtons = [
-    { id: "all", label: `Alle (${activeIssues.length})`, color: "#60a5fa", bg: "#001a33", border: "#1e40af" },
-    { id: "error", label: `Kritiek (${errCount})`, color: "#ef4444", bg: "#1a0000", border: "#991b1b" },
-    { id: "warn", label: `Waarschuwingen (${warnCount})`, color: "#fbbf24", bg: "#1a1400", border: "#854d0e" },
+    { id: "all", count: activeIssues.length, label: "Alle Issues", color: "#60a5fa", bg: "#001a33", border: "#1e40af" },
+    { id: "error", count: errCount, label: "Kritiek", color: "#ef4444", bg: "#1a0000", border: "#991b1b" },
+    { id: "warn", count: warnCount, label: "Waarschuwingen", color: "#fbbf24", bg: "#1a1400", border: "#854d0e" },
+    { id: "ok", count: okCount, label: "OK", color: "#4ade80", bg: "#052e16", border: "#166534" },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Klikbare summary/filter bar */}
+      {/* Klikbare filter bar */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {filterButtons.map(f => (
-          <button key={f.id} onClick={() => setFilter(f.id)} style={{
-            background: filter === f.id ? f.bg : "#111", border: `1px solid ${filter === f.id ? f.border : "#374151"}`,
-            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer",
-            transition: "all 0.15s", outline: filter === f.id ? `2px solid ${f.color}44` : "none", outlineOffset: 2
-          }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: f.color }}>{f.id === "all" ? activeIssues.length : f.id === "error" ? errCount : warnCount}</div>
-            <div style={{ fontSize: 10, color: f.color + "cc" }}>{f.id === "all" ? "Alle Issues" : f.id === "error" ? "Kritiek" : "Waarschuwingen"}</div>
-          </button>
-        ))}
-        <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#4ade80" }}>{okCount}</div>
-          <div style={{ fontSize: 10, color: "#86efac" }}>OK</div>
-        </div>
+        {filterButtons.map(f => {
+          const active = filter === f.id;
+          return (
+            <button key={f.id} onClick={() => { setFilter(f.id); setShowBacklog(false); }} style={{
+              background: active ? f.bg : "#111", border: `1px solid ${active ? f.border : "#374151"}`,
+              borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer",
+              transition: "all 0.15s", outline: active ? `2px solid ${f.color}44` : "none", outlineOffset: 2,
+              transform: active ? "scale(1.05)" : "scale(1)"
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: f.color }}>{f.count}</div>
+              <div style={{ fontSize: 10, color: f.color + "cc" }}>{f.label}</div>
+            </button>
+          );
+        })}
         {resolvedIssues.length > 0 && (
-          <button onClick={() => setShowBacklog(!showBacklog)} style={{
+          <button onClick={() => { setShowBacklog(!showBacklog); if (!showBacklog) setFilter("backlog"); else setFilter("all"); }} style={{
             background: showBacklog ? "#0f0f23" : "#111", border: `1px solid ${showBacklog ? "#5b21b6" : "#374151"}`,
-            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "all 0.15s"
+            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "all 0.15s",
+            outline: showBacklog ? "2px solid #a78bfa44" : "none", outlineOffset: 2,
+            transform: showBacklog ? "scale(1.05)" : "scale(1)"
           }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#a78bfa" }}>{resolvedIssues.length}</div>
             <div style={{ fontSize: 10, color: "#c4b5fd" }}>Opgelost</div>
@@ -5071,24 +5087,41 @@ function IssuesPanel({ issues, okCount }) {
         )}
       </div>
 
-      {/* Active issues grid */}
-      {!showBacklog && (
+      {/* Actief filter label */}
+      <div style={{ fontSize: 11, color: "#6b7280", borderBottom: "1px solid #1f2937", paddingBottom: 6 }}>
+        {filter === "all" && `Alle issues (${activeIssues.length})`}
+        {filter === "error" && `${errCount} kritieke issues`}
+        {filter === "warn" && `${warnCount} waarschuwingen`}
+        {filter === "ok" && `${okCount} items OK`}
+        {filter === "backlog" && `${resolvedIssues.length} opgeloste issues`}
+      </div>
+
+      {/* Issues/OK items grid */}
+      {filter !== "backlog" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
           {filtered.map(i => {
             const isErr = i.status === STATUS.ERROR;
+            const isWarn = i.status === STATUS.WARN;
+            const isOk = !isErr && !isWarn;
+            const cardBg = isErr ? "#1a0000" : isWarn ? "#1a1400" : "#0a1a0a";
+            const cardBorder = isErr ? "#991b1b" : isWarn ? "#854d0e" : "#166534";
+            const nameColor = isErr ? "#fca5a5" : isWarn ? "#fde68a" : "#86efac";
+            const badgeColor = isErr ? "#ef4444" : isWarn ? "#fbbf24" : "#4ade80";
+            const badgeBg = isErr ? "#ef444422" : isWarn ? "#f59e0b22" : "#22c55e22";
+            const badgeText = isErr ? "KRITIEK" : isWarn ? "WARN" : "OK";
             return (
-              <div key={i.id} style={{ background: isErr ? "#1a0000" : "#1a1400", border: `1px solid ${isErr ? "#991b1b" : "#854d0e"}`, borderRadius: 10, padding: 12 }}>
+              <div key={i.id} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 10, padding: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
                     <span style={{ fontSize: 14 }}>{i.icon}</span>
-                    <span style={{ fontWeight: 600, fontSize: 12, color: isErr ? "#fca5a5" : "#fde68a" }}>{i.name}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: nameColor }}>{i.name}</span>
                   </div>
                   <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: isErr ? "#ef444422" : "#f59e0b22", color: isErr ? "#ef4444" : "#fbbf24", fontWeight: 700 }}>{isErr ? "KRITIEK" : "WARN"}</span>
-                    <button onClick={() => resolve(i.id)} title="Markeer als opgelost" style={{
+                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: badgeBg, color: badgeColor, fontWeight: 700 }}>{badgeText}</span>
+                    {!isOk && <button onClick={() => resolve(i.id)} title="Markeer als opgelost" style={{
                       fontSize: 11, padding: "2px 6px", borderRadius: 4, border: "1px solid #16653466",
                       background: "#052e1666", color: "#4ade80", cursor: "pointer", lineHeight: 1
-                    }}>✓</button>
+                    }}>✓</button>}
                   </div>
                 </div>
                 <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>{i.path}</div>
@@ -5097,38 +5130,33 @@ function IssuesPanel({ issues, okCount }) {
               </div>
             );
           })}
-          {filtered.length === 0 && <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 24, color: "#6b7280", fontSize: 13 }}>Geen {filter === "error" ? "kritieke" : filter === "warn" ? "waarschuwings" : ""} issues gevonden</div>}
+          {filtered.length === 0 && <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 24, color: "#6b7280", fontSize: 13 }}>Geen {filter === "error" ? "kritieke" : filter === "warn" ? "waarschuwings" : filter === "ok" ? "OK" : ""} items gevonden</div>}
         </div>
       )}
 
       {/* Backlog - opgeloste issues */}
-      {showBacklog && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa", display: "flex", alignItems: "center", gap: 8 }}>
-            <span>📋 Opgeloste Issues Backlog</span>
-            <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 400 }}>({resolvedIssues.length} items)</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
-            {resolvedIssues.map(i => {
-              const rd = resolved.find(r => r.id === i.id);
-              return (
-                <div key={i.id} style={{ background: "#0f0f0f", border: "1px solid #374151", borderRadius: 10, padding: 12, opacity: 0.75 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 13 }}>{i.icon}</span>
-                      <span style={{ fontWeight: 600, fontSize: 12, color: "#9ca3af", textDecoration: "line-through" }}>{i.name}</span>
-                    </div>
-                    <button onClick={() => unresolve(i.id)} title="Terugzetten naar actief" style={{
-                      fontSize: 10, padding: "2px 6px", borderRadius: 4, border: "1px solid #854d0e66",
-                      background: "#1a140066", color: "#fbbf24", cursor: "pointer", lineHeight: 1
-                    }}>↩</button>
+      {filter === "backlog" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
+          {resolvedIssues.map(i => {
+            const rd = resolved.find(r => r.id === i.id);
+            return (
+              <div key={i.id} style={{ background: "#0f0f0f", border: "1px solid #374151", borderRadius: 10, padding: 12, opacity: 0.75 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 13 }}>{i.icon}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: "#9ca3af", textDecoration: "line-through" }}>{i.name}</span>
                   </div>
-                  <div style={{ fontSize: 10, color: "#4b5563" }}>{i.path}</div>
-                  {rd && <div style={{ fontSize: 9, color: "#22c55e", marginTop: 4 }}>✓ Opgelost op {rd.date}</div>}
+                  <button onClick={() => unresolve(i.id)} title="Terugzetten naar actief" style={{
+                    fontSize: 10, padding: "2px 6px", borderRadius: 4, border: "1px solid #854d0e66",
+                    background: "#1a140066", color: "#fbbf24", cursor: "pointer", lineHeight: 1
+                  }}>↩</button>
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ fontSize: 10, color: "#4b5563" }}>{i.path}</div>
+                {rd && <div style={{ fontSize: 9, color: "#22c55e", marginTop: 4 }}>✓ Opgelost op {rd.date}</div>}
+              </div>
+            );
+          })}
+          {resolvedIssues.length === 0 && <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 24, color: "#6b7280", fontSize: 13 }}>Geen opgeloste issues</div>}
         </div>
       )}
     </div>
@@ -5233,6 +5261,7 @@ export default function ControlCenter() {
   const [search, setSearch] = useState("");
   const counts = countByStatus(ECOSYSTEM);
   const issues = collectIssues(ECOSYSTEM);
+  const allItems = collectAllItems(ECOSYSTEM);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   // Device auto-detection
@@ -5413,7 +5442,7 @@ export default function ControlCenter() {
       {/* Content */}
       {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} />}
 
-      {tab === "issues" && <IssuesPanel issues={issues} okCount={counts.OK} />}
+      {tab === "issues" && <IssuesPanel issues={issues} allItems={allItems} />}
 
       {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} />}
       {tab === "memory" && <MemoryCenter />}
