@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.11.0
+// CLAUDE CONTROL CENTER v4.12.0
 // Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -81,8 +81,9 @@ const api = {
 // v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
 // v4.8.0 - Revenue Intelligence tab (5 streams, Chrome roadmap, build-up checklist, projections)
 // v4.9.0 - Perplexity API Live Intelligence Feed (8 topics, auto-refresh, cost tracking)
-// v4.11.0 - Scan Now knoppen + Local API integratie + Live status indicator
+// v4.12.0 - Scan Now knoppen + Local API integratie + Live status indicator
 // v4.11.0 - Section date prop: datums als aparte metadata rechts van header (niet in titel)
+// v4.12.0 - Datums bij ALLE collapsible secties: Benchmarks (4), Revenue (5), Crypto (6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3050,14 +3051,17 @@ function TrainingBenchmarks() {
       {/* ── RUN 1: ARC PRE-TRAINING ── */}
       <div style={{ background: "#0f0800", border: "1px solid #9a3412", borderRadius: 12, padding: 0, overflow: "hidden" }}>
         <div onClick={() => toggle("arc")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.arc ? "#f9731611" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🧠</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>Run 1: ARC Pre-Training — Sapient-HRM 27.3M</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>Run 1: ARC Pre-Training — Sapient-HRM 27.3M</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>6 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>5750 stappen • 65.94% accuracy • COMPLETE</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 8 }}>
             <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>✓ COMPLETE</span>
             <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.arc ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </div>
@@ -3101,14 +3105,17 @@ function TrainingBenchmarks() {
       {/* ── RUN 2: LFM2 BENCHMARK — VOOR vs NA ── */}
       <div style={{ background: "#000a1a", border: "1px solid #1e40af", borderRadius: 12, padding: 0, overflow: "hidden" }}>
         <div onClick={() => toggle("lfm2")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.lfm2 ? "#60a5fa11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📊</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Run 2: LFM2-2.6B Scam Detection Benchmark</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Run 2: LFM2-2.6B Scam Detection Benchmark</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>86.1% → 98.1% na LoRA fine-tuning • 209 scenarios • NL/FR/EN</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 8 }}>
             <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>+12% ↑</span>
             <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.lfm2 ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </div>
@@ -3207,14 +3214,17 @@ function TrainingBenchmarks() {
       {/* ── RUN 3: OOD BENCHMARK EVOLUTIE (v2-v6) ── */}
       <div style={{ background: "#0a001a", border: "1px solid #7c3aed", borderRadius: 12, padding: 0, overflow: "hidden" }}>
         <div onClick={() => toggle("ood")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.ood ? "#a78bfa11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🔬</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 15 }}>Run 3: OOD Benchmark Evolutie — v2 t/m v6 + Hybrid</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 15 }}>Run 3: OOD Benchmark Evolutie — v2 t/m v6 + Hybrid</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>8 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>64.3% → 78.9% na 6 versies + rule engine • 445 schone OOD scenarios</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 8 }}>
             <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>78.9% BEST</span>
             <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.ood ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </div>
@@ -3332,14 +3342,17 @@ function TrainingBenchmarks() {
       {/* ── COMMERCIËLE VALIDATIE CHECKLIST ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #854d0e", borderRadius: 12, padding: 0, overflow: "hidden" }}>
         <div onClick={() => toggle("readiness")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.readiness ? "#fbbf2411" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🎯</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Commerciële Validatie Checklist</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Commerciële Validatie Checklist</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>5 van 11 items voltooid — wat moet er nog gebeuren?</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 8 }}>
             <span style={{ padding: "3px 10px", borderRadius: 6, background: "#f59e0b22", color: "#fbbf24", fontSize: 11, fontWeight: 600 }}>5/11</span>
             <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.readiness ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </div>
@@ -3396,7 +3409,7 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REVENUE INTELLIGENCE TAB — v4.11.0 (+ Perplexity Live Feed + Scan Now)
+// REVENUE INTELLIGENCE TAB — v4.12.0 (+ Perplexity Live Feed + Scan Now)
 // Dagelijkse revenue-ideeën, Chrome extensie roadmap, build-up checklist
 // Integratie met InfraNodus voor marktinzichten
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3633,14 +3646,17 @@ function RevenueIntelligence() {
       {/* ── TOP 5 REVENUE STREAMS ── */}
       <div style={{ background: "#0a0f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("streams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.streams ? "#22c55e11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🏆</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Top 5 Revenue Streams — Gerankt op snelheid + haalbaarheid</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Top 5 Revenue Streams — Gerankt op snelheid + haalbaarheid</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Chrome extensie = #1 prioriteit (laagste risk, snelste revenue)</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.streams ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.streams ? "▼" : "▶"}</span>
         </div>
         {expanded.streams && (
           <div style={{ padding: 16, borderTop: "1px solid #22c55e33" }}>
@@ -3677,14 +3693,17 @@ function RevenueIntelligence() {
       {/* ── CHROME EXTENSION ROADMAP ── */}
       <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("chrome")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.chrome ? "#60a5fa11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🌐</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Chrome Extensie Roadmap — 8 Weken Tot Launch</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Chrome Extensie Roadmap — 8 Weken Tot Launch</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Week-voor-week plan van code tot Chrome Web Store</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.chrome ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.chrome ? "▼" : "▶"}</span>
         </div>
         {expanded.chrome && (
           <div style={{ padding: 16, borderTop: "1px solid #60a5fa33" }}>
@@ -3704,10 +3723,13 @@ function RevenueIntelligence() {
       {/* ── BUILD-UP CHECKLIST ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #fbbf2466", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("buildup")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.buildup ? "#fbbf2411" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📋</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Build-Up Checklist — Technisch + Legaal + Marketing</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 15 }}>Build-Up Checklist — Technisch + Legaal + Marketing</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Alles wat er moet gebeuren vóór de eerste euro binnenkomt</div>
             </div>
           </div>
@@ -3736,14 +3758,17 @@ function RevenueIntelligence() {
       {/* ── DAILY INTELLIGENCE MONITORING ── */}
       <div style={{ background: "#0a0a1a", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("daily")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.daily ? "#a855f711" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📡</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Dagelijkse Intelligence Monitoring</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Dagelijkse Intelligence Monitoring</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Wat moet er dagelijks/wekelijks gescand worden via Perplexity + InfraNodus</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.daily ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.daily ? "▼" : "▶"}</span>
         </div>
         {expanded.daily && (
           <div style={{ padding: 16, borderTop: "1px solid #a855f733" }}>
@@ -3798,10 +3823,13 @@ function RevenueIntelligence() {
       {/* ── LIVE INTELLIGENCE FEED (Perplexity API) ── */}
       <div style={{ background: "#0a001a", border: "2px solid #8b5cf6", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("livefeed")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.livefeed ? "#8b5cf611" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 22 }}>⚡</span>
-            <div>
-              <div style={{ fontWeight: 800, color: "#8b5cf6", fontSize: 16 }}>Live Intelligence Feed — Perplexity API</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 800, color: "#8b5cf6", fontSize: 16 }}>Live Intelligence Feed — Perplexity API</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>8 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>
                 {feed && feed.meta?.last_scan
                   ? `Laatste scan: ${new Date(feed.meta.last_scan).toLocaleString("nl-BE")} • ${feed.meta.topics_scanned}/${feed.meta.total_topics} topics • ${feed.meta.total_tokens_this_scan} tokens`
@@ -4541,14 +4569,17 @@ function CryptoIntelligence() {
       {/* ── SCAM TYPES (Expandable) ── */}
       <div style={{ background: "#0f0000", border: "1px solid #ef444466", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("scams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.scams ? "#ef444411" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🚨</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#ef4444", fontSize: 15 }}>Crypto Scam Types — 8 Categorieën</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#ef4444", fontSize: 15 }}>Crypto Scam Types — 8 Categorieën</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>CRITICAL en HIGH risk patronen voor SDK-HRM training</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.scams ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.scams ? "▼" : "▶"}</span>
         </div>
         {expanded.scams && (
           <div style={{ padding: 16, borderTop: "1px solid #ef444433" }}>
@@ -4578,14 +4609,17 @@ function CryptoIntelligence() {
       {/* ── LEGITIMATE TYPES (Expandable) ── */}
       <div style={{ background: "#000f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("legit")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.legit ? "#22c55e11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>✅</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Legitimate Crypto — 6 Categorieën</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 15 }}>Legitimate Crypto — 6 Categorieën</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>SAFE labels: wat het model NIET mag flaggen als scam</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.legit ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.legit ? "▼" : "▶"}</span>
         </div>
         {expanded.legit && (
           <div style={{ padding: 16, borderTop: "1px solid #22c55e33" }}>
@@ -4609,14 +4643,17 @@ function CryptoIntelligence() {
       {/* ── REGULATORY LANDSCAPE ── */}
       <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("regs")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.regs ? "#60a5fa11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>⚖️</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Regulatory Landscape — Crypto Wordt Mainstream</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#60a5fa", fontSize: 15 }}>Regulatory Landscape — Crypto Wordt Mainstream</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>GENIUS Act, MiCA, DORA, DAC8 — de wettelijke integratie</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.regs ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.regs ? "▼" : "▶"}</span>
         </div>
         {expanded.regs && (
           <div style={{ padding: 16, borderTop: "1px solid #60a5fa33" }}>
@@ -4642,14 +4679,17 @@ function CryptoIntelligence() {
       {/* ── FIAT→CRYPTO TIMELINE ── */}
       <div style={{ background: "#0a0a0f", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("timeline")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.timeline ? "#a855f711" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📅</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Fiat → Crypto Integratie Timeline</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#a855f7", fontSize: 15 }}>Fiat → Crypto Integratie Timeline</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Van Bitcoin genesis naar blockchain-fiat convergentie</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.timeline ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.timeline ? "▼" : "▶"}</span>
         </div>
         {expanded.timeline && (
           <div style={{ padding: 16, borderTop: "1px solid #a855f733" }}>
@@ -4680,14 +4720,17 @@ function CryptoIntelligence() {
       {/* ── EXPERTISE PROFILE ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #f59e0b66", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("expertise")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.expertise ? "#f59e0b11" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🎓</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: 15 }}>Franky's Crypto Expertise Profile</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#f59e0b", fontSize: 15 }}>Franky's Crypto Expertise Profile</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Domeinkennis die de training data kwaliteit bepaalt</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.expertise ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.expertise ? "▼" : "▶"}</span>
         </div>
         {expanded.expertise && (
           <div style={{ padding: 16, borderTop: "1px solid #f59e0b33" }}>
@@ -4712,14 +4755,17 @@ function CryptoIntelligence() {
       {/* ── SDK-HRM INTEGRATION ── */}
       <div style={{ background: "#0a0a0f", border: "1px solid #f9731666", borderRadius: 12, overflow: "hidden" }}>
         <div onClick={() => toggle("integration")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.integration ? "#f9731611" : "transparent" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🔗</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>SDK-HRM Module Integratie</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontWeight: 700, color: "#f97316", fontSize: 15 }}>SDK-HRM Module Integratie</div>
+                <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>7 Feb 2026</div>
+              </div>
               <div style={{ fontSize: 11, color: "#9ca3af" }}>Hoe crypto intelligence in elk SDK-HRM module past</div>
             </div>
           </div>
-          <span style={{ color: "#6b7280", fontSize: 18 }}>{expanded.integration ? "▼" : "▶"}</span>
+          <span style={{ color: "#6b7280", fontSize: 18, marginLeft: 8 }}>{expanded.integration ? "▼" : "▶"}</span>
         </div>
         {expanded.integration && (
           <div style={{ padding: 16, borderTop: "1px solid #f9731633" }}>
@@ -4879,7 +4925,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.11.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.12.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4988,7 +5034,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.11.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.12.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
