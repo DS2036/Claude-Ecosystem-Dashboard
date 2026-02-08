@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.16.0
+// CLAUDE CONTROL CENTER v4.17.0
 // Complete Dashboard: 20 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -88,6 +88,7 @@ const api = {
 // v4.14.0 - Use Cases tab: roadmap (A→B→C→D), 6 use cases, USPs, revenue targets (20 tabs)
 // v4.15.0 - Blokken-layout: Ecosystem grid, Issues cards, InfraNodus 22 graphs, Staging fix BFW
 // v4.16.0 - Issues filter fix: alle knoppen werken, OK klikbaar, collectAllItems, visuele feedback
+// v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -4162,456 +4163,272 @@ function UseCases() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SESSION NOTES TAB — v4.5.0
-// Franky's sessie-logboek: kopieer inzichten, code, en ideeën uit Claude sessies
-// Derde laags controle en backup naast GitHub en Cloudflare
-// Opslag: localStorage + export naar JSON/Markdown
+// DUMP TAB — v4.17.0 (vervangt Session Notes v4.5.0)
+// Snelle inbox: dump links, YouTube, Instagram, artikelen, notities
+// Auto-categorisatie + opmerkingen + later analyseren (Gemini/Claude)
+// Opslag: localStorage (ccc-dump-items) + migratie van session-notes
 // ═══════════════════════════════════════════════════════════════════════════════
-function SessionNotes() {
-  const [notes, setNotes] = useState(() => {
+function DumpPanel() {
+  // Type detectie config
+  const DUMP_TYPES = {
+    youtube: { icon: "🎬", label: "YouTube", color: "#ef4444", bg: "#1a0000", border: "#991b1b" },
+    instagram: { icon: "📸", label: "Instagram", color: "#e879f9", bg: "#1a001a", border: "#86198f" },
+    twitter: { icon: "🐦", label: "Twitter/X", color: "#38bdf8", bg: "#001a2e", border: "#0369a1" },
+    github: { icon: "💻", label: "GitHub", color: "#a78bfa", bg: "#0f0033", border: "#5b21b6" },
+    article: { icon: "📰", label: "Artikel", color: "#fb923c", bg: "#1a0f00", border: "#9a3412" },
+    link: { icon: "🔗", label: "Link", color: "#60a5fa", bg: "#001a33", border: "#1e40af" },
+    note: { icon: "📝", label: "Notitie", color: "#14b8a6", bg: "#0a1a1a", border: "#0f766e" },
+  };
+
+  const detectType = (text) => {
+    const t = text.toLowerCase().trim();
+    if (t.includes("youtube.com") || t.includes("youtu.be")) return "youtube";
+    if (t.includes("instagram.com")) return "instagram";
+    if (t.includes("twitter.com") || t.includes("x.com/")) return "twitter";
+    if (t.includes("github.com")) return "github";
+    if (t.includes("medium.com")) return "article";
+    if (/^https?:\/\//.test(t)) return "link";
+    return "note";
+  };
+
+  // Migratie van session-notes
+  const migrateSessionNotes = () => {
     try {
-      return JSON.parse(localStorage.getItem("session-notes") || "[]");
+      const existing = JSON.parse(localStorage.getItem("ccc-dump-items") || "[]");
+      if (existing.length > 0) return existing;
+      const oldNotes = JSON.parse(localStorage.getItem("session-notes") || "[]");
+      if (oldNotes.length === 0) return [];
+      const migrated = oldNotes.map(n => ({
+        id: n.id || Date.now(),
+        content: n.title || "",
+        memo: n.content || "",
+        type: "note",
+        icon: "📝",
+        created: n.created || new Date().toISOString(),
+        pinned: false,
+        analyzed: false,
+        analysis: null,
+        migrated: true
+      }));
+      return migrated;
     } catch { return []; }
-  });
-  const [activeNote, setActiveNote] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [editTags, setEditTags] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showNewForm, setShowNewForm] = useState(false);
+  };
 
-  // Persist to localStorage
+  const [items, setItems] = useState(() => migrateSessionNotes());
+  const [filter, setFilter] = useState("all");
+  const [inputContent, setInputContent] = useState("");
+  const [inputMemo, setInputMemo] = useState("");
+
+  // Persist
   useEffect(() => {
-    localStorage.setItem("session-notes", JSON.stringify(notes));
-  }, [notes]);
+    localStorage.setItem("ccc-dump-items", JSON.stringify(items));
+  }, [items]);
 
-  // localStorage usage estimate
-  const STORAGE_LIMIT = 5 * 1024 * 1024; // 5MB conservative estimate
-  const storageUsed = new Blob([JSON.stringify(notes)]).size;
-  const storagePercent = Math.round((storageUsed / STORAGE_LIMIT) * 100);
-  const CHUNK_SIZE = 200000; // ~200K characters per chunk (safe for localStorage)
-
-  // Create new note — auto-splits large content into linked parts
-  const createNote = () => {
-    if (!editTitle.trim()) return;
-    const tags = editTags.split(",").map(t => t.trim()).filter(Boolean);
-    const now = new Date().toISOString();
-    const baseId = Date.now().toString();
-
-    if (editContent.length <= CHUNK_SIZE) {
-      // Normal note — fits in one piece
-      const newNote = {
-        id: baseId,
-        title: editTitle.trim(),
-        content: editContent,
-        tags,
-        created: now,
-        updated: now,
-        source: "manual",
-        version: "v4.7.0",
-        parts: null
-      };
-      setNotes(prev => [newNote, ...prev]);
-      setActiveNote(baseId);
-    } else {
-      // Auto-split into linked parts
-      const totalParts = Math.ceil(editContent.length / CHUNK_SIZE);
-      const newNotes = [];
-      for (let i = 0; i < totalParts; i++) {
-        const chunk = editContent.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-        const partId = `${baseId}-part${i + 1}`;
-        newNotes.push({
-          id: partId,
-          title: `${editTitle.trim()} (deel ${i + 1}/${totalParts})`,
-          content: chunk,
-          tags: [...tags, `reeks:${baseId}`],
-          created: now,
-          updated: now,
-          source: "auto-split",
-          version: "v4.7.0",
-          parts: { total: totalParts, part: i + 1, seriesId: baseId }
-        });
-      }
-      setNotes(prev => [...newNotes, ...prev]);
-      setActiveNote(newNotes[0].id);
-    }
-    setEditTitle("");
-    setEditContent("");
-    setEditTags("");
-    setShowNewForm(false);
+  // Add item
+  const addItem = () => {
+    const content = inputContent.trim();
+    if (!content && !inputMemo.trim()) return;
+    const type = detectType(content || inputMemo);
+    const cfg = DUMP_TYPES[type];
+    const newItem = {
+      id: Date.now(),
+      content: content,
+      memo: inputMemo.trim(),
+      type,
+      icon: cfg.icon,
+      created: new Date().toISOString(),
+      pinned: false,
+      analyzed: false,
+      analysis: null
+    };
+    setItems(prev => [newItem, ...prev]);
+    setInputContent("");
+    setInputMemo("");
   };
 
-  // Update existing note
-  const updateNote = (id) => {
-    setNotes(prev => prev.map(n => n.id === id ? {
-      ...n,
-      title: editTitle.trim() || n.title,
-      content: editContent,
-      tags: editTags.split(",").map(t => t.trim()).filter(Boolean),
-      updated: new Date().toISOString()
-    } : n));
-  };
+  // Delete item
+  const deleteItem = (id) => setItems(prev => prev.filter(i => i.id !== id));
 
-  // Delete note
-  const deleteNote = (id) => {
-    setNotes(prev => prev.filter(n => n.id !== id));
-    if (activeNote === id) setActiveNote(null);
-  };
+  // Toggle pin
+  const togglePin = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, pinned: !i.pinned } : i));
 
-  // Export all notes as JSON
-  const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(notes, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `session-notes-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // Counts per type
+  const typeCounts = {};
+  items.forEach(i => { typeCounts[i.type] = (typeCounts[i.type] || 0) + 1; });
 
-  // Export all notes as Markdown
-  const exportMarkdown = () => {
-    let md = `# Session Notes Export\n_Exported: ${new Date().toLocaleString("nl-BE")}_\n_Total: ${notes.length} notes_\n\n---\n\n`;
-    notes.forEach(n => {
-      md += `## ${n.title}\n`;
-      md += `_Created: ${new Date(n.created).toLocaleString("nl-BE")} | Updated: ${new Date(n.updated).toLocaleString("nl-BE")}_\n`;
-      if (n.tags.length) md += `**Tags:** ${n.tags.join(", ")}\n`;
-      md += `\n${n.content}\n\n---\n\n`;
-    });
-    const blob = new Blob([md], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `session-notes-${new Date().toISOString().slice(0, 10)}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Export single note to clipboard
-  const copyToClipboard = (note) => {
-    const text = `# ${note.title}\n${note.tags.length ? `Tags: ${note.tags.join(", ")}\n` : ""}Date: ${new Date(note.created).toLocaleString("nl-BE")}\n\n${note.content}`;
-    navigator.clipboard.writeText(text);
-  };
-
-  // Active part within a series
-  const [activePart, setActivePart] = useState(0);
-
-  // Filter notes
-  const filtered = notes.filter(n => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(t => t.toLowerCase().includes(q));
+  // Sort: pinned first, then by date
+  const sorted = [...items].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.created) - new Date(a.created);
   });
 
-  // Group series into single entries: { type: "single", note } | { type: "series", seriesId, baseTitle, notes: [...], totalChars }
-  const grouped = (() => {
-    const seriesMap = {};
-    const singles = [];
-    for (const note of filtered) {
-      if (note.parts && note.parts.seriesId) {
-        const sid = note.parts.seriesId;
-        if (!seriesMap[sid]) seriesMap[sid] = [];
-        seriesMap[sid].push(note);
-      } else {
-        singles.push({ type: "single", note, sortKey: note.created });
-      }
-    }
-    const seriesEntries = Object.entries(seriesMap).map(([sid, parts]) => {
-      parts.sort((a, b) => (a.parts?.part || 0) - (b.parts?.part || 0));
-      const baseTitle = parts[0]?.title?.replace(/\s*\(deel \d+\/\d+\)/, "") || "Untitled";
-      const totalChars = parts.reduce((s, p) => s + p.content.length, 0);
-      return { type: "series", seriesId: sid, baseTitle, notes: parts, totalChars, sortKey: parts[0]?.created || "" };
-    });
-    return [...singles, ...seriesEntries].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-  })();
+  // Filter
+  const filtered = filter === "all" ? sorted : sorted.filter(i => i.type === filter);
 
-  // Stats
-  const totalChars = notes.reduce((sum, n) => sum + n.content.length, 0);
-  const allTags = [...new Set(notes.flatMap(n => n.tags))];
-  const activeNoteData = notes.find(n => n.id === activeNote);
+  // Active filter types (only show buttons for types that exist)
+  const activeTypes = Object.keys(DUMP_TYPES).filter(t => typeCounts[t] > 0);
+
+  // Extract URL from content for clickable link
+  const extractUrl = (text) => {
+    const match = text.match(/https?:\/\/[^\s]+/);
+    return match ? match[0] : null;
+  };
+
+  // Keyboard: Ctrl+Enter to add
+  const handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); addItem(); }
+  };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* ── HEADER ── */}
-      <div style={{ background: "linear-gradient(135deg, #0a1a1a, #0f1a0a, #1a0a1a)", border: "2px solid #14b8a6", borderRadius: 16, padding: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 24, background: "linear-gradient(90deg, #14b8a6, #22c55e, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              📋 Session Notes & Insights
-            </div>
-            <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Derde laags backup — kopieer inzichten, code en ideeën uit je Claude sessies</p>
-            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>localStorage + JSON/Markdown export • Onafhankelijk van GitHub/Cloudflare</p>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {[
-              { label: String(notes.length), sub: "notes", color: "#14b8a6" },
-              { label: totalChars > 1000 ? `${(totalChars / 1000).toFixed(1)}K` : String(totalChars), sub: "characters", color: "#22c55e" },
-              { label: String(allTags.length), sub: "tags", color: "#60a5fa" },
-              { label: `${storagePercent}%`, sub: "opslag", color: storagePercent > 80 ? "#ef4444" : storagePercent > 50 ? "#f59e0b" : "#22c55e" },
-            ].map(m => (
-              <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
-                <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase" }}>{m.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── TOOLBAR ── */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <button onClick={() => { setShowNewForm(!showNewForm); setActiveNote(null); setEditTitle(""); setEditContent(""); setEditTags(""); }}
-          style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          ➕ Nieuw Document
-        </button>
-        <button onClick={exportJSON} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>
-          📥 Export JSON
-        </button>
-        <button onClick={exportMarkdown} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>
-          📄 Export Markdown
-        </button>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <input
-            type="text"
-            placeholder="🔍 Zoek in notities..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#e5e7eb", fontSize: 12, outline: "none" }}
-          />
-        </div>
-      </div>
-
-      {/* ── NEW NOTE FORM ── */}
-      {showNewForm && (
-        <div style={{ background: "#0a1a1a", border: "2px solid #14b8a6", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontWeight: 700, color: "#14b8a6", fontSize: 14, marginBottom: 12 }}>📝 Nieuw Document Aanmaken</div>
-          <input
-            type="text"
-            placeholder="Titel (bijv. 'Sessie 7 feb — Crypto insights')"
-            value={editTitle}
-            onChange={e => setEditTitle(e.target.value)}
-            style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #14b8a666", background: "#0f0f0f", color: "#e5e7eb", fontSize: 14, fontWeight: 600, marginBottom: 10, outline: "none", boxSizing: "border-box" }}
-          />
-          <textarea
-            placeholder="Plak hier je tekst, code, inzichten, of wat je maar wilt opslaan...&#10;&#10;Tip: Je kunt alles plakken — code blokken, conversatie-stukken, links, ideeën.&#10;Het wordt precies opgeslagen zoals je het plakt."
-            value={editContent}
-            onChange={e => setEditContent(e.target.value)}
-            style={{ width: "100%", minHeight: 300, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0f0f0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", outline: "none", boxSizing: "border-box" }}
-          />
-          <input
-            type="text"
-            placeholder="Tags (komma-gescheiden, bijv. 'crypto, inzicht, training')"
-            value={editTags}
-            onChange={e => setEditTags(e.target.value)}
-            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#0f0f0f", color: "#9ca3af", fontSize: 12, marginTop: 10, outline: "none", boxSizing: "border-box" }}
-          />
-          {/* Auto-split indicator */}
-          {editContent.length > CHUNK_SIZE && (
-            <div style={{ background: "#f59e0b11", border: "1px solid #f59e0b44", borderRadius: 8, padding: 10, marginTop: 10 }}>
-              <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 600 }}>
-                📦 Groot document gedetecteerd — wordt automatisch opgesplitst in {Math.ceil(editContent.length / CHUNK_SIZE)} delen
-              </div>
-              <div style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>
-                {editContent.length.toLocaleString()} tekens → {Math.ceil(editContent.length / CHUNK_SIZE)} delen van max {(CHUNK_SIZE / 1000).toFixed(0)}K tekens. Delen worden automatisch gelinkt.
-              </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* ── INPUT ZONE ── */}
+      <div style={{ background: "linear-gradient(135deg, #0a1a1a, #0f1a0a)", border: "2px solid #14b8a6", borderRadius: 14, padding: 16 }}>
+        <div style={{ fontWeight: 800, fontSize: 18, color: "#14b8a6", marginBottom: 10 }}>📥 Dump</div>
+        <textarea
+          placeholder="Plak een URL, link, of tekst... (YouTube, Instagram, Medium, GitHub, of gewoon een notitie)"
+          value={inputContent}
+          onChange={e => setInputContent(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #14b8a644", background: "#0f0f0f", color: "#e5e7eb", fontSize: 14, lineHeight: 1.5, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+        />
+        <textarea
+          placeholder="Opmerking: wat wil je eruit halen? Wat is belangrijk? (optioneel)"
+          value={inputMemo}
+          onChange={e => setInputMemo(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#9ca3af", fontSize: 12, lineHeight: 1.5, resize: "none", outline: "none", boxSizing: "border-box", marginTop: 8, fontFamily: "inherit" }}
+        />
+        <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+          <button onClick={addItem} style={{
+            padding: "10px 24px", borderRadius: 8, border: "none", background: "#14b8a6", color: "#000",
+            fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.15s"
+          }}>
+            ➕ Dump
+          </button>
+          {inputContent.trim() && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 16 }}>{DUMP_TYPES[detectType(inputContent)].icon}</span>
+              <span style={{ fontSize: 12, color: DUMP_TYPES[detectType(inputContent)].color, fontWeight: 600 }}>
+                {DUMP_TYPES[detectType(inputContent)].label}
+              </span>
             </div>
           )}
-          <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <button onClick={createNote}
-              style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#14b8a6", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              {editContent.length > CHUNK_SIZE ? `💾 Opslaan (${Math.ceil(editContent.length / CHUNK_SIZE)} delen)` : "💾 Opslaan"}
-            </button>
-            <button onClick={() => setShowNewForm(false)}
-              style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>
-              Annuleren
-            </button>
-            <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: editContent.length > CHUNK_SIZE ? "#f59e0b" : "#6b7280", alignSelf: "center" }}>
-              {editContent.length > 0 && `${editContent.length.toLocaleString()} tekens`}
-              {storagePercent > 70 && <span style={{ color: "#ef4444", marginLeft: 8 }}>⚠️ Opslag {storagePercent}%</span>}
-            </div>
-          </div>
+          <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#4b5563" }}>Cmd+Enter om snel toe te voegen</div>
         </div>
-      )}
+      </div>
 
-      {/* ── NOTES LIST ── */}
-      {grouped.length === 0 && !showNewForm ? (
+      {/* ── FILTER BAR ── */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => setFilter("all")} style={{
+          background: filter === "all" ? "#001a33" : "#111", border: `1px solid ${filter === "all" ? "#1e40af" : "#374151"}`,
+          borderRadius: 8, padding: "8px 14px", cursor: "pointer", transition: "all 0.15s",
+          outline: filter === "all" ? "2px solid #60a5fa44" : "none", outlineOffset: 2,
+          transform: filter === "all" ? "scale(1.05)" : "scale(1)"
+        }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#60a5fa" }}>{items.length}</span>
+          <span style={{ fontSize: 10, color: "#60a5facc", marginLeft: 6 }}>Alle</span>
+        </button>
+        {activeTypes.map(t => {
+          const cfg = DUMP_TYPES[t];
+          const active = filter === t;
+          return (
+            <button key={t} onClick={() => setFilter(t)} style={{
+              background: active ? cfg.bg : "#111", border: `1px solid ${active ? cfg.border : "#374151"}`,
+              borderRadius: 8, padding: "8px 14px", cursor: "pointer", transition: "all 0.15s",
+              outline: active ? `2px solid ${cfg.color}44` : "none", outlineOffset: 2,
+              transform: active ? "scale(1.05)" : "scale(1)"
+            }}>
+              <span style={{ fontSize: 14 }}>{cfg.icon}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: cfg.color, marginLeft: 4 }}>{typeCounts[t]}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── FILTER LABEL ── */}
+      <div style={{ fontSize: 11, color: "#6b7280", borderBottom: "1px solid #1f2937", paddingBottom: 6 }}>
+        {filter === "all" ? `Alle items (${items.length})` : `${typeCounts[filter] || 0} ${DUMP_TYPES[filter]?.label || ""} items`}
+      </div>
+
+      {/* ── ITEMS GRID ── */}
+      {filtered.length === 0 ? (
         <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 40, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-          <div style={{ color: "#6b7280", fontSize: 14 }}>Nog geen notities</div>
-          <p style={{ color: "#4b5563", fontSize: 12, marginTop: 8 }}>Klik op "➕ Nieuw Document" om je eerste sessie-notitie aan te maken.</p>
-          <p style={{ color: "#4b5563", fontSize: 11, marginTop: 4 }}>Kopieer tekst uit je Claude sessies, plak het hier, en het wordt veilig lokaal opgeslagen.</p>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📥</div>
+          <div style={{ color: "#6b7280", fontSize: 14 }}>Nog niets gedumpt</div>
+          <p style={{ color: "#4b5563", fontSize: 12, marginTop: 8 }}>Plak een YouTube link, Instagram post, artikel, of gewoon een notitie.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {grouped.map(entry => {
-            // ── SINGLE NOTE (no series) ──
-            if (entry.type === "single") {
-              const note = entry.note;
-              return (
-                <div key={note.id} style={{
-                  background: activeNote === note.id ? "#0a1a1a" : "#0f0f0f",
-                  border: `1px solid ${activeNote === note.id ? "#14b8a6" : "#1f2937"}`,
-                  borderRadius: 12, overflow: "hidden"
-                }}>
-                  <div onClick={() => {
-                    if (activeNote === note.id) { setActiveNote(null); }
-                    else { setActiveNote(note.id); setEditTitle(note.title); setEditContent(note.content); setEditTags(note.tags.join(", ")); }
-                  }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                      <span style={{ fontSize: 16 }}>📄</span>
-                      <div>
-                        <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{note.title}</div>
-                        <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
-                          {new Date(note.created).toLocaleString("nl-BE")} • {note.content.length.toLocaleString()} tekens
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
-                      {note.tags.filter(t => !t.startsWith("reeks:")).map(t => (
-                        <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
-                      ))}
-                    </div>
-                    <span style={{ color: "#6b7280", fontSize: 14 }}>{activeNote === note.id ? "▼" : "▶"}</span>
-                  </div>
-                  {activeNote === note.id && (
-                    <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1f2937" }}>
-                      <textarea value={editContent} onChange={e => setEditContent(e.target.value)}
-                        style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", marginTop: 12, outline: "none", boxSizing: "border-box" }} />
-                      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                        <button onClick={() => updateNote(note.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#14b8a6", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>💾 Bijwerken</button>
-                        <button onClick={() => copyToClipboard({ ...note, content: editContent })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>📋 Kopiëren</button>
-                        <button onClick={() => deleteNote(note.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>🗑️ Verwijder</button>
-                        <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>{editContent.length.toLocaleString()} tekens</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            // ── SERIES (grouped multi-part document) ──
-            const { seriesId, baseTitle, notes: parts, totalChars } = entry;
-            const isExpanded = activeNote === `series_${seriesId}`;
-            const currentPartIdx = activePart < parts.length ? activePart : 0;
-            const currentPart = parts[currentPartIdx];
-
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+          {filtered.map(item => {
+            const cfg = DUMP_TYPES[item.type] || DUMP_TYPES.note;
+            const url = extractUrl(item.content);
             return (
-              <div key={`series_${seriesId}`} style={{
-                background: isExpanded ? "#0a1a1a" : "#0f0f0f",
-                border: `1px solid ${isExpanded ? "#f59e0b" : "#1f2937"}`,
-                borderRadius: 12, overflow: "hidden"
+              <div key={item.id} style={{
+                background: cfg.bg, border: `1px solid ${cfg.border}`,
+                borderRadius: 12, padding: 14, position: "relative",
+                borderLeft: item.pinned ? `3px solid ${cfg.color}` : `1px solid ${cfg.border}`
               }}>
-                {/* Series header — looks like one document */}
-                <div onClick={() => {
-                  if (isExpanded) { setActiveNote(null); }
-                  else { setActiveNote(`series_${seriesId}`); setActivePart(0); setEditTitle(parts[0]?.title || ""); setEditContent(parts[0]?.content || ""); setEditTags(parts[0]?.tags?.filter(t => !t.startsWith("reeks:")).join(", ") || ""); }
-                }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", cursor: "pointer", flexWrap: "wrap", gap: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                    <span style={{ fontSize: 18 }}>📚</span>
-                    <div>
-                      <div style={{ fontWeight: 700, color: "#e5e7eb", fontSize: 13 }}>{baseTitle}</div>
-                      <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
-                        {new Date(parts[0]?.created).toLocaleString("nl-BE")} • {totalChars.toLocaleString()} tekens totaal
-                      </div>
-                    </div>
+                {/* Header: type + actions */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 18 }}>{cfg.icon}</span>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: `${cfg.color}22`, color: cfg.color, fontWeight: 700, textTransform: "uppercase" }}>{cfg.label}</span>
+                    {item.pinned && <span style={{ fontSize: 12 }} title="Vastgepind">📌</span>}
                   </div>
-                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                    <span style={{ padding: "3px 10px", background: "#f59e0b22", color: "#f59e0b", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>
-                      📦 {parts.length} delen
-                    </span>
-                    {parts[0]?.tags?.filter(t => !t.startsWith("reeks:")).map(t => (
-                      <span key={t} style={{ padding: "2px 8px", background: "#14b8a611", color: "#14b8a6", borderRadius: 4, fontSize: 10 }}>{t}</span>
-                    ))}
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <button onClick={() => togglePin(item.id)} title={item.pinned ? "Losmaken" : "Vastpinnen"} style={{
+                      fontSize: 11, padding: "2px 6px", borderRadius: 4, border: "1px solid #37415166",
+                      background: "transparent", color: item.pinned ? "#fbbf24" : "#6b7280", cursor: "pointer", lineHeight: 1
+                    }}>{item.pinned ? "📌" : "📍"}</button>
+                    <button onClick={() => deleteItem(item.id)} title="Verwijderen" style={{
+                      fontSize: 11, padding: "2px 6px", borderRadius: 4, border: "1px solid #991b1b66",
+                      background: "transparent", color: "#ef4444", cursor: "pointer", lineHeight: 1
+                    }}>🗑️</button>
                   </div>
-                  <span style={{ color: "#6b7280", fontSize: 14 }}>{isExpanded ? "▼" : "▶"}</span>
                 </div>
 
-                {/* Series content — part tabs + editor */}
-                {isExpanded && (
-                  <div style={{ borderTop: "1px solid #f59e0b33" }}>
-                    {/* Part selector tabs */}
-                    <div style={{ display: "flex", gap: 0, background: "#0a0a0f", borderBottom: "1px solid #1f2937", overflowX: "auto" }}>
-                      {parts.map((part, pi) => (
-                        <button key={part.id} onClick={() => {
-                          setActivePart(pi);
-                          setEditContent(part.content);
-                          setEditTitle(part.title);
-                        }} style={{
-                          padding: "8px 16px", border: "none", borderBottom: currentPartIdx === pi ? "2px solid #f59e0b" : "2px solid transparent",
-                          background: currentPartIdx === pi ? "#f59e0b11" : "transparent",
-                          color: currentPartIdx === pi ? "#f59e0b" : "#6b7280",
-                          fontSize: 12, fontWeight: currentPartIdx === pi ? 700 : 400, cursor: "pointer", whiteSpace: "nowrap"
-                        }}>
-                          Deel {pi + 1} <span style={{ fontSize: 10, opacity: 0.7 }}>({(part.content.length / 1000).toFixed(0)}K)</span>
-                        </button>
-                      ))}
-                      {/* Copy all button */}
-                      <button onClick={() => {
-                        const allContent = parts.map(p => p.content).join("\n\n--- DEEL ---\n\n");
-                        navigator.clipboard.writeText(`# ${baseTitle}\n\n${allContent}`);
-                      }} style={{
-                        padding: "8px 12px", border: "none", background: "transparent", color: "#14b8a6",
-                        fontSize: 11, cursor: "pointer", marginLeft: "auto", whiteSpace: "nowrap"
-                      }}>
-                        📋 Kopieer alles
-                      </button>
-                    </div>
+                {/* Content */}
+                {item.content && (
+                  <div style={{ marginBottom: 6 }}>
+                    {url ? (
+                      <a href={url} target="_blank" rel="noopener noreferrer" style={{
+                        color: cfg.color, fontSize: 12, wordBreak: "break-all", textDecoration: "none",
+                        borderBottom: `1px dashed ${cfg.color}66`
+                      }}>{item.content.length > 100 ? item.content.slice(0, 100) + "..." : item.content}</a>
+                    ) : (
+                      <div style={{ color: "#d1d5db", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                        {item.content.length > 200 ? item.content.slice(0, 200) + "..." : item.content}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                    {/* Current part content */}
-                    <div style={{ padding: "0 16px 16px" }}>
-                      <div style={{ fontSize: 10, color: "#4b5563", marginTop: 8, marginBottom: 4 }}>
-                        Deel {currentPartIdx + 1} van {parts.length} • {currentPart?.content.length.toLocaleString()} tekens
-                      </div>
-                      <textarea value={editContent} onChange={e => setEditContent(e.target.value)}
-                        style={{ width: "100%", minHeight: 250, padding: 12, borderRadius: 8, border: "1px solid #374151", background: "#0a0a0f", color: "#d1d5db", fontSize: 13, fontFamily: "monospace", lineHeight: 1.6, resize: "vertical", outline: "none", boxSizing: "border-box" }} />
-                      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                        <button onClick={() => currentPart && updateNote(currentPart.id)} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#f59e0b", color: "#000", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>💾 Deel {currentPartIdx + 1} bijwerken</button>
-                        <button onClick={() => currentPart && copyToClipboard({ ...currentPart, content: editContent })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>📋 Kopiëren</button>
-                        <button onClick={() => { if (currentPart) { parts.forEach(p => deleteNote(p.id)); setActiveNote(null); } }} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #991b1b", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>🗑️ Hele reeks</button>
-                        <div style={{ flex: 1, textAlign: "right", fontSize: 11, color: "#6b7280", alignSelf: "center" }}>{editContent.length.toLocaleString()} tekens</div>
-                      </div>
+                {/* Memo */}
+                {item.memo && (
+                  <div style={{ background: "#00000033", borderRadius: 6, padding: 8, marginBottom: 6, borderLeft: `2px solid ${cfg.color}44` }}>
+                    <div style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                      {item.memo.length > 300 ? item.memo.slice(0, 300) + "..." : item.memo}
                     </div>
                   </div>
                 )}
+
+                {/* Footer: date + analyse placeholder */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                  <div style={{ fontSize: 10, color: "#4b5563" }}>{new Date(item.created).toLocaleString("nl-BE")}</div>
+                  <button disabled title="Analyse komt later (Gemini/Claude)" style={{
+                    fontSize: 10, padding: "2px 8px", borderRadius: 4, border: "1px solid #37415133",
+                    background: "transparent", color: "#374151", cursor: "not-allowed", lineHeight: 1
+                  }}>🔍 Analyseer</button>
+                </div>
+                {item.migrated && <div style={{ fontSize: 9, color: "#4b5563", marginTop: 4 }}>📋 Gemigreerd uit Notes</div>}
               </div>
             );
           })}
         </div>
       )}
-
-      {/* ── TAGS OVERVIEW ── */}
-      {allTags.length > 0 && (
-        <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>🏷️ Alle tags:</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {allTags.map(t => {
-              const count = notes.filter(n => n.tags.includes(t)).length;
-              return (
-                <button key={t} onClick={() => setSearchQuery(t)}
-                  style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #14b8a633", background: searchQuery === t ? "#14b8a622" : "#111", color: searchQuery === t ? "#14b8a6" : "#9ca3af", fontSize: 11, cursor: "pointer" }}>
-                  {t} ({count})
-                </button>
-              );
-            })}
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")}
-                style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #ef444433", background: "#1a0000", color: "#ef4444", fontSize: 11, cursor: "pointer" }}>
-                ✕ Reset filter
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── INFO FOOTER ── */}
-      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
-        <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
-          <p><strong style={{ color: "#14b8a6" }}>Opslag:</strong> Lokaal in browser (localStorage, ~5MB). Indicator rechtsboven toont gebruik. Exporteer regelmatig als backup.</p>
-          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Auto-split:</strong> Grote teksten (&gt;200K tekens) worden automatisch opgesplitst in gelinkte delen. Je plakt gewoon alles — het systeem regelt de rest.</p>
-          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Gebruik:</strong> Kopieer een hele Claude sessie (Cmd+A, Cmd+C), maak een nieuw document, plak (Cmd+V), en klik Opslaan.</p>
-          <p style={{ marginTop: 4 }}><strong style={{ color: "#14b8a6" }}>Backup lagen:</strong> 1) GitHub repo 2) Cloudflare deploy 3) Session Notes (deze tab) 4) InfraNodus graphs 5) Obsidian</p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -5302,7 +5119,7 @@ export default function ControlCenter() {
     { id: "crypto", label: "🪙 Crypto", color: "#f59e0b", lastUpdated: "7 Feb" },
     { id: "revenue", label: "💰 Revenue", color: "#22c55e", lastUpdated: "7 Feb" },
     { id: "usecases", label: "🎯 Use Cases", color: "#818cf8", lastUpdated: "8 Feb" },
-    { id: "notes", label: "📋 Notes", color: "#14b8a6", lastUpdated: "8 Feb" },
+    { id: "dump", label: "📥 Dump", color: "#14b8a6", lastUpdated: "9 Feb" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa", lastUpdated: "8 Feb" },
   ];
 
@@ -5365,7 +5182,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.16.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.17.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5462,11 +5279,11 @@ export default function ControlCenter() {
       {tab === "crypto" && <CryptoIntelligence />}
       {tab === "revenue" && <RevenueIntelligence />}
       {tab === "usecases" && <UseCases />}
-      {tab === "notes" && <SessionNotes />}
+      {tab === "dump" && <DumpPanel />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.16.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.17.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
