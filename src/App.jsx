@@ -5003,6 +5003,139 @@ function CryptoIntelligence() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ISSUES PANEL — Klikbare filters + opgelost/backlog functie
+// ═══════════════════════════════════════════════════════════════════════════════
+function IssuesPanel({ issues, okCount }) {
+  const [filter, setFilter] = useState("all");
+  const [resolved, setResolved] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch { return []; }
+  });
+  const [showBacklog, setShowBacklog] = useState(false);
+
+  const resolve = (id) => {
+    const now = new Date().toLocaleString("nl-BE");
+    const updated = [...resolved, { id, date: now }];
+    setResolved(updated);
+    localStorage.setItem("ccc-resolved-issues", JSON.stringify(updated));
+  };
+
+  const unresolve = (id) => {
+    const updated = resolved.filter(r => r.id !== id);
+    setResolved(updated);
+    localStorage.setItem("ccc-resolved-issues", JSON.stringify(updated));
+  };
+
+  const resolvedIds = resolved.map(r => r.id);
+  const activeIssues = issues.filter(i => !resolvedIds.includes(i.id));
+  const resolvedIssues = issues.filter(i => resolvedIds.includes(i.id));
+  const errCount = activeIssues.filter(i => i.status === STATUS.ERROR).length;
+  const warnCount = activeIssues.filter(i => i.status === STATUS.WARN).length;
+
+  const filtered = filter === "all" ? activeIssues
+    : filter === "error" ? activeIssues.filter(i => i.status === STATUS.ERROR)
+    : filter === "warn" ? activeIssues.filter(i => i.status === STATUS.WARN)
+    : [];
+
+  const filterButtons = [
+    { id: "all", label: `Alle (${activeIssues.length})`, color: "#60a5fa", bg: "#001a33", border: "#1e40af" },
+    { id: "error", label: `Kritiek (${errCount})`, color: "#ef4444", bg: "#1a0000", border: "#991b1b" },
+    { id: "warn", label: `Waarschuwingen (${warnCount})`, color: "#fbbf24", bg: "#1a1400", border: "#854d0e" },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Klikbare summary/filter bar */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {filterButtons.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)} style={{
+            background: filter === f.id ? f.bg : "#111", border: `1px solid ${filter === f.id ? f.border : "#374151"}`,
+            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer",
+            transition: "all 0.15s", outline: filter === f.id ? `2px solid ${f.color}44` : "none", outlineOffset: 2
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: f.color }}>{f.id === "all" ? activeIssues.length : f.id === "error" ? errCount : warnCount}</div>
+            <div style={{ fontSize: 10, color: f.color + "cc" }}>{f.id === "all" ? "Alle Issues" : f.id === "error" ? "Kritiek" : "Waarschuwingen"}</div>
+          </button>
+        ))}
+        <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#4ade80" }}>{okCount}</div>
+          <div style={{ fontSize: 10, color: "#86efac" }}>OK</div>
+        </div>
+        {resolvedIssues.length > 0 && (
+          <button onClick={() => setShowBacklog(!showBacklog)} style={{
+            background: showBacklog ? "#0f0f23" : "#111", border: `1px solid ${showBacklog ? "#5b21b6" : "#374151"}`,
+            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "all 0.15s"
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#a78bfa" }}>{resolvedIssues.length}</div>
+            <div style={{ fontSize: 10, color: "#c4b5fd" }}>Opgelost</div>
+          </button>
+        )}
+      </div>
+
+      {/* Active issues grid */}
+      {!showBacklog && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
+          {filtered.map(i => {
+            const isErr = i.status === STATUS.ERROR;
+            return (
+              <div key={i.id} style={{ background: isErr ? "#1a0000" : "#1a1400", border: `1px solid ${isErr ? "#991b1b" : "#854d0e"}`, borderRadius: 10, padding: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+                    <span style={{ fontSize: 14 }}>{i.icon}</span>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: isErr ? "#fca5a5" : "#fde68a" }}>{i.name}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: isErr ? "#ef444422" : "#f59e0b22", color: isErr ? "#ef4444" : "#fbbf24", fontWeight: 700 }}>{isErr ? "KRITIEK" : "WARN"}</span>
+                    <button onClick={() => resolve(i.id)} title="Markeer als opgelost" style={{
+                      fontSize: 11, padding: "2px 6px", borderRadius: 4, border: "1px solid #16653466",
+                      background: "#052e1666", color: "#4ade80", cursor: "pointer", lineHeight: 1
+                    }}>✓</button>
+                  </div>
+                </div>
+                <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>{i.path}</div>
+                {i.detail && <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{i.detail}</div>}
+                {i.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", padding: "3px 6px", borderRadius: 4, background: "#1a140066" }}>💡 {i.recommendation}</div>}
+              </div>
+            );
+          })}
+          {filtered.length === 0 && <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 24, color: "#6b7280", fontSize: 13 }}>Geen {filter === "error" ? "kritieke" : filter === "warn" ? "waarschuwings" : ""} issues gevonden</div>}
+        </div>
+      )}
+
+      {/* Backlog - opgeloste issues */}
+      {showBacklog && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa", display: "flex", alignItems: "center", gap: 8 }}>
+            <span>📋 Opgeloste Issues Backlog</span>
+            <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 400 }}>({resolvedIssues.length} items)</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
+            {resolvedIssues.map(i => {
+              const rd = resolved.find(r => r.id === i.id);
+              return (
+                <div key={i.id} style={{ background: "#0f0f0f", border: "1px solid #374151", borderRadius: 10, padding: 12, opacity: 0.75 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 13 }}>{i.icon}</span>
+                      <span style={{ fontWeight: 600, fontSize: 12, color: "#9ca3af", textDecoration: "line-through" }}>{i.name}</span>
+                    </div>
+                    <button onClick={() => unresolve(i.id)} title="Terugzetten naar actief" style={{
+                      fontSize: 10, padding: "2px 6px", borderRadius: 4, border: "1px solid #854d0e66",
+                      background: "#1a140066", color: "#fbbf24", cursor: "pointer", lineHeight: 1
+                    }}>↩</button>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#4b5563" }}>{i.path}</div>
+                  {rd && <div style={{ fontSize: 9, color: "#22c55e", marginTop: 4 }}>✓ Opgelost op {rd.date}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ECOSYSTEM GRID — Blokken met expandable children (alle niveaus zichtbaar)
 // ═══════════════════════════════════════════════════════════════════════════════
 function EcoChildItem({ node, depth = 0 }) {
@@ -5280,45 +5413,7 @@ export default function ControlCenter() {
       {/* Content */}
       {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} />}
 
-      {tab === "issues" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {/* Summary bar */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ background: "#1a0000", border: "1px solid #991b1b", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#ef4444" }}>{issues.filter(i => i.status === STATUS.ERROR).length}</div>
-              <div style={{ fontSize: 10, color: "#fca5a5" }}>Kritiek</div>
-            </div>
-            <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#fbbf24" }}>{issues.filter(i => i.status === STATUS.WARN).length}</div>
-              <div style={{ fontSize: 10, color: "#fde68a" }}>Waarschuwingen</div>
-            </div>
-            <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#4ade80" }}>{counts.OK}</div>
-              <div style={{ fontSize: 10, color: "#86efac" }}>OK</div>
-            </div>
-          </div>
-          {/* Issues as card grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
-            {issues.map(i => {
-              const isErr = i.status === STATUS.ERROR;
-              return (
-                <div key={i.id} style={{ background: isErr ? "#1a0000" : "#1a1400", border: `1px solid ${isErr ? "#991b1b" : "#854d0e"}`, borderRadius: 10, padding: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 14 }}>{i.icon}</span>
-                      <span style={{ fontWeight: 600, fontSize: 12, color: isErr ? "#fca5a5" : "#fde68a" }}>{i.name}</span>
-                    </div>
-                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: isErr ? "#ef444422" : "#f59e0b22", color: isErr ? "#ef4444" : "#fbbf24", fontWeight: 700 }}>{isErr ? "KRITIEK" : "WARN"}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>{i.path}</div>
-                  {i.detail && <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{i.detail}</div>}
-                  {i.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", padding: "3px 6px", borderRadius: 4, background: "#1a140066" }}>💡 {i.recommendation}</div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {tab === "issues" && <IssuesPanel issues={issues} okCount={counts.OK} />}
 
       {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} />}
       {tab === "memory" && <MemoryCenter />}
