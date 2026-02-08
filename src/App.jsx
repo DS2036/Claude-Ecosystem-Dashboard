@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.10.0
+// CLAUDE CONTROL CENTER v4.11.0
 // Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -81,7 +81,8 @@ const api = {
 // v4.7.0 - Session Notes auto-split (grote documenten → gelinkte delen) + opslag indicator
 // v4.8.0 - Revenue Intelligence tab (5 streams, Chrome roadmap, build-up checklist, projections)
 // v4.9.0 - Perplexity API Live Intelligence Feed (8 topics, auto-refresh, cost tracking)
-// v4.10.0 - Scan Now knoppen + Local API integratie + Live status indicator
+// v4.11.0 - Scan Now knoppen + Local API integratie + Live status indicator
+// v4.11.0 - Section date prop: datums als aparte metadata rechts van header (niet in titel)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -2252,7 +2253,7 @@ function SDKHRMHub() {
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   // Reusable expandable section component
-  const Section = ({ id, icon, title, color, border, bg, summary, children }) => (
+  const Section = ({ id, icon, title, date, color, border, bg, summary, children }) => (
     <div style={{ background: bg || "#0f0f0f", border: `1px solid ${border || "#374151"}`, borderRadius: 12, padding: 0, overflow: "hidden" }}>
       <div
         onClick={() => toggle(id)}
@@ -2264,14 +2265,17 @@ function SDKHRMHub() {
         onMouseEnter={e => e.currentTarget.style.background = `${color}11`}
         onMouseLeave={e => { if (!expanded[id]) e.currentTarget.style.background = "transparent"; }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 18 }}>{icon}</span>
-          <div>
-            <div style={{ fontWeight: 700, color: color, fontSize: 14 }}>{title}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ fontWeight: 700, color: color, fontSize: 14 }}>{title}</div>
+              {date && <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>{date}</div>}
+            </div>
             {summary && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{summary}</div>}
           </div>
         </div>
-        <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded[id] ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+        <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded[id] ? "rotate(180deg)" : "rotate(0deg)", marginLeft: 8 }}>▾</span>
       </div>
       {expanded[id] && (
         <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${border || "#374151"}33` }}>
@@ -2310,7 +2314,7 @@ function SDKHRMHub() {
       </div>
 
       {/* ── 1. MODEL & TRAINING ── */}
-      <Section id="model" icon="🧠" title="Sapient-HRM 27.3M — Model & Training" color="#f97316" border="#9a3412" bg="#0f0800"
+      <Section id="model" icon="🧠" title="Sapient-HRM 27.3M — Model & Training" date="6 Feb 2026" color="#f97316" border="#9a3412" bg="#0f0800"
         summary="ACT-architectuur, MPS M4 training, 66 domeinen, checkpoint V3">
         <div style={{ marginTop: 12 }}>
           {/* Quick Stats */}
@@ -2378,7 +2382,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 2. CHECKPOINT V3 FIXES ── */}
-      <Section id="checkpoint" icon="💾" title="Checkpoint V3 — MPS-Safe Training Fixes" color="#22c55e" border="#166534" bg="#020f06"
+      <Section id="checkpoint" icon="💾" title="Checkpoint V3 — MPS-Safe Training Fixes" date="6 Feb 2026" color="#22c55e" border="#166534" bg="#020f06"
         summary="Kritieke fixes na 2x dataverlies door MPS GPU hangs">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p><strong style={{ color: "#ef4444" }}>Probleem:</strong> Twee keer is alle trainingsvoortgang verloren gegaan doordat de MPS GPU vastliep in een evaluatie-loop. De eerste keer 5750 stappen, de tweede keer 228 stappen. Dit komt omdat MPS GPU-calls op kernel-niveau blokkeren (Uninterruptible Sleep / UN state) — Python code wordt simpelweg niet meer uitgevoerd, dus timeouts en while-loop checks werken niet.</p>
@@ -2402,7 +2406,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 3. NESTED ARCHITECTURE ── */}
-      <Section id="nested" icon="🏗️" title="Nested Architecture — HRM inside LFM2" color="#a78bfa" border="#5b21b6" bg="#080020"
+      <Section id="nested" icon="🏗️" title="Nested Architecture — HRM inside LFM2" date="8 Feb 2026" color="#a78bfa" border="#5b21b6" bg="#080020"
         summary="Brain-inside-Body concept met DeepEncoder compression bridge">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Franky's kern-innovatie: het combineren van twee AI-modellen in een geneste architectuur die op een enkel edge device draait. Het concept is "Brain inside Body" — het kleine maar krachtige HRM-model (het brein) draait binnen het grotere LFM2-model (het lichaam).</p>
@@ -2423,14 +2427,37 @@ function SDKHRMHub() {
 
           <p style={{ marginTop: 8 }}><strong style={{ color: "#f97316" }}>HRM-27M (Brain):</strong> Het compacte maar krachtige kernmodel dat diep redeneert over bedreigingen. Met slechts 27MB (int8 kwantisatie) biedt het adaptief redeneren via ACT, hierarchische analyse via H/L-levels, en Q-learning-gebaseerde halting. Het ontvangt de gecomprimeerde context van de bridge en levert een risk_score plus menselijk leesbare uitleg.</p>
 
+          <div style={{ marginTop: 12, padding: 12, background: "#0a1a0a", borderRadius: 8, border: "1px solid #16a34a44" }}>
+            <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 12, marginBottom: 8 }}>IMPLEMENTATIE GESTART — 8 Feb 2026</div>
+            <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
+              <p><strong style={{ color: "#22c55e" }}>Phase 1 — Feature-Level Nesting (NU):</strong></p>
+              <p>LFM2 analyseert bericht → extraheert ~28 numerieke features (indicators, rule engine scores, tekst stats) → HRM-Scam redeneert iteratief (H/L cycles) → classificatie SCAM/SAFE</p>
+              <p style={{ marginTop: 4 }}><strong style={{ color: "#fbbf24" }}>Target: 80-83%</strong> (boven 78.9% hybrid baseline)</p>
+              <p style={{ marginTop: 4 }}><strong style={{ color: "#a78bfa" }}>Phase 2 — Embedding-Level (TOEKOMST):</strong></p>
+              <p>LFM2 hidden states (2048-dim) → DeepEncoder bridge → HRM continue embeddings (512-dim) • Target: 83-87%</p>
+            </div>
+            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+              {[
+                { label: "HRM-Scam", value: "512-dim", color: "#f97316" },
+                { label: "Features", value: "~28", color: "#fbbf24" },
+                { label: "Bridge", value: "~8MB", color: "#a78bfa" },
+              ].map(m => (
+                <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "4px 8px", textAlign: "center" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div style={{ marginTop: 12, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
-            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>3 Strategieen onder overweging:</div>
+            <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>3 Strategieen (Optie 1 gekozen):</div>
             {[
-              "1. HRM inside LFM2 — HRM als reasoning core, LFM2 als language/context shell",
+              "1. ✅ HRM inside LFM2 — HRM als reasoning core, LFM2 als language/context shell (ACTIEF)",
               "2. Compressed LFM2 inside HRM — LoRA adapters injecteren LFM2 kennis in HRM framework",
               "3. Dual model met DeepEncoder bridge — beide modellen draaien, compressed tokens ertussen",
             ].map((s, i) => (
-              <div key={i} style={{ fontSize: 11, color: "#e5e5e5", padding: "3px 0" }}>{s}</div>
+              <div key={i} style={{ fontSize: 11, color: i === 0 ? "#22c55e" : "#6b7280", padding: "3px 0", fontWeight: i === 0 ? 600 : 400 }}>{s}</div>
             ))}
           </div>
 
@@ -2457,7 +2484,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 4. 18 BESCHERMINGSMODULES ── */}
-      <Section id="modules" icon="🛡️" title="18 Beschermingsmodules — Volledige Product Map" color="#4ade80" border="#166534" bg="#020f06"
+      <Section id="modules" icon="🛡️" title="18 Beschermingsmodules — Volledige Product Map" date="7 Feb 2026" color="#4ade80" border="#166534" bg="#020f06"
         summary="7 core + 11 expansie modules voor complete digitale bescherming">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>SDK-HRM is ontworpen als een modulair beveiligingsplatform met 18 beschermingsmodules, verdeeld in 7 kern-modules en 11 uitbreidingsmodules. Elk module kan onafhankelijk worden geactiveerd en bijgewerkt via LoRA adapters.</p>
@@ -2501,7 +2528,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 5. GO-TO-MARKET STRATEGIE ── */}
-      <Section id="gtm" icon="🚀" title="Go-to-Market — 5 Fasen als Eenmanszaak" color="#fbbf24" border="#854d0e" bg="#0f0a00"
+      <Section id="gtm" icon="🚀" title="Go-to-Market — 5 Fasen als Eenmanszaak" date="7 Feb 2026" color="#fbbf24" border="#854d0e" bg="#0f0a00"
         summary="Van gratis zichtbaarheid naar €100K+/jaar embedded SDK revenue">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>De go-to-market strategie is ontworpen voor een eenmanszaak die met minimale kosten maximale impact wil bereiken. Het principe is: begin met gratis, bouw autoriteit op, monetiseer geleidelijk, en schaal via partnerschappen.</p>
@@ -2536,7 +2563,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 6. FINANCE TRACK — VALUE GUARDIAN ── */}
-      <Section id="finance" icon="🏦" title="Finance Track — Value Guardian" color="#60a5fa" border="#1e40af" bg="#000a1a"
+      <Section id="finance" icon="🏦" title="Finance Track — Value Guardian" date="7 Feb 2026" color="#60a5fa" border="#1e40af" bg="#000a1a"
         summary="'Wij beschermen uw GELD, niet alleen uw netwerk' — parallel revenue stream">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Franky's overtuiging: als je de waarde van geld kunt beschermen, word je altijd serieuzer genomen. De financiele sector is een parallel spoor naast de consumer markt — niet in plaats van, maar als versterking.</p>
@@ -2574,7 +2601,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 7. CHROME EXTENSIE & MONETISATIE ── */}
-      <Section id="chrome" icon="🌐" title="Chrome Extensie — Eerste Revenue Stream" color="#4ade80" border="#166534" bg="#020f06"
+      <Section id="chrome" icon="🌐" title="Chrome Extensie — Eerste Revenue Stream" date="7 Feb 2026" color="#4ade80" border="#166534" bg="#020f06"
         summary="WASM model lokaal in browser, ExtensionPay/Stripe, ~95% marge">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>De Chrome extensie is het laagst hangend fruit voor eerste revenue. Het unieke: het AI-model draait als WebAssembly (WASM) volledig in de browser van de gebruiker. Er zijn nul hosting kosten — geen servers, geen API calls, geen bandbreedte. De marge is daardoor ~95%.</p>
@@ -2603,7 +2630,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 8. DATA FLYWHEEL ── */}
-      <Section id="flywheel" icon="🔄" title="Data Flywheel — Competitive Moat (Waze-model)" color="#f472b6" border="#86198f" bg="#0f000f"
+      <Section id="flywheel" icon="🔄" title="Data Flywheel — Competitive Moat (Waze-model)" date="7 Feb 2026" color="#f472b6" border="#86198f" bg="#0f000f"
         summary="User feedback → beter model → meer users → ONVERSLAANBAAR">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Franky's kerninsight: de data flywheel is het echte competitief voordeel. Net als Waze wordt de service beter naarmate meer mensen hem gebruiken — en dat voordeel is cumulatief en bijna onmogelijk in te halen.</p>
@@ -2643,7 +2670,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 9. EMBEDDED SDK MARKT ── */}
-      <Section id="embedded" icon="📡" title="Embedded SDK Markt — $30.6B (2029)" color="#22d3ee" border="#0e7490" bg="#001015"
+      <Section id="embedded" icon="📡" title="Embedded SDK Markt — $30.6B (2029)" date="7 Feb 2026" color="#22d3ee" border="#0e7490" bg="#001015"
         summary="Software-only oplossing voor IoT, automotive, wearables, drones, robots">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>SDK-HRM als universele embedded security SDK is een software-only oplossing die op ELKE chip draait — geen custom hardware nodig. Dit maakt het complementair aan hardware security van Qualcomm/NXP, niet concurrent.</p>
@@ -2688,7 +2715,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 10. MODEL SECURITY ── */}
-      <Section id="security" icon="🔐" title="5-Laags Model Bescherming" color="#ef4444" border="#991b1b" bg="#0f0000"
+      <Section id="security" icon="🔐" title="5-Laags Model Bescherming" date="7 Feb 2026" color="#ef4444" border="#991b1b" bg="#0f0000"
         summary="Open base + geheime LoRA adapters = recurring revenue">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Het beschermen van het AI-model is cruciaal voor het businessmodel. De strategie: maak het basismodel open source (vertrouwen, community), maar houd de gespecialiseerde LoRA adapters geheim, versleuteld en device-locked.</p>
@@ -2721,7 +2748,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 11. BLOCKCHAIN TRUST LAYER ── */}
-      <Section id="blockchain" icon="⛓️" title="Blockchain Trust Layer" color="#fbbf24" border="#854d0e" bg="#0f0a00"
+      <Section id="blockchain" icon="⛓️" title="Blockchain Trust Layer" date="7 Feb 2026" color="#fbbf24" border="#854d0e" bg="#0f0a00"
         summary="Decentralized trust, ZKP privacy, tamper-proof model updates">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Franky's visie: blockchain als vertrouwenslaag voor het hele SDK-HRM ecosysteem. Niet blockchain om blockchain, maar voor concrete doelen: verificatie, privacy en decentralisatie.</p>
@@ -2744,7 +2771,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 12. TRAINING DOMEINEN ── */}
-      <Section id="domains" icon="📊" title="66 Training Domeinen — 10 Lagen" color="#a78bfa" border="#5b21b6" bg="#080020"
+      <Section id="domains" icon="📊" title="66 Training Domeinen — 10 Lagen" date="7 Feb 2026" color="#a78bfa" border="#5b21b6" bg="#080020"
         summary="Van core scam detection tot contextual threats — 1.05M samples target">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Het model traint op 66 specifieke domeinen, georganiseerd in 10 lagen van toenemende complexiteit. Het doel is uiteindelijk ~1.051.000 training samples te verzamelen over alle domeinen.</p>
@@ -2770,7 +2797,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 13. INFRANODUS GRAPHS ── */}
-      <Section id="graphs" icon="🕸️" title="19 InfraNodus Knowledge Graphs" color="#06b6d4" border="#0e7490" bg="#001015"
+      <Section id="graphs" icon="🕸️" title="19 InfraNodus Knowledge Graphs" date="7 Feb 2026" color="#06b6d4" border="#0e7490" bg="#001015"
         summary="Complete kennisinfrastructuur op InfraNodus — alle strategische beslissingen gelogd">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Alle strategische kennis, inzichten en beslissingen zijn vastgelegd in 19 InfraNodus knowledge graphs. Elke graph bevat meerdere topical clusters die de relaties tussen concepten visualiseren.</p>
@@ -2807,7 +2834,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* ── 14. CONTINUOUS LEARNING ── */}
-      <Section id="learning" icon="🔬" title="Continuous Learning System" color="#8b5cf6" border="#6d28d9" bg="#0a0020"
+      <Section id="learning" icon="🔬" title="Continuous Learning System" date="7 Feb 2026" color="#8b5cf6" border="#6d28d9" bg="#0a0020"
         summary="Federated learning, Nested Learning, LoRA swapping, adversarial training">
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p>Het model is niet statisch — het leert continu bij via meerdere mechanismen die samenwerken.</p>
@@ -3002,14 +3029,14 @@ function TrainingBenchmarks() {
               Training & Benchmark Results
             </div>
             <p style={{ color: "#9ca3af", fontSize: 14, marginTop: 6 }}>Alle trainingsruns, benchmarks en commerciële validatie op één plek</p>
-            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Laatste update: 7 februari 2026</p>
+            <p style={{ color: "#6b7280", fontSize: 12, marginTop: 4 }}>Laatste update: 8 februari 2026</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              { label: "98.1%", sub: "accuracy", color: "#22c55e" },
-              { label: "209", sub: "scenarios", color: "#60a5fa" },
+              { label: "78.9%", sub: "OOD hybrid", color: "#22c55e" },
+              { label: "445", sub: "OOD scenarios", color: "#60a5fa" },
               { label: "3 talen", sub: "NL/FR/EN", color: "#fbbf24" },
-              { label: "5/11", sub: "readiness", color: "#f97316" },
+              { label: "6/11", sub: "readiness", color: "#f97316" },
             ].map(m => (
               <div key={m.sub} style={{ textAlign: "center", padding: "8px 14px", background: `${m.color}11`, border: `1px solid ${m.color}44`, borderRadius: 8 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.label}</div>
@@ -3177,6 +3204,131 @@ function TrainingBenchmarks() {
         )}
       </div>
 
+      {/* ── RUN 3: OOD BENCHMARK EVOLUTIE (v2-v6) ── */}
+      <div style={{ background: "#0a001a", border: "1px solid #7c3aed", borderRadius: 12, padding: 0, overflow: "hidden" }}>
+        <div onClick={() => toggle("ood")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.ood ? "#a78bfa11" : "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🔬</span>
+            <div>
+              <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 15 }}>Run 3: OOD Benchmark Evolutie — v2 t/m v6 + Hybrid</div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>64.3% → 78.9% na 6 versies + rule engine • 445 schone OOD scenarios</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ padding: "3px 10px", borderRadius: 6, background: "#22c55e22", color: "#4ade80", fontSize: 11, fontWeight: 600 }}>78.9% BEST</span>
+            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded.ood ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </div>
+        </div>
+        {expanded.ood && (
+          <div style={{ padding: "0 16px 16px 16px", borderTop: "1px solid #7c3aed33" }}>
+            <div style={{ marginTop: 12, fontSize: 13, color: "#d1d5db", lineHeight: 1.8 }}>
+              <p>De <strong style={{ color: "#a78bfa" }}>Out-of-Distribution (OOD)</strong> benchmark test het model op data die het NOOIT gezien heeft tijdens training. Dit is de eerlijke test — de enige die telt. Na 6 LoRA-versies en een rule engine hybrid is het resultaat 78.9%.</p>
+            </div>
+
+            {/* Version Evolution Table */}
+            <div style={{ marginTop: 12, overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #374151" }}>
+                    {["Versie", "OOD %", "Test Set", "Strategie", "Status"].map(h => (
+                      <th key={h} style={{ padding: "8px 10px", textAlign: "left", color: "#9ca3af", fontWeight: 600, fontSize: 11 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { v: "v2", pct: "64.3%", set: "587 (vuil)", strat: "Basis LoRA", status: "Afgesloten", color: "#ef4444" },
+                    { v: "v3", pct: "64.1%", set: "587 (vuil)", strat: "Meer SAFE data", status: "Afgesloten", color: "#ef4444" },
+                    { v: "v4", pct: "76.0%", set: "445 (schoon)", strat: "Indicators+CoT", status: "Beste adapter", color: "#fbbf24" },
+                    { v: "v5", pct: "70.7%", set: "531 (deels)", strat: "Meer data", status: "Afgesloten", color: "#f97316" },
+                    { v: "v6", pct: "65.7%", set: "445 (schoon)", strat: "Adversarial boost", status: "Afgesloten", color: "#ef4444" },
+                    { v: "v4+rules", pct: "78.9%", set: "445 (schoon)", strat: "Hybrid rule engine", status: "ACTIEF", color: "#22c55e" },
+                  ].map((r, i) => (
+                    <tr key={i} style={{ borderBottom: "1px solid #1f2937", background: r.v === "v4+rules" ? "#22c55e08" : "transparent" }}>
+                      <td style={{ padding: "8px 10px", fontWeight: r.v === "v4+rules" ? 700 : 400, color: r.color }}>{r.v}</td>
+                      <td style={{ padding: "8px 10px", fontWeight: 700, color: r.color }}>{r.pct}</td>
+                      <td style={{ padding: "8px 10px", color: "#9ca3af" }}>{r.set}</td>
+                      <td style={{ padding: "8px 10px", color: "#d1d5db" }}>{r.strat}</td>
+                      <td style={{ padding: "8px 10px", color: r.color, fontWeight: 600 }}>{r.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Hybrid Rule Engine Details */}
+            <div style={{ marginTop: 16, padding: 14, background: "#001a0a", borderRadius: 10, border: "1px solid #16653444" }}>
+              <div style={{ fontWeight: 700, color: "#22c55e", fontSize: 13, marginBottom: 10 }}>Hybrid Rule Engine v1 — Resultaat 78.9%</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+                {[
+                  { label: "Overall", value: "78.9%", sub: "351/445", color: "#22c55e" },
+                  { label: "SCAM recall", value: "83.0%", sub: "240/289", color: "#4ade80" },
+                  { label: "SAFE recall", value: "71.2%", sub: "111/156", color: "#60a5fa" },
+                  { label: "Rule hits", value: "38", sub: "8.5% coverage", color: "#fbbf24" },
+                  { label: "Overrides", value: "15", sub: "regels winnen", color: "#f97316" },
+                  { label: "Delta", value: "+2.9%", sub: "vs model-only", color: "#a78bfa" },
+                ].map(m => (
+                  <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.value}</div>
+                    <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
+                    <div style={{ fontSize: 9, color: "#4b5563", marginTop: 2 }}>{m.sub}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
+                <p><strong style={{ color: "#fbbf24" }}>Grootste winsten:</strong> subscription_trap +18.2% (59.1→77.3%), adversarial_safe_looks_scam +8.8% (55.9→64.7%), adversarial_borderline_safe +7.1% (10.7→17.9%)</p>
+                <p style={{ marginTop: 4 }}><strong style={{ color: "#ef4444" }}>Zwakste categorieën:</strong> adversarial_borderline_safe 17.9%, adversarial_scam_looks_safe 50.0%, qr_code_scam 63.6%</p>
+              </div>
+            </div>
+
+            {/* Rule Engine Coverage */}
+            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+              <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 8 }}>Rule Engine — 5 Regelcategorieën</div>
+              {[
+                { naam: "BEC/Invoice Scam", detail: "Bankwijziging patronen, wire transfers, vendor impersonation (EN/NL/FR)", color: "#ef4444" },
+                { naam: "Subscription Trap", detail: "Trial expiry, auto-charging, verdachte cancel domeinen (EN/NL/FR)", color: "#f97316" },
+                { naam: "QR Code + Betaling", detail: "QR met betaalverzoek, verdachte parking/menu QR codes", color: "#fbbf24" },
+                { naam: "Officiële Domeinen", detail: "50+ bekende legit domeinen (banken NL/BE/FR, overheid, tech, delivery)", color: "#22c55e" },
+                { naam: "Safe Patterns", detail: "Service footers, referentienummers, klantenservice patronen", color: "#60a5fa" },
+              ].map((r, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, padding: "4px 0", alignItems: "baseline" }}>
+                  <span style={{ color: r.color, fontWeight: 600, fontSize: 11, minWidth: 140 }}>{r.naam}</span>
+                  <span style={{ color: "#9ca3af", fontSize: 10 }}>{r.detail}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Lessen Geleerd */}
+            <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e8144" }}>
+              <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 12, marginBottom: 8 }}>Lessen Geleerd (6 versies)</div>
+              <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
+                {[
+                  "LoRA-only op 2.6B is uitgeput na 6 versies (64-71% range)",
+                  "Meer data zonder richting helpt niet (v5 bewees dit)",
+                  "Model oscilleert tussen te paranoid en te mild",
+                  "Testset kwaliteit is net zo belangrijk als model kwaliteit (3x opschonen nodig)",
+                  "Rule engine + model > model alleen (+2.9%)",
+                  "Indicators+CoT (v4) was de beste LoRA strategie",
+                ].map((l, i) => (
+                  <div key={i} style={{ padding: "3px 0" }}>• {l}</div>
+                ))}
+              </div>
+            </div>
+
+            {/* Nested Architecture Status */}
+            <div style={{ marginTop: 12, padding: 12, background: "#0a001a", borderRadius: 8, border: "1px solid #7c3aed44" }}>
+              <div style={{ fontWeight: 700, color: "#c4b5fd", fontSize: 12, marginBottom: 8 }}>Volgende Stap: Nested HRM+LFM2 Architectuur</div>
+              <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
+                <p><strong style={{ color: "#22c55e" }}>Status: IMPLEMENTATIE GESTART</strong> (8 Feb 2026)</p>
+                <p style={{ marginTop: 4 }}>Phase 1: Feature-Level Nesting — LFM2 extraheert indicators → 28 features → HRM-Scam redeneert → classificatie</p>
+                <p style={{ marginTop: 4 }}>Target: 80-83% (boven 78.9% hybrid baseline)</p>
+                <p style={{ marginTop: 4 }}>Phase 2 (toekomst): Embedding-Level — LFM2 hidden states → DeepEncoder bridge → HRM continue embeddings → 83-87%</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── COMMERCIËLE VALIDATIE CHECKLIST ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #854d0e", borderRadius: 12, padding: 0, overflow: "hidden" }}>
         <div onClick={() => toggle("readiness")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.readiness ? "#fbbf2411" : "transparent" }}>
@@ -3244,7 +3396,7 @@ function TrainingBenchmarks() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REVENUE INTELLIGENCE TAB — v4.10.0 (+ Perplexity Live Feed + Scan Now)
+// REVENUE INTELLIGENCE TAB — v4.11.0 (+ Perplexity Live Feed + Scan Now)
 // Dagelijkse revenue-ideeën, Chrome extensie roadmap, build-up checklist
 // Integratie met InfraNodus voor marktinzichten
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -4727,7 +4879,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.10.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.11.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -4836,7 +4988,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.10.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.11.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
