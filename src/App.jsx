@@ -50,8 +50,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.13.0
-// Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.14.0
+// Complete Dashboard: 20 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -85,6 +85,7 @@ const api = {
 // v4.11.0 - Section date prop: datums als aparte metadata rechts van header (niet in titel)
 // v4.12.0 - Datums bij ALLE collapsible secties: Benchmarks (4), Revenue (5), Crypto (6)
 // v4.13.0 - "Laatst bijgewerkt" datum onder elke tab-button voor referentie
+// v4.14.0 - Use Cases tab: roadmap (A→B→C→D), 6 use cases, USPs, revenue targets (20 tabs)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -3969,6 +3970,246 @@ function RevenueIntelligence() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// USE CASES TAB — v4.14.0
+// Concrete doelstellingen, use cases, en roadmap richting
+// Wat SDK-HRM doet voor eindgebruikers — georganiseerd per fase
+// ═══════════════════════════════════════════════════════════════════════════════
+function UseCases() {
+  const [expanded, setExpanded] = useState({});
+  const toggle = id => setExpanded(p => ({ ...p, [id]: !p[id] }));
+
+  const roadmapPhases = [
+    { id: "A", label: "Phase A", title: "Rule Engine v2", status: "active", color: "#f97316", deadline: "Feb-Mrt 2026", target: "85%+ accuracy",
+      description: "Meer en betere regels toevoegen aan de hybrid engine. Enige bewezen methode die accuracy verhoogt.",
+      tasks: [
+        { done: true, text: "Rule engine v1 — 38/445 hits, +2.9% verbetering" },
+        { done: false, text: "Subscription trap regels verbeteren (nu 77.3%)" },
+        { done: false, text: "Adversarial borderline regels (nu 17.9%)" },
+        { done: false, text: "BEC/invoice fraud patronen toevoegen" },
+        { done: false, text: "QR code context regels" },
+        { done: false, text: "Benchmark na elke regelset-update" },
+      ]},
+    { id: "B", label: "Phase B", title: "Data Opschaling", status: "active", color: "#60a5fa", deadline: "Feb-Apr 2026", target: "10.000+ scenarios",
+      description: "Trainingsdata vertienvoudigen. Meer data = betere generalisatie, minder overfitting op huidige 3637 scenarios.",
+      tasks: [
+        { done: true, text: "3637 trainingsscenarios (NL/FR/EN)" },
+        { done: true, text: "445 OOD testset (schoon, 12 categorieën)" },
+        { done: false, text: "Crypto scam scenarios (50-100 NL/FR/EN)" },
+        { done: false, text: "Synthetische data via InfraNodus + LLM" },
+        { done: false, text: "PhishTank + publieke spam datasets integreren" },
+        { done: false, text: "Belgische/Nederlandse real-world scam voorbeelden" },
+        { done: false, text: "Hertrainen LFM2 LoRA op uitgebreide dataset" },
+      ]},
+    { id: "C", label: "Phase C", title: "Chrome Extensie MVP", status: "planned", color: "#22c55e", deadline: "Apr-Mei 2026", target: "Eerste gebruikers",
+      description: "Minimale werkende Chrome extensie die berichten en pagina's scant en een scam/safe oordeel geeft.",
+      tasks: [
+        { done: false, text: "Content script: pagina-tekst uitlezen" },
+        { done: false, text: "Lokale inference server (LFM2 op Mac Mini)" },
+        { done: false, text: "Popup UI: groen/oranje/rood indicator + uitleg" },
+        { done: false, text: "Gmail/Outlook web integratie" },
+        { done: false, text: "Badge overlay op marktplaats/2dehands advertenties" },
+        { done: false, text: "ExtensionPay integratie (Stripe, freemium)" },
+        { done: false, text: "Chrome Web Store publicatie" },
+      ]},
+    { id: "D", label: "Phase D", title: "Website Guardian + GDPR", status: "planned", color: "#a78bfa", deadline: "Mei-Jul 2026", target: "KMO revenue stream",
+      description: "GDPR/NIS2 compliance scanner als premium feature. Elke Europese KMO heeft dit nodig — boetes tot 4% van omzet.",
+      tasks: [
+        { done: false, text: "Cookie banner analyse (reject-all knop check)" },
+        { done: false, text: "Privacy policy completeness scan" },
+        { done: false, text: "DPO contactgegevens verificatie" },
+        { done: false, text: "Google Analytics IP-anonimisering check" },
+        { done: false, text: "NIS2 incident-rapportage vereisten" },
+        { done: false, text: "SSL/TLS configuratie audit" },
+        { done: false, text: "Rapport generatie (PDF, NL/FR/EN)" },
+        { done: false, text: "Pricing: gratis scan, rapport €29-99" },
+      ]},
+  ];
+
+  const useCases = [
+    { id: "email", icon: "📧", title: "Email Scam Detectie", color: "#ef4444", phase: "C",
+      description: "Automatisch emails scannen in Gmail/Outlook web op phishing, impersonation, en credential theft.",
+      how: "Content script leest email body → LFM2 analyseert → overlay badge groen/oranje/rood naast afzender",
+      examples: ["Bpost pakje-scam (NL)", "Colissimo phishing (FR)", "DHL delivery scam (EN)", "CEO fraud / BEC facturen"],
+      unique: "Meertalig NL/FR/EN — geen andere extensie doet dit" },
+    { id: "website", icon: "🌐", title: "Website Authenticiteit", color: "#60a5fa", phase: "C",
+      description: "Bezochte websites beoordelen op betrouwbaarheid: domein-leeftijd, typosquatting, verdachte formulieren.",
+      how: "Background script checkt domein → popup waarschuwt als verdacht → banner bovenaan pagina",
+      examples: ["paypa1.com detectie", "Nep-webshop herkenning", "Phishing login pagina's", "Recent geregistreerde domeinen"],
+      unique: "Gaat verder dan HTTPS — beoordeelt inhoud, niet alleen verbinding" },
+    { id: "marketplace", icon: "🛒", title: "Marktplaats Fraude", color: "#22c55e", phase: "C",
+      description: "Advertenties op 2dehands, Marktplaats, Vinted scannen op verdachte patronen.",
+      how: "Content script detecteert marktplaats-pagina → scant advertentie → badge naast prijs",
+      examples: ["Te goede prijs voor product", "Nieuw account + copy-paste tekst", "Externe betaallink", "Nep verzendbevestiging"],
+      unique: "Specifiek voor BeNeLux marktplaatsen" },
+    { id: "chat", icon: "💬", title: "Chat & Messaging Scan", color: "#f472b6", phase: "C",
+      description: "WhatsApp Web, Telegram Web, Messenger Web berichten scannen op verdachte links en patronen.",
+      how: "Content script leest chat-venster → markeert verdachte berichten met klein icoon",
+      examples: ["Crypto pump-and-dump links", "Romance scam escalatie", "Nep-investerings tips", "Seed phrase phishing"],
+      unique: "Werkt in web-versies van alle messaging apps" },
+    { id: "gdpr", icon: "⚖️", title: "GDPR/NIS2 Compliance Scan", color: "#a78bfa", phase: "D",
+      description: "Websites scannen op GDPR en NIS2 compliance. Premium feature voor KMO's.",
+      how: "Extensie scant pagina → genereert compliance rapport → PDF in NL/FR/EN",
+      examples: ["Cookie banner zonder reject-all", "Ontbrekende DPO gegevens", "GA zonder IP-anonimisering", "Geen SSL certificaat"],
+      unique: "Meertalig compliance rapport — onmisbaar voor Belgische KMO's" },
+    { id: "qr", icon: "📱", title: "QR Code Veiligheid", color: "#06b6d4", phase: "later",
+      description: "QR codes scannen voordat je de link opent. Mobiele app (toekomst).",
+      how: "Camera-feed → QR decode → URL analyse → waarschuwing voor redirect",
+      examples: ["Nep-parkeermeter QR", "Restaurant menu vs phishing", "Betaal-QR manipulatie"],
+      unique: "Context-aware: begrijpt verschil tussen legit en nep QR gebruik" },
+  ];
+
+  const phaseColor = { A: "#f97316", B: "#60a5fa", C: "#22c55e", D: "#a78bfa", later: "#6b7280" };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Header */}
+      <div style={{ background: "#0a0a1a", border: "1px solid #4f46e566", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#818cf8" }}>🎯 SDK-HRM Use Cases & Roadmap</div>
+          <div style={{ fontSize: 10, color: "#4b5563" }}>8 Feb 2026</div>
+        </div>
+        <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 6 }}>
+          Concrete doelstellingen en use cases — wat we bouwen, voor wie, en in welke volgorde.
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          {roadmapPhases.map(p => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 6, background: p.color + "15", border: `1px solid ${p.color}33` }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: p.color }}>{p.label}</span>
+              <span style={{ fontSize: 10, color: "#9ca3af" }}>{p.title}</span>
+              {p.status === "active" && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: "#22c55e22", color: "#4ade80", fontWeight: 700 }}>ACTIEF</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Roadmap Phases */}
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginTop: 4 }}>📋 Roadmap — A → B → C → D</div>
+      {roadmapPhases.map(phase => {
+        const doneCount = phase.tasks.filter(t => t.done).length;
+        const totalCount = phase.tasks.length;
+        const pct = Math.round((doneCount / totalCount) * 100);
+        return (
+          <div key={phase.id} style={{ background: "#0f0f0f", border: `1px solid ${phase.color}44`, borderRadius: 12, overflow: "hidden" }}>
+            <div onClick={() => toggle("phase_" + phase.id)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded["phase_" + phase.id] ? phase.color + "11" : "transparent" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 16, fontWeight: 900, color: phase.color, fontFamily: "monospace" }}>{phase.label}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                    <div style={{ fontWeight: 700, color: phase.color, fontSize: 14 }}>{phase.title}</div>
+                    <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap" }}>{phase.deadline}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>Target: {phase.target} • {doneCount}/{totalCount} taken</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
+                <div style={{ width: 50, height: 6, borderRadius: 3, background: "#1f2937", overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: phase.color, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: 10, color: phase.color, fontWeight: 700 }}>{pct}%</span>
+                <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded["phase_" + phase.id] ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+              </div>
+            </div>
+            {expanded["phase_" + phase.id] && (
+              <div style={{ padding: "0 16px 16px", borderTop: `1px solid ${phase.color}22` }}>
+                <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 12, lineHeight: 1.6 }}>{phase.description}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+                  {phase.tasks.map((task, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: task.done ? "#22c55e08" : "#111", borderRadius: 6, border: `1px solid ${task.done ? "#22c55e33" : "#1f2937"}` }}>
+                      <span style={{ fontSize: 14 }}>{task.done ? "✅" : "⬜"}</span>
+                      <span style={{ fontSize: 12, color: task.done ? "#4ade80" : "#9ca3af", textDecoration: task.done ? "line-through" : "none" }}>{task.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Use Cases */}
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginTop: 8 }}>🎯 Use Cases — Wat de gebruiker ziet</div>
+      {useCases.map(uc => (
+        <div key={uc.id} style={{ background: "#0f0f0f", border: `1px solid ${uc.color}44`, borderRadius: 12, overflow: "hidden" }}>
+          <div onClick={() => toggle("uc_" + uc.id)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded["uc_" + uc.id] ? uc.color + "11" : "transparent" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 20 }}>{uc.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                  <div style={{ fontWeight: 700, color: uc.color, fontSize: 14 }}>{uc.title}</div>
+                  <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap" }}>Phase {uc.phase}</div>
+                </div>
+                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{uc.description}</div>
+              </div>
+            </div>
+            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded["uc_" + uc.id] ? "rotate(180deg)" : "rotate(0deg)", marginLeft: 8 }}>▾</span>
+          </div>
+          {expanded["uc_" + uc.id] && (
+            <div style={{ padding: "0 16px 16px", borderTop: `1px solid ${uc.color}22` }}>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: uc.color, marginBottom: 6 }}>Hoe het werkt:</div>
+                <div style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.6 }}>{uc.how}</div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: uc.color, marginBottom: 6 }}>Concrete voorbeelden:</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {uc.examples.map((ex, i) => (
+                    <span key={i} style={{ padding: "3px 8px", background: uc.color + "15", border: `1px solid ${uc.color}33`, borderRadius: 6, fontSize: 11, color: "#d1d5db" }}>{ex}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 12, padding: "8px 12px", background: "#22c55e08", border: "1px solid #22c55e33", borderRadius: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#4ade80" }}>USP: </span>
+                <span style={{ fontSize: 11, color: "#d1d5db" }}>{uc.unique}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Competitief Overzicht */}
+      <div style={{ background: "#0a0a1a", border: "1px solid #6366f144", borderRadius: 12, padding: 16, marginTop: 4 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginBottom: 10 }}>⚔️ Waarom SDK-HRM anders is</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+          {[
+            { label: "Meertalig NL/FR/EN", detail: "Geen concurrent doet BeNeLux talen", color: "#f97316" },
+            { label: "100% on-device", detail: "Geen data verlaat je browser/device", color: "#22c55e" },
+            { label: "Scam + GDPR in één", detail: "Bescherming + compliance = uniek", color: "#a78bfa" },
+            { label: "Data flywheel", detail: "Gebruikers feedback = beter model", color: "#60a5fa" },
+            { label: "Crypto nuance", detail: "Begrijpt verschil legit DeFi vs scam", color: "#f59e0b" },
+            { label: "Privacy-first", detail: "Geen cloud, geen tracking, geen ads", color: "#ef4444" },
+          ].map(d => (
+            <div key={d.label} style={{ background: "#111", border: `1px solid ${d.color}33`, borderRadius: 8, padding: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.label}</div>
+              <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 3 }}>{d.detail}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Revenue Target */}
+      <div style={{ background: "#000f00", border: "1px solid #22c55e44", borderRadius: 12, padding: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#22c55e", marginBottom: 10 }}>💰 Revenue Doel</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
+          {[
+            { label: "Gratis tier", value: "5 scans/dag", sub: "Data flywheel + reviews" },
+            { label: "Pro", value: "€4.99/mnd", sub: "Unlimited + priority updates" },
+            { label: "Gezin", value: "€9.99/mnd", sub: "5 devices + elderly dashboard" },
+            { label: "GDPR Scan", value: "€29-99/scan", sub: "Compliance rapport PDF" },
+            { label: "MRR Doel", value: "€5.000/mnd", sub: "1000 Pro of 500 Gezin" },
+          ].map(r => (
+            <div key={r.label} style={{ background: "#111", borderRadius: 8, padding: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#4ade80" }}>{r.value}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#e5e7eb", marginTop: 2 }}>{r.label}</div>
+              <div style={{ fontSize: 9, color: "#6b7280", marginTop: 2 }}>{r.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SESSION NOTES TAB — v4.5.0
 // Franky's sessie-logboek: kopieer inzichten, code, en ideeën uit Claude sessies
 // Derde laags controle en backup naast GitHub en Cloudflare
@@ -4863,6 +5104,7 @@ export default function ControlCenter() {
     { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa", lastUpdated: "8 Feb" },
     { id: "crypto", label: "🪙 Crypto", color: "#f59e0b", lastUpdated: "7 Feb" },
     { id: "revenue", label: "💰 Revenue", color: "#22c55e", lastUpdated: "7 Feb" },
+    { id: "usecases", label: "🎯 Use Cases", color: "#818cf8", lastUpdated: "8 Feb" },
     { id: "notes", label: "📋 Notes", color: "#14b8a6", lastUpdated: "8 Feb" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa", lastUpdated: "8 Feb" },
   ];
@@ -5038,11 +5280,12 @@ export default function ControlCenter() {
       {tab === "benchmarks" && <TrainingBenchmarks />}
       {tab === "crypto" && <CryptoIntelligence />}
       {tab === "revenue" && <RevenueIntelligence />}
+      {tab === "usecases" && <UseCases />}
       {tab === "notes" && <SessionNotes />}
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.13.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.14.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
