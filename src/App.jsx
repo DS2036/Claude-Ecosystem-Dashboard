@@ -5002,6 +5002,99 @@ function CryptoIntelligence() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ECOSYSTEM GRID — Blokken met expandable children (alle niveaus zichtbaar)
+// ═══════════════════════════════════════════════════════════════════════════════
+function EcoChildItem({ node, depth = 0 }) {
+  const [open, setOpen] = useState(false);
+  const cs = node.status || STATUS.INFO;
+  const has = node.children?.length > 0;
+  return (
+    <div style={{ marginLeft: depth > 0 ? 12 : 0 }}>
+      <div onClick={() => has && setOpen(!open)} style={{
+        display: "flex", alignItems: "center", gap: 6, padding: "4px 8px", borderRadius: 6,
+        cursor: has ? "pointer" : "default",
+        background: cs === STATUS.ERROR ? "#1a000044" : cs === STATUS.WARN ? "#1a140044" : "transparent",
+        transition: "background 0.1s"
+      }}
+        onMouseEnter={e => { if (has) e.currentTarget.style.background = "#ffffff08"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = cs === STATUS.ERROR ? "#1a000044" : cs === STATUS.WARN ? "#1a140044" : "transparent"; }}
+      >
+        {has ? <span style={{ fontSize: 9, color: "#555", width: 10, flexShrink: 0 }}>{open ? "▾" : "▸"}</span> : <span style={{ width: 10, flexShrink: 0 }} />}
+        <span style={{ fontSize: 13, flexShrink: 0 }}>{node.icon}</span>
+        <span style={{ fontSize: 11, color: "#d1d5db", flex: 1 }}>{node.name}</span>
+        <span style={{ fontSize: 9, color: cs.color, flexShrink: 0 }}>{cs.icon}</span>
+        {has && <span style={{ fontSize: 9, color: "#6b7280", flexShrink: 0 }}>({node.children.length})</span>}
+      </div>
+      {node.detail && !has && <div style={{ fontSize: 10, color: "#6b7280", marginLeft: has ? 22 : 22, padding: "0 8px", lineHeight: 1.3 }}>{node.detail}</div>}
+      {node.tags && <div style={{ display: "flex", gap: 3, marginLeft: 22, padding: "2px 8px", flexWrap: "wrap" }}>
+        {node.tags.map((t, i) => <span key={i} style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: "#22c55e15", color: "#4ade80", border: "1px solid #16653433" }}>{t}</span>)}
+      </div>}
+      {node.recommendation && <div style={{ fontSize: 9, color: "#fbbf24", marginLeft: 22, padding: "2px 8px" }}>💡 {node.recommendation}</div>}
+      {open && has && (
+        <div style={{ borderLeft: "1px solid #374151", marginLeft: 12, marginTop: 2 }}>
+          {node.children.map(c => <EcoChildItem key={c.id} node={c} depth={depth + 1} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EcosystemGrid({ search, setSearch }) {
+  return (
+    <>
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+        {ECOSYSTEM.filter(n => {
+          if (!search) return true;
+          const s = search.toLowerCase();
+          const self = (n.name + (n.detail || "")).toLowerCase().includes(s);
+          const child = n.children?.some(function chk(c) { return (c.name + (c.detail||"")).toLowerCase().includes(s) || (c.children ? c.children.some(chk) : false); });
+          return self || child;
+        }).map(n => {
+          const s = n.status || STATUS.INFO;
+          const allChildren = [];
+          function walk(list) { for (const c of list) { allChildren.push(c); if (c.children) walk(c.children); } }
+          if (n.children) walk(n.children);
+          const okCount = allChildren.filter(c => c.status === STATUS.OK).length;
+          const warnCount = allChildren.filter(c => c.status === STATUS.WARN).length;
+          const errCount = allChildren.filter(c => c.status === STATUS.ERROR).length;
+          return (
+            <div key={n.id} style={{ background: "#0f0f0f", border: `1px solid ${s.border}44`, borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>{n.icon}</span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#e5e5e5" }}>{n.name}</span>
+                </div>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: s.bg, color: s.color, border: `1px solid ${s.border}`, fontWeight: 600 }}>{s.icon}</span>
+              </div>
+              {n.detail && <div style={{ fontSize: 11, color: "#888", marginBottom: 6, lineHeight: 1.4 }}>{n.detail}</div>}
+              {allChildren.length > 0 && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 8, fontSize: 10 }}>
+                  {okCount > 0 && <span style={{ color: "#4ade80" }}>✓ {okCount}</span>}
+                  {warnCount > 0 && <span style={{ color: "#fbbf24" }}>⚠ {warnCount}</span>}
+                  {errCount > 0 && <span style={{ color: "#ef4444" }}>✗ {errCount}</span>}
+                  <span style={{ color: "#6b7280" }}>({allChildren.length} totaal)</span>
+                </div>
+              )}
+              {n.children && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {n.children.filter(c => {
+                    if (!search) return true;
+                    const sl = search.toLowerCase();
+                    return (c.name + (c.detail||"")).toLowerCase().includes(sl) || (c.children ? c.children.some(function chk(x) { return (x.name + (x.detail||"")).toLowerCase().includes(sl) || (x.children ? x.children.some(chk) : false); }) : false);
+                  }).map(c => <EcoChildItem key={c.id} node={c} />)}
+                </div>
+              )}
+              {n.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", marginTop: 6, padding: "3px 6px", borderRadius: 4, background: "#1a1400" }}>💡 {n.recommendation}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 export default function ControlCenter() {
   const [tab, setTab] = useState("ecosystem");
   const [search, setSearch] = useState("");
@@ -5185,66 +5278,7 @@ export default function ControlCenter() {
       </div>
 
       {/* Content */}
-      {tab === "ecosystem" && (
-        <>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
-          {/* Blokken grid - elke root categorie is een kaart */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
-            {ECOSYSTEM.filter(n => {
-              if (!search) return true;
-              const s = search.toLowerCase();
-              const self = (n.name + (n.detail || "")).toLowerCase().includes(s);
-              const child = n.children?.some(function chk(c) { return (c.name + (c.detail||"")).toLowerCase().includes(s) || (c.children ? c.children.some(chk) : false); });
-              return self || child;
-            }).map(n => {
-              const s = n.status || STATUS.INFO;
-              const okCount = n.children ? n.children.filter(c => c.status === STATUS.OK).length : 0;
-              const warnCount = n.children ? n.children.filter(c => c.status === STATUS.WARN || c.status === STATUS.ERROR).length : 0;
-              const totalCount = n.children ? n.children.length : 0;
-              return (
-                <div key={n.id} style={{ background: "#0f0f0f", border: `1px solid ${s.border}44`, borderRadius: 10, padding: 14, cursor: "default" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 18 }}>{n.icon}</span>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#e5e5e5" }}>{n.name}</span>
-                    </div>
-                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: s.bg, color: s.color, border: `1px solid ${s.border}`, fontWeight: 600 }}>{s.icon} {s.label.replace(/^[^\w]*/, "")}</span>
-                  </div>
-                  {n.detail && <div style={{ fontSize: 11, color: "#888", marginBottom: 8, lineHeight: 1.4 }}>{n.detail}</div>}
-                  {totalCount > 0 && (
-                    <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                      {okCount > 0 && <span style={{ fontSize: 10, color: "#4ade80" }}>✓ {okCount} OK</span>}
-                      {warnCount > 0 && <span style={{ fontSize: 10, color: "#fbbf24" }}>⚠ {warnCount}</span>}
-                      <span style={{ fontSize: 10, color: "#6b7280" }}>({totalCount} items)</span>
-                    </div>
-                  )}
-                  {/* Child items compact */}
-                  {n.children && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                      {n.children.filter(c => {
-                        if (!search) return true;
-                        const sl = search.toLowerCase();
-                        return (c.name + (c.detail||"")).toLowerCase().includes(sl) || (c.children ? c.children.some(function chk(x) { return (x.name + (x.detail||"")).toLowerCase().includes(sl) || (x.children ? x.children.some(chk) : false); }) : false);
-                      }).map(c => {
-                        const cs = c.status || STATUS.INFO;
-                        return (
-                          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 8px", borderRadius: 6, background: cs === STATUS.ERROR ? "#1a000033" : cs === STATUS.WARN ? "#1a140033" : "transparent" }}>
-                            <span style={{ fontSize: 12, flexShrink: 0 }}>{c.icon}</span>
-                            <span style={{ fontSize: 11, color: "#d1d5db", flex: 1 }}>{c.name}</span>
-                            <span style={{ fontSize: 9, color: cs.color }}>{cs.icon}</span>
-                            {c.children && <span style={{ fontSize: 9, color: "#6b7280" }}>({c.children.length})</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {n.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", marginTop: 6, padding: "3px 6px", borderRadius: 4, background: "#1a1400" }}>💡 {n.recommendation}</div>}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+      {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} />}
 
       {tab === "issues" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
