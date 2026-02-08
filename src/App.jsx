@@ -3978,231 +3978,173 @@ function UseCases() {
   const [expanded, setExpanded] = useState({});
   const toggle = id => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
-  const roadmapPhases = [
-    { id: "A", label: "Phase A", title: "Rule Engine v2", status: "active", color: "#f97316", deadline: "Feb-Mrt 2026", target: "85%+ accuracy",
-      description: "Meer en betere regels toevoegen aan de hybrid engine. Enige bewezen methode die accuracy verhoogt.",
-      tasks: [
-        { done: true, text: "Rule engine v1 — 38/445 hits, +2.9% verbetering" },
-        { done: false, text: "Subscription trap regels verbeteren (nu 77.3%)" },
-        { done: false, text: "Adversarial borderline regels (nu 17.9%)" },
-        { done: false, text: "BEC/invoice fraud patronen toevoegen" },
-        { done: false, text: "QR code context regels" },
-        { done: false, text: "Benchmark na elke regelset-update" },
-      ]},
-    { id: "B", label: "Phase B", title: "Data Opschaling", status: "active", color: "#60a5fa", deadline: "Feb-Apr 2026", target: "10.000+ scenarios",
-      description: "Trainingsdata vertienvoudigen. Meer data = betere generalisatie, minder overfitting op huidige 3637 scenarios.",
-      tasks: [
-        { done: true, text: "3637 trainingsscenarios (NL/FR/EN)" },
-        { done: true, text: "445 OOD testset (schoon, 12 categorieën)" },
-        { done: false, text: "Crypto scam scenarios (50-100 NL/FR/EN)" },
-        { done: false, text: "Synthetische data via InfraNodus + LLM" },
-        { done: false, text: "PhishTank + publieke spam datasets integreren" },
-        { done: false, text: "Belgische/Nederlandse real-world scam voorbeelden" },
-        { done: false, text: "Hertrainen LFM2 LoRA op uitgebreide dataset" },
-      ]},
-    { id: "C", label: "Phase C", title: "Chrome Extensie MVP", status: "planned", color: "#22c55e", deadline: "Apr-Mei 2026", target: "Eerste gebruikers",
-      description: "Minimale werkende Chrome extensie die berichten en pagina's scant en een scam/safe oordeel geeft.",
-      tasks: [
-        { done: false, text: "Content script: pagina-tekst uitlezen" },
-        { done: false, text: "Lokale inference server (LFM2 op Mac Mini)" },
-        { done: false, text: "Popup UI: groen/oranje/rood indicator + uitleg" },
-        { done: false, text: "Gmail/Outlook web integratie" },
-        { done: false, text: "Badge overlay op marktplaats/2dehands advertenties" },
-        { done: false, text: "ExtensionPay integratie (Stripe, freemium)" },
-        { done: false, text: "Chrome Web Store publicatie" },
-      ]},
-    { id: "D", label: "Phase D", title: "Website Guardian + GDPR", status: "planned", color: "#a78bfa", deadline: "Mei-Jul 2026", target: "KMO revenue stream",
-      description: "GDPR/NIS2 compliance scanner als premium feature. Elke Europese KMO heeft dit nodig — boetes tot 4% van omzet.",
-      tasks: [
-        { done: false, text: "Cookie banner analyse (reject-all knop check)" },
-        { done: false, text: "Privacy policy completeness scan" },
-        { done: false, text: "DPO contactgegevens verificatie" },
-        { done: false, text: "Google Analytics IP-anonimisering check" },
-        { done: false, text: "NIS2 incident-rapportage vereisten" },
-        { done: false, text: "SSL/TLS configuratie audit" },
-        { done: false, text: "Rapport generatie (PDF, NL/FR/EN)" },
-        { done: false, text: "Pricing: gratis scan, rapport €29-99" },
-      ]},
+  const phases = [
+    { id: "A", title: "Rule Engine v2", color: "#f97316", status: "ACTIEF", deadline: "Feb-Mrt 2026", target: "85%+", done: 1, total: 6,
+      desc: "Meer regels = hogere accuracy. Enige bewezen methode.",
+      tasks: ["Rule engine v1 (+2.9%)", "Subscription trap", "Adversarial borderline", "BEC/invoice patronen", "QR context regels", "Benchmark per update"],
+      tasksDone: [true, false, false, false, false, false] },
+    { id: "B", title: "Data Opschaling", color: "#60a5fa", status: "ACTIEF", deadline: "Feb-Apr 2026", target: "10K+", done: 2, total: 7,
+      desc: "3637 → 10.000+ scenarios. Meer data = betere generalisatie.",
+      tasks: ["3637 scenarios (NL/FR/EN)", "445 OOD testset", "Crypto scams (50-100)", "Synthetische data", "PhishTank integratie", "Real-world BE/NL scams", "LFM2 hertrainen"],
+      tasksDone: [true, true, false, false, false, false, false] },
+    { id: "C", title: "Chrome Extensie", color: "#22c55e", status: "GEPLAND", deadline: "Apr-Mei 2026", target: "Users", done: 0, total: 7,
+      desc: "MVP: scam/safe indicator in je browser. Eerste revenue.",
+      tasks: ["Content script", "Lokale inference", "Popup UI (G/O/R)", "Gmail/Outlook integratie", "Marktplaats badges", "ExtensionPay (Stripe)", "Chrome Web Store"],
+      tasksDone: [false, false, false, false, false, false, false] },
+    { id: "D", title: "GDPR Guardian", color: "#a78bfa", status: "GEPLAND", deadline: "Mei-Jul 2026", target: "KMO's", done: 0, total: 8,
+      desc: "GDPR/NIS2 compliance scanner. Premium revenue stream.",
+      tasks: ["Cookie banner check", "Privacy policy scan", "DPO verificatie", "GA IP-check", "NIS2 vereisten", "SSL audit", "PDF rapport (NL/FR/EN)", "Pricing €29-99"],
+      tasksDone: [false, false, false, false, false, false, false, false] },
   ];
 
   const useCases = [
-    { id: "email", icon: "📧", title: "Email Scam Detectie", color: "#ef4444", phase: "C",
-      description: "Automatisch emails scannen in Gmail/Outlook web op phishing, impersonation, en credential theft.",
-      how: "Content script leest email body → LFM2 analyseert → overlay badge groen/oranje/rood naast afzender",
-      examples: ["Bpost pakje-scam (NL)", "Colissimo phishing (FR)", "DHL delivery scam (EN)", "CEO fraud / BEC facturen"],
-      unique: "Meertalig NL/FR/EN — geen andere extensie doet dit" },
-    { id: "website", icon: "🌐", title: "Website Authenticiteit", color: "#60a5fa", phase: "C",
-      description: "Bezochte websites beoordelen op betrouwbaarheid: domein-leeftijd, typosquatting, verdachte formulieren.",
-      how: "Background script checkt domein → popup waarschuwt als verdacht → banner bovenaan pagina",
-      examples: ["paypa1.com detectie", "Nep-webshop herkenning", "Phishing login pagina's", "Recent geregistreerde domeinen"],
-      unique: "Gaat verder dan HTTPS — beoordeelt inhoud, niet alleen verbinding" },
-    { id: "marketplace", icon: "🛒", title: "Marktplaats Fraude", color: "#22c55e", phase: "C",
-      description: "Advertenties op 2dehands, Marktplaats, Vinted scannen op verdachte patronen.",
-      how: "Content script detecteert marktplaats-pagina → scant advertentie → badge naast prijs",
-      examples: ["Te goede prijs voor product", "Nieuw account + copy-paste tekst", "Externe betaallink", "Nep verzendbevestiging"],
-      unique: "Specifiek voor BeNeLux marktplaatsen" },
-    { id: "chat", icon: "💬", title: "Chat & Messaging Scan", color: "#f472b6", phase: "C",
-      description: "WhatsApp Web, Telegram Web, Messenger Web berichten scannen op verdachte links en patronen.",
-      how: "Content script leest chat-venster → markeert verdachte berichten met klein icoon",
-      examples: ["Crypto pump-and-dump links", "Romance scam escalatie", "Nep-investerings tips", "Seed phrase phishing"],
-      unique: "Werkt in web-versies van alle messaging apps" },
-    { id: "gdpr", icon: "⚖️", title: "GDPR/NIS2 Compliance Scan", color: "#a78bfa", phase: "D",
-      description: "Websites scannen op GDPR en NIS2 compliance. Premium feature voor KMO's.",
-      how: "Extensie scant pagina → genereert compliance rapport → PDF in NL/FR/EN",
-      examples: ["Cookie banner zonder reject-all", "Ontbrekende DPO gegevens", "GA zonder IP-anonimisering", "Geen SSL certificaat"],
-      unique: "Meertalig compliance rapport — onmisbaar voor Belgische KMO's" },
-    { id: "qr", icon: "📱", title: "QR Code Veiligheid", color: "#06b6d4", phase: "later",
-      description: "QR codes scannen voordat je de link opent. Mobiele app (toekomst).",
-      how: "Camera-feed → QR decode → URL analyse → waarschuwing voor redirect",
-      examples: ["Nep-parkeermeter QR", "Restaurant menu vs phishing", "Betaal-QR manipulatie"],
-      unique: "Context-aware: begrijpt verschil tussen legit en nep QR gebruik" },
+    { icon: "📧", title: "Email Scam", color: "#ef4444", phase: "C", desc: "Gmail/Outlook web: phishing, BEC, impersonation detectie", how: "Overlay badge groen/oranje/rood naast afzender", usp: "Meertalig NL/FR/EN" },
+    { icon: "🌐", title: "Website Check", color: "#60a5fa", phase: "C", desc: "Domein-leeftijd, typosquatting, verdachte formulieren", how: "Banner + popup waarschuwing bij verdacht domein", usp: "Verder dan HTTPS" },
+    { icon: "🛒", title: "Marktplaats", color: "#22c55e", phase: "C", desc: "2dehands, Marktplaats, Vinted: nep-advertenties herkennen", how: "Badge naast prijs bij verdachte advertenties", usp: "BeNeLux specifiek" },
+    { icon: "💬", title: "Chat Scan", color: "#f472b6", phase: "C", desc: "WhatsApp/Telegram/Messenger Web: verdachte berichten", how: "Klein icoon naast verdachte berichten", usp: "Alle messaging apps" },
+    { icon: "⚖️", title: "GDPR/NIS2", color: "#a78bfa", phase: "D", desc: "Website compliance scan + rapport PDF generatie", how: "Cookie, privacy policy, DPO, SSL audit", usp: "KMO onmisbaar" },
+    { icon: "📱", title: "QR Veiligheid", color: "#06b6d4", phase: "Later", desc: "QR codes scannen voordat je de link opent", how: "Camera-feed analyse op mobiel", usp: "Context-aware" },
   ];
-
-  const phaseColor = { A: "#f97316", B: "#60a5fa", C: "#22c55e", D: "#a78bfa", later: "#6b7280" };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Header */}
-      <div style={{ background: "#0a0a1a", border: "1px solid #4f46e566", borderRadius: 12, padding: 16 }}>
+
+      {/* ── STRATEGISCH OVERZICHT ── */}
+      <div style={{ background: "linear-gradient(135deg, #0a0a2e, #0f1a2e, #0a0f1a)", border: "1px solid #4f46e555", borderRadius: 14, padding: 20 }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#818cf8" }}>🎯 SDK-HRM Use Cases & Roadmap</div>
+          <div style={{ fontSize: 20, fontWeight: 800, background: "linear-gradient(90deg, #818cf8, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SDK-HRM — Scam Detection & Compliance</div>
           <div style={{ fontSize: 10, color: "#4b5563" }}>8 Feb 2026</div>
         </div>
-        <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 6 }}>
-          Concrete doelstellingen en use cases — wat we bouwen, voor wie, en in welke volgorde.
+        <div style={{ fontSize: 13, color: "#d1d5db", marginTop: 10, lineHeight: 1.7 }}>
+          Een Chrome extensie die meertalig (NL/FR/EN) en 100% lokaal op je device draait. Scant emails, websites, marktplaatsen en chat-berichten op scams. Premium feature: GDPR/NIS2 compliance rapporten voor Europese KMO's.
         </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-          {roadmapPhases.map(p => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 6, background: p.color + "15", border: `1px solid ${p.color}33` }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: p.color }}>{p.label}</span>
-              <span style={{ fontSize: 10, color: "#9ca3af" }}>{p.title}</span>
-              {p.status === "active" && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: "#22c55e22", color: "#4ade80", fontWeight: 700 }}>ACTIEF</span>}
-            </div>
-          ))}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 14 }}>
+          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #f97316" }}>
+            <div style={{ fontSize: 10, color: "#f97316", fontWeight: 700 }}>IDEE</div>
+            <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>Lokale AI die meekijkt terwijl je browst — geen cloud, geen data die je browser verlaat</div>
+          </div>
+          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #22c55e" }}>
+            <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 700 }}>MARKT</div>
+            <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>$2.67B → $15.99B (2034). BeNeLux onbediend. GDPR boetes tot 4% omzet drijven vraag</div>
+          </div>
+          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #a78bfa" }}>
+            <div style={{ fontSize: 10, color: "#a78bfa", fontWeight: 700 }}>REVENUE</div>
+            <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>Freemium extensie + GDPR scan (€29-99). Doel: €5K/mnd MRR via 1000 Pro users</div>
+          </div>
         </div>
       </div>
 
-      {/* Roadmap Phases */}
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginTop: 4 }}>📋 Roadmap — A → B → C → D</div>
-      {roadmapPhases.map(phase => {
-        const doneCount = phase.tasks.filter(t => t.done).length;
-        const totalCount = phase.tasks.length;
-        const pct = Math.round((doneCount / totalCount) * 100);
-        return (
-          <div key={phase.id} style={{ background: "#0f0f0f", border: `1px solid ${phase.color}44`, borderRadius: 12, overflow: "hidden" }}>
-            <div onClick={() => toggle("phase_" + phase.id)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded["phase_" + phase.id] ? phase.color + "11" : "transparent" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 16, fontWeight: 900, color: phase.color, fontFamily: "monospace" }}>{phase.label}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                    <div style={{ fontWeight: 700, color: phase.color, fontSize: 14 }}>{phase.title}</div>
-                    <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap" }}>{phase.deadline}</div>
-                  </div>
-                  <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>Target: {phase.target} • {doneCount}/{totalCount} taken</div>
-                </div>
+      {/* ── USE CASES GRID ── */}
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8" }}>Wat de gebruiker ziet</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+        {useCases.map(uc => (
+          <div key={uc.title} style={{ background: "#0f0f0f", border: `1px solid ${uc.color}33`, borderRadius: 12, padding: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 22 }}>{uc.icon}</span>
+                <div style={{ fontWeight: 700, color: uc.color, fontSize: 14 }}>{uc.title}</div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
-                <div style={{ width: 50, height: 6, borderRadius: 3, background: "#1f2937", overflow: "hidden" }}>
-                  <div style={{ width: `${pct}%`, height: "100%", background: phase.color, borderRadius: 3 }} />
-                </div>
-                <span style={{ fontSize: 10, color: phase.color, fontWeight: 700 }}>{pct}%</span>
-                <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded["phase_" + phase.id] ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
-              </div>
+              <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: uc.color + "22", color: uc.color, fontWeight: 600 }}>{uc.phase}</span>
             </div>
-            {expanded["phase_" + phase.id] && (
-              <div style={{ padding: "0 16px 16px", borderTop: `1px solid ${phase.color}22` }}>
-                <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 12, lineHeight: 1.6 }}>{phase.description}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
-                  {phase.tasks.map((task, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: task.done ? "#22c55e08" : "#111", borderRadius: 6, border: `1px solid ${task.done ? "#22c55e33" : "#1f2937"}` }}>
-                      <span style={{ fontSize: 14 }}>{task.done ? "✅" : "⬜"}</span>
-                      <span style={{ fontSize: 12, color: task.done ? "#4ade80" : "#9ca3af", textDecoration: task.done ? "line-through" : "none" }}>{task.text}</span>
+            <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>{uc.desc}</div>
+            <div style={{ fontSize: 10, color: "#6b7280", marginTop: 6 }}>Hoe: {uc.how}</div>
+            <div style={{ marginTop: 8, padding: "4px 8px", background: "#22c55e08", border: "1px solid #22c55e22", borderRadius: 6, fontSize: 10 }}>
+              <span style={{ color: "#4ade80", fontWeight: 700 }}>USP: </span>
+              <span style={{ color: "#d1d5db" }}>{uc.usp}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── ROADMAP + REVENUE naast elkaar ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
+        {/* Roadmap */}
+        <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8", marginBottom: 10 }}>Roadmap A → D</div>
+          {phases.map(p => {
+            const pct = Math.round((p.done / p.total) * 100);
+            return (
+              <div key={p.id} style={{ marginBottom: 8 }}>
+                <div onClick={() => toggle("p_" + p.id)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "6px 8px", borderRadius: 8, background: expanded["p_" + p.id] ? p.color + "11" : "transparent" }}>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: p.color, fontFamily: "monospace", minWidth: 14 }}>{p.id}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#e5e7eb" }}>{p.title}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: p.status === "ACTIEF" ? "#22c55e22" : "#374151", color: p.status === "ACTIEF" ? "#4ade80" : "#6b7280", fontWeight: 600 }}>{p.status}</span>
+                        <span style={{ fontSize: 9, color: "#4b5563" }}>{p.deadline}</span>
+                      </div>
                     </div>
-                  ))}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#1f2937" }}>
+                        <div style={{ width: `${pct}%`, height: "100%", background: p.color, borderRadius: 2 }} />
+                      </div>
+                      <span style={{ fontSize: 9, color: p.color, fontWeight: 700, minWidth: 25 }}>{pct}%</span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 12, color: "#4b5563" }}>{expanded["p_" + p.id] ? "▾" : "▸"}</span>
                 </div>
+                {expanded["p_" + p.id] && (
+                  <div style={{ paddingLeft: 30, paddingTop: 4 }}>
+                    <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>{p.desc}</div>
+                    {p.tasks.map((t, i) => (
+                      <div key={i} style={{ fontSize: 10, color: p.tasksDone[i] ? "#4ade80" : "#6b7280", padding: "2px 0" }}>
+                        {p.tasksDone[i] ? "✓" : "○"} {t}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Use Cases */}
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginTop: 8 }}>🎯 Use Cases — Wat de gebruiker ziet</div>
-      {useCases.map(uc => (
-        <div key={uc.id} style={{ background: "#0f0f0f", border: `1px solid ${uc.color}44`, borderRadius: 12, overflow: "hidden" }}>
-          <div onClick={() => toggle("uc_" + uc.id)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded["uc_" + uc.id] ? uc.color + "11" : "transparent" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 20 }}>{uc.icon}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                  <div style={{ fontWeight: 700, color: uc.color, fontSize: 14 }}>{uc.title}</div>
-                  <div style={{ fontSize: 10, color: "#4b5563", fontWeight: 500, whiteSpace: "nowrap" }}>Phase {uc.phase}</div>
-                </div>
-                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{uc.description}</div>
-              </div>
-            </div>
-            <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded["uc_" + uc.id] ? "rotate(180deg)" : "rotate(0deg)", marginLeft: 8 }}>▾</span>
-          </div>
-          {expanded["uc_" + uc.id] && (
-            <div style={{ padding: "0 16px 16px", borderTop: `1px solid ${uc.color}22` }}>
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: uc.color, marginBottom: 6 }}>Hoe het werkt:</div>
-                <div style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.6 }}>{uc.how}</div>
-              </div>
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: uc.color, marginBottom: 6 }}>Concrete voorbeelden:</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {uc.examples.map((ex, i) => (
-                    <span key={i} style={{ padding: "3px 8px", background: uc.color + "15", border: `1px solid ${uc.color}33`, borderRadius: 6, fontSize: 11, color: "#d1d5db" }}>{ex}</span>
-                  ))}
-                </div>
-              </div>
-              <div style={{ marginTop: 12, padding: "8px 12px", background: "#22c55e08", border: "1px solid #22c55e33", borderRadius: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#4ade80" }}>USP: </span>
-                <span style={{ fontSize: 11, color: "#d1d5db" }}>{uc.unique}</span>
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
-      ))}
 
-      {/* Competitief Overzicht */}
-      <div style={{ background: "#0a0a1a", border: "1px solid #6366f144", borderRadius: 12, padding: 16, marginTop: 4 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8", marginBottom: 10 }}>⚔️ Waarom SDK-HRM anders is</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
-          {[
-            { label: "Meertalig NL/FR/EN", detail: "Geen concurrent doet BeNeLux talen", color: "#f97316" },
-            { label: "100% on-device", detail: "Geen data verlaat je browser/device", color: "#22c55e" },
-            { label: "Scam + GDPR in één", detail: "Bescherming + compliance = uniek", color: "#a78bfa" },
-            { label: "Data flywheel", detail: "Gebruikers feedback = beter model", color: "#60a5fa" },
-            { label: "Crypto nuance", detail: "Begrijpt verschil legit DeFi vs scam", color: "#f59e0b" },
-            { label: "Privacy-first", detail: "Geen cloud, geen tracking, geen ads", color: "#ef4444" },
-          ].map(d => (
-            <div key={d.label} style={{ background: "#111", border: `1px solid ${d.color}33`, borderRadius: 8, padding: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.label}</div>
-              <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 3 }}>{d.detail}</div>
+        {/* Revenue + USPs */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Revenue */}
+          <div style={{ background: "#000f00", border: "1px solid #22c55e33", borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#22c55e", marginBottom: 10 }}>Revenue Model</div>
+            {[
+              { tier: "Gratis", price: "€0", detail: "5 scans/dag — adoptie + flywheel", color: "#6b7280" },
+              { tier: "Pro", price: "€4.99/mnd", detail: "Unlimited scans + priority updates", color: "#60a5fa" },
+              { tier: "Gezin", price: "€9.99/mnd", detail: "5 devices + elderly dashboard", color: "#f472b6" },
+              { tier: "GDPR Scan", price: "€29-99", detail: "Compliance rapport PDF (NL/FR/EN)", color: "#a78bfa" },
+            ].map(r => (
+              <div key={r.tier} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #1f2937" }}>
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: r.color }}>{r.tier}</span>
+                  <span style={{ fontSize: 10, color: "#6b7280", marginLeft: 6 }}>{r.detail}</span>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#4ade80" }}>{r.price}</span>
+              </div>
+            ))}
+            <div style={{ marginTop: 10, padding: "8px 10px", background: "#22c55e11", borderRadius: 8, textAlign: "center" }}>
+              <span style={{ fontSize: 18, fontWeight: 900, color: "#4ade80" }}>€5.000</span>
+              <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 6 }}>MRR doel = 1000 Pro users</span>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Revenue Target */}
-      <div style={{ background: "#000f00", border: "1px solid #22c55e44", borderRadius: 12, padding: 16 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#22c55e", marginBottom: 10 }}>💰 Revenue Doel</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
-          {[
-            { label: "Gratis tier", value: "5 scans/dag", sub: "Data flywheel + reviews" },
-            { label: "Pro", value: "€4.99/mnd", sub: "Unlimited + priority updates" },
-            { label: "Gezin", value: "€9.99/mnd", sub: "5 devices + elderly dashboard" },
-            { label: "GDPR Scan", value: "€29-99/scan", sub: "Compliance rapport PDF" },
-            { label: "MRR Doel", value: "€5.000/mnd", sub: "1000 Pro of 500 Gezin" },
-          ].map(r => (
-            <div key={r.label} style={{ background: "#111", borderRadius: 8, padding: 10, textAlign: "center" }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#4ade80" }}>{r.value}</div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#e5e7eb", marginTop: 2 }}>{r.label}</div>
-              <div style={{ fontSize: 9, color: "#6b7280", marginTop: 2 }}>{r.sub}</div>
-            </div>
-          ))}
+          {/* USPs */}
+          <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8", marginBottom: 8 }}>Waarom SDK-HRM</div>
+            {[
+              { label: "Meertalig NL/FR/EN", sub: "Niemand anders doet BeNeLux", color: "#f97316" },
+              { label: "100% on-device", sub: "Zero cloud, zero tracking", color: "#22c55e" },
+              { label: "Scam + GDPR", sub: "Bescherming + compliance in 1 tool", color: "#a78bfa" },
+              { label: "Data flywheel", sub: "User feedback = beter model", color: "#60a5fa" },
+              { label: "Crypto nuance", sub: "Legit DeFi vs scam onderscheid", color: "#f59e0b" },
+              { label: "Privacy-first", sub: "Geen ads, geen data verkoop", color: "#ef4444" },
+            ].map(u => (
+              <div key={u.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #ffffff08" }}>
+                <div style={{ width: 4, height: 16, borderRadius: 2, background: u.color, flexShrink: 0 }} />
+                <div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: u.color }}>{u.label}</span>
+                  <span style={{ fontSize: 10, color: "#6b7280", marginLeft: 6 }}>{u.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -5168,7 +5110,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.12.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.14.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
