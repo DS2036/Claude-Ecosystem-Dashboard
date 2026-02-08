@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.14.0
+// CLAUDE CONTROL CENTER v4.15.0
 // Complete Dashboard: 20 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -86,6 +86,7 @@ const api = {
 // v4.12.0 - Datums bij ALLE collapsible secties: Benchmarks (4), Revenue (5), Crypto (6)
 // v4.13.0 - "Laatst bijgewerkt" datum onder elke tab-button voor referentie
 // v4.14.0 - Use Cases tab: roadmap (A→B→C→D), 6 use cases, USPs, revenue targets (20 tabs)
+// v4.15.0 - Blokken-layout: Ecosystem grid, Issues cards, InfraNodus 22 graphs, Staging fix BFW
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -1330,7 +1331,7 @@ function StagingVariants() {
   const [projects] = useState([
     { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: "claude-ecosystem-staging.pages.dev", variants: [] },
     { name: "Econation", production: "econation.be", staging: "econation-b-dev.franky-f29.workers.dev", variants: [] },
-    { name: "BlackFuelWhiskey", production: "blackfuel-whiskey.franky-f29.workers.dev", staging: null, variants: [] },
+    { name: "BlackFuelWhiskey", production: "blackfuelwhiskey.com", staging: "blackfuel-whiskey.franky-f29.workers.dev", variants: [] },
   ]);
 
   return (
@@ -1493,86 +1494,84 @@ function CrossDeviceSync() {
 // V3.1 TAB: INFRANODUS DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function InfraNodusDashboard() {
-  const [graphs] = useState([
-    { name: "SDK-HRM-vision", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-vision", keywords: 49, insights: ["Leerkurve philosophy", "Per-contact profiling"] },
-    { name: "SDK-HRM-fraud_protection", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-fraud_protection", keywords: 60, insights: ["Real-time detection", "Wearable integration"] },
-    { name: "SDK-HRM-email_guardian", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-email_guardian", keywords: 64, insights: ["BEC detection", "Impersonation alerts"] },
-    { name: "SDK-HRM-revenue_model", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-revenue_model", keywords: 63, insights: ["White-label MSP", "API-first platform"] },
-    { name: "SDK-HRM-website_monitoring", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-website_monitoring", keywords: 59, insights: ["Phishing detection", "Clone alerts"] },
-    { name: "SDK-HRM-mobile_agent", url: "https://infranodus.com/Franky-DSVD/SDK-HRM-mobile_agent", keywords: 53, insights: ["SMS analysis", "Call screening"] },
-  ]);
-
-  const newInsights = [
-    { priority: "P1", text: "API-first architecture - Webhooks & Zapier integratie" },
-    { priority: "P1", text: "White-label optie voor MSPs - Nieuw verkoopkanaal" },
-    { priority: "P2", text: "Gamification - \"Security Hero\" level systeem" },
-    { priority: "P2", text: "Device fingerprinting - Fraud detection verbetering" },
-    { priority: "P3", text: "SIEM integration - Enterprise tier" },
-    { priority: "P3", text: "Social graph analysis - Romance scam verbetering" },
+  const [filter, setFilter] = useState("all");
+  const graphs = [
+    { name: "SDK-HRM-vision", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["Leerkurve", "Per-contact"] },
+    { name: "SDK-HRM-fraud_protection", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["Real-time", "Wearable"] },
+    { name: "SDK-HRM-email_guardian", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["BEC", "Impersonation"] },
+    { name: "SDK-HRM-revenue_model", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["White-label", "API-first"] },
+    { name: "SDK-HRM-website_monitoring", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["Phishing", "Clone"] },
+    { name: "SDK-HRM-mobile_agent", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["SMS", "Call screening"] },
+    { name: "SDK-HRM-franky-vision", type: "STANDARD", date: "6 Feb", cat: "vision", tags: ["Product vision"] },
+    { name: "SDK-HRM-roadmap-gaps", type: "STANDARD", date: "6 Feb", cat: "vision", tags: ["Content gaps"] },
+    { name: "SDK-HRM-training-priorities", type: "STANDARD", date: "6 Feb", cat: "training", tags: ["Prioriteiten"] },
+    { name: "SDK-HRM-scam-patterns-v2", type: "STANDARD", date: "6 Feb", cat: "training", tags: ["Scam patronen"] },
+    { name: "SDK-HRM-model-comparison", type: "STANDARD", date: "7 Feb", cat: "model", tags: ["LFM2", "HRM-27M"] },
+    { name: "SDK-HRM-nested-architecture", type: "STANDARD", date: "7 Feb", cat: "model", tags: ["Nested", "Phase 1"] },
+    { name: "SDK-HRM-model-security", type: "STANDARD", date: "7 Feb", cat: "security", tags: ["Model security"] },
+    { name: "SDK-HRM-blockchain-trust", type: "STANDARD", date: "7 Feb", cat: "security", tags: ["Blockchain"] },
+    { name: "SDK-HRM-embedded-market", type: "STANDARD", date: "7 Feb", cat: "market", tags: ["Embedded SDK"] },
+    { name: "SDK-HRM-crypto-security", type: "STANDARD", date: "7 Feb", cat: "security", tags: ["Crypto scams"] },
+    { name: "SDK-HRM-full-product-map", type: "STANDARD", date: "7 Feb", cat: "vision", tags: ["Product map"] },
+    { name: "SDK-HRM-website-guardian", type: "STANDARD", date: "7 Feb", cat: "core", tags: ["GDPR", "Guardian"] },
+    { name: "SDK-HRM-voice-visual-shield", type: "STANDARD", date: "7 Feb", cat: "core", tags: ["Voice", "Visual"] },
+    { name: "sdk-hrm-finance-strategy", type: "STANDARD", date: "7 Feb", cat: "market", tags: ["Finance"] },
+    { name: "sdk-hrm-session-log", type: "MEMORY", date: "7 Feb", cat: "memory", tags: ["Session log"] },
+    { name: "sdk-hrm-franky-vision", type: "MEMORY", date: "7 Feb", cat: "memory", tags: ["Franky brain"] },
   ];
 
-  const totalKeywords = graphs.reduce((sum, g) => sum + g.keywords, 0);
+  const catColors = { core: "#a78bfa", vision: "#60a5fa", training: "#f97316", model: "#22c55e", security: "#ef4444", market: "#fbbf24", memory: "#f472b6" };
+  const catLabels = { core: "Core Product", vision: "Visie & Strategie", training: "Training Data", model: "Model Architectuur", security: "Security & Crypto", market: "Markt & Revenue", memory: "Memory / Sessies" };
+  const cats = [...new Set(graphs.map(g => g.cat))];
+  const filtered = filter === "all" ? graphs : graphs.filter(g => g.cat === filter);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Quick Stats */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <div style={{ background: "#0f0f23", border: "1px solid #5b21b6", borderRadius: 12, padding: 16, textAlign: "center", minWidth: 100 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#a78bfa" }}>{graphs.length}</div>
-          <div style={{ color: "#6b7280", fontSize: 11 }}>Actieve Graphs</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ background: "#0f0f23", border: "1px solid #5b21b6", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#a78bfa" }}>{graphs.length}</div>
+          <div style={{ fontSize: 10, color: "#6b7280" }}>Graphs</div>
         </div>
-        <div style={{ background: "#0f0f23", border: "1px solid #166534", borderRadius: 12, padding: 16, textAlign: "center", minWidth: 100 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#4ade80" }}>{totalKeywords}</div>
-          <div style={{ color: "#6b7280", fontSize: 11 }}>Totaal Keywords</div>
+        <div style={{ background: "#0f0f23", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#4ade80" }}>{cats.length}</div>
+          <div style={{ fontSize: 10, color: "#6b7280" }}>Categorieën</div>
         </div>
-        <div style={{ background: "#0f0f23", border: "1px solid #854d0e", borderRadius: 12, padding: 16, textAlign: "center", minWidth: 100 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#fbbf24" }}>{newInsights.length}</div>
-          <div style={{ color: "#6b7280", fontSize: 11 }}>Nieuwe Inzichten</div>
+        <div style={{ background: "#0f0f23", border: "1px solid #854d0e", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#fbbf24" }}>{graphs.filter(g => g.type === "MEMORY").length}</div>
+          <div style={{ fontSize: 10, color: "#6b7280" }}>Memory Graphs</div>
         </div>
       </div>
 
-      {/* Graphs List */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#a78bfa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>🕸️</span> SDK-HRM Graphs
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {graphs.map((graph) => (
-            <div key={graph.name} style={{ background: "#1a1a2e", borderRadius: 8, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <a href={graph.url} target="_blank" rel="noopener noreferrer" style={{ color: "#c4b5fd", fontWeight: 600, fontSize: 13, textDecoration: "none" }}>{graph.name} ↗</a>
-                <span style={{ color: "#6b7280", fontSize: 11 }}>{graph.keywords} keywords</span>
+      {/* Category filter */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <button onClick={() => setFilter("all")} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === "all" ? "#a78bfa" : "#374151"}`, background: filter === "all" ? "#5b21b622" : "#111", color: filter === "all" ? "#c4b5fd" : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Alle ({graphs.length})</button>
+        {cats.map(cat => (
+          <button key={cat} onClick={() => setFilter(cat)} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === cat ? catColors[cat] : "#374151"}`, background: filter === cat ? catColors[cat] + "22" : "#111", color: filter === cat ? catColors[cat] : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>{catLabels[cat]} ({graphs.filter(g => g.cat === cat).length})</button>
+        ))}
+      </div>
+
+      {/* Graphs grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
+        {filtered.map(g => (
+          <a key={g.name + g.type} href={`https://infranodus.com/Franky-DSVD/${g.name}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>
+            <div style={{ background: "#0f0f0f", border: `1px solid ${catColors[g.cat]}33`, borderRadius: 10, padding: 12, cursor: "pointer", transition: "border-color 0.15s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = catColors[g.cat]}
+              onMouseLeave={e => e.currentTarget.style.borderColor = catColors[g.cat] + "33"}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <span style={{ fontWeight: 600, fontSize: 11, color: "#c4b5fd", lineHeight: 1.3 }}>{g.name}</span>
+                <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 4, background: g.type === "MEMORY" ? "#f472b622" : "#5b21b622", color: g.type === "MEMORY" ? "#f472b6" : "#a78bfa", flexShrink: 0 }}>{g.type}</span>
               </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {graph.insights.map((insight, idx) => (
-                  <span key={idx} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#5b21b622", color: "#c4b5fd" }}>{insight}</span>
-                ))}
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+                {g.tags.map((t, i) => <span key={i} style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: catColors[g.cat] + "15", color: catColors[g.cat] }}>{t}</span>)}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 9, color: "#6b7280" }}>{g.date} 2026</span>
+                <span style={{ fontSize: 9, color: catColors[g.cat] }}>↗ Open</span>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* New Insights */}
-      <div style={{ background: "#0f0023", border: "1px solid #5b21b6", borderRadius: 12, padding: 14 }}>
-        <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span>💡</span> NIEUWE Inzichten (6 feb 2026)
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {newInsights.map((insight, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: insight.priority === "P1" ? "#ef4444" : insight.priority === "P2" ? "#fbbf24" : "#6b7280" }}>{insight.priority}:</span>
-              <span style={{ color: "#e5e5e5", fontSize: 12 }}>{insight.text}</span>
-            </div>
-          ))}
-        </div>
-        <p style={{ color: "#6b7280", fontSize: 10, marginTop: 10 }}>Bron: InfraNodus competitor analyse op 6 feb 2026</p>
-      </div>
-
-      {/* Quick Actions */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <button style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>🔍 Nieuwe Analyse</button>
-        <button style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>🕸️ Content Gaps</button>
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -5110,7 +5109,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.14.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.15.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5189,19 +5188,100 @@ export default function ControlCenter() {
       {tab === "ecosystem" && (
         <>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
-          <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 12 }}>{ECOSYSTEM.map(n => <TreeNode key={n.id} node={n} searchTerm={search} />)}</div>
+          {/* Blokken grid - elke root categorie is een kaart */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+            {ECOSYSTEM.filter(n => {
+              if (!search) return true;
+              const s = search.toLowerCase();
+              const self = (n.name + (n.detail || "")).toLowerCase().includes(s);
+              const child = n.children?.some(function chk(c) { return (c.name + (c.detail||"")).toLowerCase().includes(s) || (c.children ? c.children.some(chk) : false); });
+              return self || child;
+            }).map(n => {
+              const s = n.status || STATUS.INFO;
+              const okCount = n.children ? n.children.filter(c => c.status === STATUS.OK).length : 0;
+              const warnCount = n.children ? n.children.filter(c => c.status === STATUS.WARN || c.status === STATUS.ERROR).length : 0;
+              const totalCount = n.children ? n.children.length : 0;
+              return (
+                <div key={n.id} style={{ background: "#0f0f0f", border: `1px solid ${s.border}44`, borderRadius: 10, padding: 14, cursor: "default" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 18 }}>{n.icon}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: "#e5e5e5" }}>{n.name}</span>
+                    </div>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: s.bg, color: s.color, border: `1px solid ${s.border}`, fontWeight: 600 }}>{s.icon} {s.label.replace(/^[^\w]*/, "")}</span>
+                  </div>
+                  {n.detail && <div style={{ fontSize: 11, color: "#888", marginBottom: 8, lineHeight: 1.4 }}>{n.detail}</div>}
+                  {totalCount > 0 && (
+                    <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                      {okCount > 0 && <span style={{ fontSize: 10, color: "#4ade80" }}>✓ {okCount} OK</span>}
+                      {warnCount > 0 && <span style={{ fontSize: 10, color: "#fbbf24" }}>⚠ {warnCount}</span>}
+                      <span style={{ fontSize: 10, color: "#6b7280" }}>({totalCount} items)</span>
+                    </div>
+                  )}
+                  {/* Child items compact */}
+                  {n.children && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {n.children.filter(c => {
+                        if (!search) return true;
+                        const sl = search.toLowerCase();
+                        return (c.name + (c.detail||"")).toLowerCase().includes(sl) || (c.children ? c.children.some(function chk(x) { return (x.name + (x.detail||"")).toLowerCase().includes(sl) || (x.children ? x.children.some(chk) : false); }) : false);
+                      }).map(c => {
+                        const cs = c.status || STATUS.INFO;
+                        return (
+                          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 8px", borderRadius: 6, background: cs === STATUS.ERROR ? "#1a000033" : cs === STATUS.WARN ? "#1a140033" : "transparent" }}>
+                            <span style={{ fontSize: 12, flexShrink: 0 }}>{c.icon}</span>
+                            <span style={{ fontSize: 11, color: "#d1d5db", flex: 1 }}>{c.name}</span>
+                            <span style={{ fontSize: 9, color: cs.color }}>{cs.icon}</span>
+                            {c.children && <span style={{ fontSize: 9, color: "#6b7280" }}>({c.children.length})</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {n.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", marginTop: 6, padding: "3px 6px", borderRadius: 4, background: "#1a1400" }}>💡 {n.recommendation}</div>}
+                </div>
+              );
+            })}
+          </div>
         </>
       )}
 
       {tab === "issues" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ background: "#1a0000", border: "1px solid #991b1b", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#ef4444", marginBottom: 8 }}>🔴 Kritiek ({issues.filter(i => i.status === STATUS.ERROR).length})</div>
-            {issues.filter(i => i.status === STATUS.ERROR).map(i => <div key={i.id} style={{ padding: "6px 0", borderBottom: "1px solid #991b1b33" }}><div style={{ fontSize: 12, fontWeight: 600, color: "#fca5a5" }}>{i.icon} {i.name}</div><div style={{ fontSize: 11, color: "#888" }}>{i.path}</div>{i.recommendation && <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 3 }}>💡 {i.recommendation}</div>}</div>)}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Summary bar */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ background: "#1a0000", border: "1px solid #991b1b", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#ef4444" }}>{issues.filter(i => i.status === STATUS.ERROR).length}</div>
+              <div style={{ fontSize: 10, color: "#fca5a5" }}>Kritiek</div>
+            </div>
+            <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#fbbf24" }}>{issues.filter(i => i.status === STATUS.WARN).length}</div>
+              <div style={{ fontSize: 10, color: "#fde68a" }}>Waarschuwingen</div>
+            </div>
+            <div style={{ background: "#052e16", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#4ade80" }}>{counts.OK}</div>
+              <div style={{ fontSize: 10, color: "#86efac" }}>OK</div>
+            </div>
           </div>
-          <div style={{ background: "#1a1400", border: "1px solid #854d0e", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#f59e0b", marginBottom: 8 }}>🟡 Waarschuwingen ({issues.filter(i => i.status === STATUS.WARN).length})</div>
-            {issues.filter(i => i.status === STATUS.WARN).map(i => <div key={i.id} style={{ padding: "6px 0", borderBottom: "1px solid #854d0e33" }}><div style={{ fontSize: 12, fontWeight: 600, color: "#fde68a" }}>{i.icon} {i.name}</div><div style={{ fontSize: 11, color: "#888" }}>{i.path}</div>{i.detail && <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{i.detail}</div>}{i.recommendation && <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 3 }}>💡 {i.recommendation}</div>}</div>)}
+          {/* Issues as card grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
+            {issues.map(i => {
+              const isErr = i.status === STATUS.ERROR;
+              return (
+                <div key={i.id} style={{ background: isErr ? "#1a0000" : "#1a1400", border: `1px solid ${isErr ? "#991b1b" : "#854d0e"}`, borderRadius: 10, padding: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 14 }}>{i.icon}</span>
+                      <span style={{ fontWeight: 600, fontSize: 12, color: isErr ? "#fca5a5" : "#fde68a" }}>{i.name}</span>
+                    </div>
+                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: isErr ? "#ef444422" : "#f59e0b22", color: isErr ? "#ef4444" : "#fbbf24", fontWeight: 700 }}>{isErr ? "KRITIEK" : "WARN"}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>{i.path}</div>
+                  {i.detail && <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{i.detail}</div>}
+                  {i.recommendation && <div style={{ fontSize: 10, color: "#fbbf24", padding: "3px 6px", borderRadius: 4, background: "#1a140066" }}>💡 {i.recommendation}</div>}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -5227,7 +5307,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.14.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.15.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
