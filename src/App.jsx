@@ -50,7 +50,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.12.0
+// CLAUDE CONTROL CENTER v4.13.0
 // Complete Dashboard: 19 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -84,6 +84,7 @@ const api = {
 // v4.12.0 - Scan Now knoppen + Local API integratie + Live status indicator
 // v4.11.0 - Section date prop: datums als aparte metadata rechts van header (niet in titel)
 // v4.12.0 - Datums bij ALLE collapsible secties: Benchmarks (4), Revenue (5), Crypto (6)
+// v4.13.0 - "Laatst bijgewerkt" datum onder elke tab-button voor referentie
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -4845,25 +4846,25 @@ export default function ControlCenter() {
 
   // Tabs - reorganized for better visibility
   const tabs = [
-    { id: "ecosystem", label: "🗺️ Ecosystem", color: "#22c55e" },
-    { id: "issues", label: "⚠️ Issues", color: "#f59e0b" },
-    { id: "memory", label: "🧠 Memory", color: "#60a5fa" },
-    { id: "git", label: "📂 Git", color: "#06b6d4" },
-    { id: "versions", label: "📸 Versions", color: "#f472b6" },
-    { id: "activity", label: "📜 Activity", color: "#fbbf24" },
-    { id: "staging", label: "🌐 Staging", color: "#8b5cf6" },
-    { id: "sync", label: "🔄 Cross-Sync", color: "#10b981" },
-    { id: "infranodus", label: "🕸️ InfraNodus", color: "#a855f7" },
-    { id: "agents", label: "👥 Agents", color: "#f59e0b" },
-    { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899" },
-    { id: "updates", label: "📡 Updates", color: "#06b6d4" },
-    { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed" },
-    { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316" },
-    { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa" },
-    { id: "crypto", label: "🪙 Crypto", color: "#f59e0b" },
-    { id: "revenue", label: "💰 Revenue", color: "#22c55e" },
-    { id: "notes", label: "📋 Notes", color: "#14b8a6" },
-    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa" },
+    { id: "ecosystem", label: "🗺️ Ecosystem", color: "#22c55e", lastUpdated: "8 Feb" },
+    { id: "issues", label: "⚠️ Issues", color: "#f59e0b", lastUpdated: "8 Feb" },
+    { id: "memory", label: "🧠 Memory", color: "#60a5fa", lastUpdated: "8 Feb" },
+    { id: "git", label: "📂 Git", color: "#06b6d4", lastUpdated: "7 Feb" },
+    { id: "versions", label: "📸 Versions", color: "#f472b6", lastUpdated: "7 Feb" },
+    { id: "activity", label: "📜 Activity", color: "#fbbf24", lastUpdated: "8 Feb" },
+    { id: "staging", label: "🌐 Staging", color: "#8b5cf6", lastUpdated: "7 Feb" },
+    { id: "sync", label: "🔄 Cross-Sync", color: "#10b981", lastUpdated: "7 Feb" },
+    { id: "infranodus", label: "🕸️ InfraNodus", color: "#a855f7", lastUpdated: "8 Feb" },
+    { id: "agents", label: "👥 Agents", color: "#f59e0b", lastUpdated: "7 Feb" },
+    { id: "knowledge", label: "🧠 Knowledge", color: "#ec4899", lastUpdated: "7 Feb" },
+    { id: "updates", label: "📡 Updates", color: "#06b6d4", lastUpdated: "7 Feb" },
+    { id: "openbot", label: "🤖 OpenClaw", color: "#7c3aed", lastUpdated: "7 Feb" },
+    { id: "sdkhrm", label: "🧠 SDK-HRM", color: "#f97316", lastUpdated: "8 Feb" },
+    { id: "benchmarks", label: "📊 Benchmarks", color: "#60a5fa", lastUpdated: "8 Feb" },
+    { id: "crypto", label: "🪙 Crypto", color: "#f59e0b", lastUpdated: "7 Feb" },
+    { id: "revenue", label: "💰 Revenue", color: "#22c55e", lastUpdated: "7 Feb" },
+    { id: "notes", label: "📋 Notes", color: "#14b8a6", lastUpdated: "8 Feb" },
+    { id: "advisor", label: "🤖 Advisor", color: "#a78bfa", lastUpdated: "8 Feb" },
   ];
 
   // Device display config
@@ -4979,7 +4980,7 @@ export default function ControlCenter() {
       }}>
         {tabs.filter(t => t.id !== "advisor").map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: "8px 10px",
+            padding: "6px 10px 4px",
             borderRadius: 8,
             border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
             background: tab === t.id ? t.color + "22" : "#111",
@@ -4988,8 +4989,15 @@ export default function ControlCenter() {
             fontWeight: 600,
             cursor: "pointer",
             whiteSpace: "nowrap",
-            textAlign: "center"
-          }}>{t.label}</button>
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1
+          }}>
+            <span>{t.label}</span>
+            {t.lastUpdated && <span style={{ fontSize: 7, color: tab === t.id ? t.color + "99" : "#374151", fontWeight: 400 }}>{t.lastUpdated}</span>}
+          </button>
         ))}
       </div>
 
@@ -5034,7 +5042,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.12.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.13.0 • {total} nodes • 19 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
