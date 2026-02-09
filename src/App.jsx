@@ -5018,96 +5018,84 @@ var TOOLS_DATA = {
 
 
 // ==================== GDPR ARTES TAB ====================
-// v4.21.0 - GDPR/Cookie Compliance Monitoring Dashboard
 function GDPRArtes() {
-  const { S } = React.useContext(DeviceContext);
-  
-  const euChanges = [
-    { item: "Browser Privacy Signal (GPC)", status: "VERPLICHT", deadline: "Nu", impact: "Websites moeten GPC/DNT respecteren", color: "#ef4444" },
-    { item: "Datalek melding termijn", status: "Gewijzigd", deadline: "2025", impact: "72u naar 96 uur, alleen bij hoog risico", color: "#f59e0b" },
-    { item: "Artikel 88a/88b AVG", status: "Nieuw", deadline: "2025", impact: "Eindapparatuur bescherming naar AVG", color: "#3b82f6" },
-    { item: "Consent Fatigue oplossing", status: "Voorstel", deadline: "2025-2026", impact: "Browser-brede privacy instelling", color: "#8b5cf6" },
-  ];
-  
-  const projects = [
-    { name: "BlackFuel Whiskey", gpc: true, consent: true, privacy: true },
-    { name: "IDGS Constructions", gpc: true, consent: true, privacy: true },
-    { name: "Econation", gpc: true, consent: true, privacy: false },
-  ];
-
-  const sources = [
-    { name: "Artes.law", url: "https://artes.law", desc: "Belgische juridische updates" },
-    { name: "EDPB", url: "https://edpb.europa.eu/news/news_en", desc: "EU richtsnoeren" },
-    { name: "GBA Belgie", url: "https://gegevensbeschermingsautoriteit.be", desc: "Lokale autoriteit" },
-  ];
-
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: S.gap }}>
+    <div style={{ padding: 20 }}>
+      <div style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #3b82f6" }}>
+        <h2 style={{ margin: 0, color: "#60a5fa", fontSize: 20 }}>GDPR en Cookie Compliance - Artes.law</h2>
+        <p style={{ margin: "8px 0 0 0", color: "#9ca3af", fontSize: 12 }}>EU Digital Omnibus (19 nov 2024) - Wekelijkse monitoring actief</p>
+      </div>
       
-      <div style={{ gridColumn: "1 / -1", background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #3b82f6" }}>
-        <h2 style={{ margin: 0, color: "#60a5fa", fontSize: S.h2 }}>
-          GDPR en Cookie Compliance - Artes.law
-        </h2>
-        <p style={{ margin: "6px 0 0 0", color: "#9ca3af", fontSize: S.smallFont }}>
-          EU Digital Omnibus (19 nov 2024) - Wekelijkse monitoring actief - Browser Signal Detection geimplementeerd
-        </p>
-      </div>
-
-      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
-        <h3 style={{ margin: "0 0 12px 0", color: "#f59e0b", fontSize: S.h3 }}>EU Digital Omnibus Wijzigingen</h3>
-        {euChanges.map((c, i) => (
-          <div key={i} style={{ marginBottom: 8, padding: "8px 10px", background: c.color + "11", borderRadius: 6, borderLeft: "3px solid " + c.color }}>
-            <div style={{ color: "#e5e5e5", fontSize: S.smallFont, fontWeight: 600 }}>{c.item}</div>
-            <div style={{ color: "#9ca3af", fontSize: S.tinyFont }}>{c.impact}</div>
-            <span style={{ background: c.color + "33", color: c.color, padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>{c.status} - {c.deadline}</span>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+        
+        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#f59e0b", fontSize: 14 }}>EU Digital Omnibus Wijzigingen</h3>
+          <div style={{ marginBottom: 8, padding: 10, background: "#ef444411", borderRadius: 6, borderLeft: "3px solid #ef4444" }}>
+            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Browser Privacy Signal (GPC)</div>
+            <div style={{ color: "#9ca3af", fontSize: 10 }}>Websites moeten GPC/DNT respecteren</div>
+            <span style={{ background: "#ef444433", color: "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>VERPLICHT</span>
           </div>
-        ))}
-      </div>
+          <div style={{ marginBottom: 8, padding: 10, background: "#f59e0b11", borderRadius: 6, borderLeft: "3px solid #f59e0b" }}>
+            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Datalek melding termijn</div>
+            <div style={{ color: "#9ca3af", fontSize: 10 }}>72u naar 96 uur, alleen bij hoog risico</div>
+            <span style={{ background: "#f59e0b33", color: "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>2025</span>
+          </div>
+          <div style={{ marginBottom: 8, padding: 10, background: "#3b82f611", borderRadius: 6, borderLeft: "3px solid #3b82f6" }}>
+            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Artikel 88a/88b AVG</div>
+            <div style={{ color: "#9ca3af", fontSize: 10 }}>Eindapparatuur bescherming naar AVG</div>
+            <span style={{ background: "#3b82f633", color: "#3b82f6", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>NIEUW</span>
+          </div>
+        </div>
 
-      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
-        <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: S.h3 }}>Project Compliance Status</h3>
-        {projects.map((p, i) => (
-          <div key={i} style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
-            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>{p.name}</div>
+        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: 14 }}>Project Compliance Status</h3>
+          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
+            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>BlackFuel Whiskey</div>
             <div style={{ display: "flex", gap: 6 }}>
-              <span style={{ background: p.gpc ? "#22c55e22" : "#ef444422", color: p.gpc ? "#22c55e" : "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC {p.gpc ? "OK" : "X"}</span>
-              <span style={{ background: p.consent ? "#22c55e22" : "#ef444422", color: p.consent ? "#22c55e" : "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Consent {p.consent ? "OK" : "X"}</span>
-              <span style={{ background: p.privacy ? "#22c55e22" : "#f59e0b22", color: p.privacy ? "#22c55e" : "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Privacy {p.privacy ? "OK" : "!"}</span>
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Consent OK</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
-        <h3 style={{ margin: "0 0 12px 0", color: "#06b6d4", fontSize: S.h3 }}>Monitoring Bronnen</h3>
-        {sources.map((s, i) => (
-          <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: "10px 12px", background: "#111827", borderRadius: 6, textDecoration: "none" }}>
-            <div style={{ color: "#60a5fa", fontSize: S.smallFont, fontWeight: 600 }}>{s.name}</div>
-            <div style={{ color: "#6b7280", fontSize: S.tinyFont }}>{s.desc}</div>
-          </a>
-        ))}
-        <div style={{ marginTop: 12, padding: 10, background: "#1e3a5f22", borderRadius: 6 }}>
-          <div style={{ color: "#9ca3af", fontSize: 10 }}>Lokale bestanden:</div>
-          <code style={{ color: "#60a5fa", fontSize: 10 }}>~/Projects/GDPR-COMPLIANCE-MODULE/</code>
+          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
+            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>IDGS Constructions</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Consent OK</span>
+            </div>
+          </div>
+          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
+            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>Econation</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
+              <span style={{ background: "#f59e0b22", color: "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Privacy !</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
-        <h3 style={{ margin: "0 0 12px 0", color: "#a78bfa", fontSize: S.h3 }}>GPC Browser Signal Code</h3>
-        <pre style={{ background: "#0d1117", padding: 12, borderRadius: 6, overflow: "auto", fontSize: 10, color: "#c9d1d9", margin: 0, whiteSpace: "pre-wrap" }}>
-{`function checkBrowserPrivacySignal() {
-  if (navigator.globalPrivacyControl === true) 
-    return 'opt-out';
-  if (navigator.doNotTrack === '1') 
-    return 'opt-out';
-  return 'ask-consent';
-}`}
-        </pre>
-      </div>
+        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#06b6d4", fontSize: 14 }}>Monitoring Bronnen</h3>
+          <a href="https://artes.law" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
+            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>Artes.law</div>
+            <div style={{ color: "#6b7280", fontSize: 10 }}>Belgische juridische updates</div>
+          </a>
+          <a href="https://edpb.europa.eu" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
+            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>EDPB</div>
+            <div style={{ color: "#6b7280", fontSize: 10 }}>EU richtsnoeren</div>
+          </a>
+          <a href="https://gegevensbeschermingsautoriteit.be" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
+            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>GBA Belgie</div>
+            <div style={{ color: "#6b7280", fontSize: 10 }}>Lokale autoriteit</div>
+          </a>
+          <div style={{ marginTop: 12, padding: 10, background: "#22c55e11", borderRadius: 6, border: "1px solid #22c55e33" }}>
+            <div style={{ color: "#22c55e", fontSize: 10, fontWeight: 600 }}>Monitoring: Elke maandag 9u</div>
+          </div>
+        </div>
 
+      </div>
     </div>
   );
 }
+
 
 function AllToolsPanel() {
   const { isPhone, S, reducedMotion } = useDevice();
