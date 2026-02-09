@@ -5018,80 +5018,207 @@ var TOOLS_DATA = {
 
 
 // ==================== GDPR ARTES TAB ====================
+// v4.22.0 - Complete EU Digital Omnibus + Data Act info van Artes.law
 function GDPRArtes() {
   return (
-    <div style={{ padding: 20 }}>
-      <div style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #3b82f6" }}>
-        <h2 style={{ margin: 0, color: "#60a5fa", fontSize: 20 }}>GDPR en Cookie Compliance - Artes.law</h2>
-        <p style={{ margin: "8px 0 0 0", color: "#9ca3af", fontSize: 12 }}>EU Digital Omnibus (19 nov 2024) - Wekelijkse monitoring actief</p>
-      </div>
+    <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
       
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        
-        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
-          <h3 style={{ margin: "0 0 12px 0", color: "#f59e0b", fontSize: 14 }}>EU Digital Omnibus Wijzigingen</h3>
-          <div style={{ marginBottom: 8, padding: 10, background: "#ef444411", borderRadius: 6, borderLeft: "3px solid #ef4444" }}>
-            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Browser Privacy Signal (GPC)</div>
-            <div style={{ color: "#9ca3af", fontSize: 10 }}>Websites moeten GPC/DNT respecteren</div>
-            <span style={{ background: "#ef444433", color: "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>VERPLICHT</span>
-          </div>
-          <div style={{ marginBottom: 8, padding: 10, background: "#f59e0b11", borderRadius: 6, borderLeft: "3px solid #f59e0b" }}>
-            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Datalek melding termijn</div>
-            <div style={{ color: "#9ca3af", fontSize: 10 }}>72u naar 96 uur, alleen bij hoog risico</div>
-            <span style={{ background: "#f59e0b33", color: "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>2025</span>
-          </div>
-          <div style={{ marginBottom: 8, padding: 10, background: "#3b82f611", borderRadius: 6, borderLeft: "3px solid #3b82f6" }}>
-            <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>Artikel 88a/88b AVG</div>
-            <div style={{ color: "#9ca3af", fontSize: 10 }}>Eindapparatuur bescherming naar AVG</div>
-            <span style={{ background: "#3b82f633", color: "#3b82f6", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>NIEUW</span>
-          </div>
-        </div>
-
-        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
-          <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: 14 }}>Project Compliance Status</h3>
-          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
-            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>BlackFuel Whiskey</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
-              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Consent OK</span>
-            </div>
-          </div>
-          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
-            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>IDGS Constructions</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
-              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Consent OK</span>
-            </div>
-          </div>
-          <div style={{ marginBottom: 10, background: "#111827", borderRadius: 8, padding: 12 }}>
-            <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 6 }}>Econation</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>GPC OK</span>
-              <span style={{ background: "#f59e0b22", color: "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>Privacy !</span>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
-          <h3 style={{ margin: "0 0 12px 0", color: "#06b6d4", fontSize: 14 }}>Monitoring Bronnen</h3>
-          <a href="https://artes.law" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
-            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>Artes.law</div>
-            <div style={{ color: "#6b7280", fontSize: 10 }}>Belgische juridische updates</div>
-          </a>
-          <a href="https://edpb.europa.eu" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
-            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>EDPB</div>
-            <div style={{ color: "#6b7280", fontSize: 10 }}>EU richtsnoeren</div>
-          </a>
-          <a href="https://gegevensbeschermingsautoriteit.be" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 8, padding: 10, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
-            <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>GBA Belgie</div>
-            <div style={{ color: "#6b7280", fontSize: 10 }}>Lokale autoriteit</div>
-          </a>
-          <div style={{ marginTop: 12, padding: 10, background: "#22c55e11", borderRadius: 6, border: "1px solid #22c55e33" }}>
-            <div style={{ color: "#22c55e", fontSize: 10, fontWeight: 600 }}>Monitoring: Elke maandag 9u</div>
-          </div>
-        </div>
-
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: 12, padding: 24, marginBottom: 24, border: "2px solid #3b82f6" }}>
+        <h2 style={{ margin: 0, color: "#60a5fa", fontSize: 22 }}>EU Digital Omnibus Voorstel</h2>
+        <p style={{ margin: "6px 0 0 0", color: "#f59e0b", fontSize: 13, fontWeight: 600 }}>Gepubliceerd: 19 november 2024 - Bron: Artes.law</p>
+        <p style={{ margin: "12px 0 0 0", color: "#d1d5db", fontSize: 12, lineHeight: 1.6 }}>
+          Europa beseft dat de veelheid aan regulering belemmerend werkt voor ondernemingen. Men wil de lasten vereenvoudigen door wetgeving te versoepelen, verduidelijken en coherent te maken. Regels mogen innovatie niet belemmeren.
+        </p>
+        <p style={{ margin: "10px 0 0 0", color: "#22c55e", fontSize: 12, fontWeight: 600 }}>
+          5 wetten worden samengevoegd tot 2 teksten: de Data Act en de GDPR
+        </p>
+        <p style={{ margin: "4px 0 0 0", color: "#9ca3af", fontSize: 11 }}>
+          Verdwijnen wegens overlap: Free Flow of Non-Personal Data Act, Data Governance Act, Platform to Business Regulation
+        </p>
       </div>
+
+      {/* GDPR WIJZIGINGEN */}
+      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #f59e0b" }}>
+        <h3 style={{ margin: "0 0 16px 0", color: "#f59e0b", fontSize: 16, borderBottom: "2px solid #f59e0b", paddingBottom: 8 }}>GDPR Wijzigingen</h3>
+        
+        <div style={{ marginBottom: 16, padding: 12, background: "#ef444411", borderRadius: 8, borderLeft: "4px solid #ef4444" }}>
+          <div style={{ color: "#ef4444", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>1. Consent Fatigue - Browser Privacy Signal</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Men erkent dat er consent fatigue bestaat bij consumenten die constant cookiebanners moeten wegklikken. De oplossing: een technische browser-instelling (GPC/DNT) waarmee websitehouders rekening MOETEN houden.
+          </div>
+          <div style={{ marginTop: 8 }}><span style={{ background: "#ef4444", color: "white", padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>VERPLICHT - NU IMPLEMENTEREN</span></div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#f59e0b11", borderRadius: 8, borderLeft: "4px solid #f59e0b" }}>
+          <div style={{ color: "#f59e0b", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>2. Datalek Meldingen</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Datalekken aan de GBA moeten alleen gemeld worden als ze waarschijnlijk een HOOG RISICO inhouden voor datasubjecten (zelfde drempel als melding aan betrokkenen zelf). De termijn wordt opgetrokken van 72 naar 96 uur.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#3b82f611", borderRadius: 8, borderLeft: "4px solid #3b82f6" }}>
+          <div style={{ color: "#3b82f6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>3. Artikel 88a en 88b AVG (NIEUW)</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Bescherming van eindapparatuur van datasubjecten. De bepalingen uit de e-Privacy Richtlijn worden overgeheveld naar de AVG. Toegang tot en gebruik van gegevens op gsm en PC blijven onderworpen aan toestemming, maar de wettelijke bepalingen verhuizen naar de AVG voor coherentie.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#8b5cf611", borderRadius: 8, borderLeft: "4px solid #8b5cf6" }}>
+          <div style={{ color: "#8b5cf6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>4. Notie Persoonsgegevens Verduidelijkt</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Verduidelijking wat verstaan wordt onder een identificeerbaar data subject. Indien een entiteit dit niet redelijkerwijs kan (rekening houdend met beschikbare tools), vallen de data BUITEN het toepassingsgebied van de AVG. Minder verwerkingen onder AVG, maar meer interpretatiegeschillen verwacht.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#22c55e11", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
+          <div style={{ color: "#22c55e", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>5. Wetenschappelijk Onderzoek</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Persoonsgegevens voor wetenschappelijk onderzoek makkelijker te verwerken. Afweging tussen privacy en wetenschappelijke vrijheid. Verwerking veelal op basis van gerechtvaardigd belang mogelijk.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#06b6d411", borderRadius: 8, borderLeft: "4px solid #06b6d4" }}>
+          <div style={{ color: "#06b6d4", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>6. Artikel 9.2 AVG Uitgebreid (Bijzondere Gegevens)</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Uitzonderingen worden uitgebreid: gezondheidsgegevens verwerken op basis van gerechtvaardigd belang wordt toegestaan mits bepaalde waarborgen. AI systemen werken op data - verwerking mag innovatie niet belemmeren.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#ec489911", borderRadius: 8, borderLeft: "4px solid #ec4899" }}>
+          <div style={{ color: "#ec4899", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>7. DPIA Lijsten van EDPB</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Er komt een lijst van de EDPB die duidelijk maakt welke hoog risico-verwerkingen aan een DPIA onderworpen moeten worden en volgens welk stramien. Ook een lijst welke verwerkingen GEEN hoog risico zijn. Meer rechtszekerheid.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#a855f711", borderRadius: 8, borderLeft: "4px solid #a855f7" }}>
+          <div style={{ color: "#a855f7", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>8. Inzagerecht Artikel 15 AVG Beperkt</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Misbruik van inzagerecht wordt moeilijker gemaakt. Verzoeken voor andere doeleinden dan controle op verwerkingen (chantage, buitensporige verzoeken) worden aan banden gelegd.
+          </div>
+        </div>
+
+        <div style={{ padding: 12, background: "#14b8a611", borderRadius: 8, borderLeft: "4px solid #14b8a6" }}>
+          <div style={{ color: "#14b8a6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>9. Transparantieplicht Artikel 13 AVG Versoepeld</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Wat een datasubject al weet, of redelijkerwijs weet gelet op de band tussen verwerkingsverantwoordelijke en datasubject, daarover hoeft men niet meer te informeren.
+          </div>
+        </div>
+      </div>
+
+      {/* DATA ACT */}
+      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #22c55e" }}>
+        <h3 style={{ margin: "0 0 16px 0", color: "#22c55e", fontSize: 16, borderBottom: "2px solid #22c55e", paddingBottom: 8 }}>Data Act Wijzigingen</h3>
+        
+        <div style={{ marginBottom: 16, padding: 12, background: "#22c55e11", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
+          <div style={{ color: "#22c55e", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>1. Bedrijfsgeheimen Beter Beschermd</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Nieuwe weigeringsgrond: houders van data hoeven geheimen niet meer te delen als er risico bestaat op onrechtvaardige verkrijging. Delen met derde landen zonder gelijkaardige waarborgen wordt ingeperkt.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#3b82f611", borderRadius: 8, borderLeft: "4px solid #3b82f6" }}>
+          <div style={{ color: "#3b82f6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>2. Data Delen Bedrijven-Overheden</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Alleen noodzakelijk bij publieke noodzaak (voorheen al bij exceptionele nood). Strengere voorwaarden.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#f59e0b11", borderRadius: 8, borderLeft: "4px solid #f59e0b" }}>
+          <div style={{ color: "#f59e0b", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>3. Artikel 23 - Overstappen Cloudproviders</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Wegnemen obstakels voor effectief overstappen tussen dataverwerkingsdiensten (cloudproviders). Klanten kunnen eenvoudig wisselen zonder belemmeringen. Afspraken over data-export, functionaliteit en opzegging verplicht.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#8b5cf611", borderRadius: 8, borderLeft: "4px solid #8b5cf6" }}>
+          <div style={{ color: "#8b5cf6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>4. Artikel 31 + 31a - Maatwerk Cloudoplossingen</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Lichter regime voor maatwerk cloud afgestemd op individuele klant (niet commercieel op grote schaal). Bepaalde verplichtingen gelden niet, wel informatieplicht. Artikel 31a: andere regels voor contracten gesloten voor inwerkingtreding Data Act (12/9/25). Kleine aanbieders (geen gatekeepers) mogen boetebedingen opnemen voor vroegtijdige beeindiging.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: 12, background: "#06b6d411", borderRadius: 8, borderLeft: "4px solid #06b6d4" }}>
+          <div style={{ color: "#06b6d4", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>5. Free Flow Non-Personal Data naar Hoofdstuk VIIb</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Ondernemingen en overheden kunnen data vrij opslaan, verwerken en verplaatsen binnen EER. Geen verplichte data-opslaglocatie door lidstaten. Vrij verkeer van niet-persoonsgebonden data (big data, IoT-data) binnen EU. Overheden behouden toegang voor controle. Portabiliteit tussen clouddiensten.
+          </div>
+        </div>
+
+        <div style={{ padding: 12, background: "#ec489911", borderRadius: 8, borderLeft: "4px solid #ec4899" }}>
+          <div style={{ color: "#ec4899", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>6. European Data Innovation Board</div>
+          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+            Adviseert Europese Commissie over consistente handhaving Data Act. Coordinerende rol voor beleid inzake data-economie.
+          </div>
+        </div>
+      </div>
+
+      {/* AI ACT */}
+      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #a855f7" }}>
+        <h3 style={{ margin: "0 0 10px 0", color: "#a855f7", fontSize: 16 }}>AI Act</h3>
+        <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
+          De AI Act wordt herzien voor dezelfde doeleinden (vereenvoudiging, coherentie), maar de wijzigingen zijn het voorwerp van een apart voorstel.
+        </div>
+      </div>
+
+      {/* PROJECT STATUS */}
+      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #06b6d4" }}>
+        <h3 style={{ margin: "0 0 16px 0", color: "#06b6d4", fontSize: 16 }}>Project Compliance Status</h3>
+        
+        <div style={{ marginBottom: 12, background: "#111827", borderRadius: 8, padding: 14 }}>
+          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>BlackFuel Whiskey</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy OK</span>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12, background: "#111827", borderRadius: 8, padding: 14 }}>
+          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>IDGS Constructions</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy OK</span>
+          </div>
+        </div>
+
+        <div style={{ background: "#111827", borderRadius: 8, padding: 14 }}>
+          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Econation</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
+            <span style={{ background: "#f59e0b22", color: "#f59e0b", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy !</span>
+          </div>
+        </div>
+      </div>
+
+      {/* MONITORING */}
+      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#60a5fa", fontSize: 16 }}>Monitoring Bronnen</h3>
+        
+        <div style={{ marginBottom: 10 }}>
+          <a href="https://artes.law" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none", marginBottom: 8 }}>
+            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>Artes.law</div>
+            <div style={{ color: "#9ca3af", fontSize: 11 }}>Belgische juridische updates</div>
+          </a>
+          <a href="https://edpb.europa.eu" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none", marginBottom: 8 }}>
+            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>EDPB</div>
+            <div style={{ color: "#9ca3af", fontSize: 11 }}>EU richtsnoeren</div>
+          </a>
+          <a href="https://gegevensbeschermingsautoriteit.be" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
+            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>GBA Belgie</div>
+            <div style={{ color: "#9ca3af", fontSize: 11 }}>Lokale autoriteit</div>
+          </a>
+        </div>
+
+        <div style={{ marginTop: 16, padding: 12, background: "#22c55e11", borderRadius: 8, border: "1px solid #22c55e33" }}>
+          <div style={{ color: "#22c55e", fontSize: 12, fontWeight: 600 }}>Automatische monitoring: Elke maandag 09:00</div>
+          <div style={{ color: "#6b7280", fontSize: 11, marginTop: 4 }}>Locatie: ~/Projects/GDPR-COMPLIANCE-MODULE/</div>
+        </div>
+      </div>
+
     </div>
   );
 }
