@@ -4203,6 +4203,28 @@ function DumpBar() {
   var deleteItem = function(id) { setItems(function(prev) { return prev.filter(function(i) { return i.id !== id; }); }); };
   var togglePin = function(id) { setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { pinned: !i.pinned }) : i; }); }); };
 
+  var analyzeItem = function(id) {
+    var item = items.find(function(i) { return i.id === id; });
+    if (!item || item.analyzing) return;
+    setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
+    var prompt = "Analyseer dit item kort en bondig (max 3 zinnen NL). ";
+    if (item.type === "youtube") prompt += "Dit is een YouTube video URL. Beschrijf kort wat de video waarschijnlijk bevat en wat de meerwaarde kan zijn.";
+    else if (item.type === "article") prompt += "Dit is een artikel link. Vat het onderwerp samen.";
+    else if (item.type === "instagram") prompt += "Dit is een Instagram post. Beschrijf kort de relevantie.";
+    else prompt += "Beschrijf kort wat dit is en waarom het nuttig kan zijn.";
+    if (item.memo) prompt += " Context van de gebruiker: " + item.memo;
+    prompt += " Content: " + item.content;
+    api.askAI([{ role: "user", content: prompt }]).then(function(r) {
+      var text = "Analyse niet beschikbaar";
+      if (r && r.content) {
+        text = r.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
+      }
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: text }) : i; }); });
+    }).catch(function() {
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "Fout bij analyse" }) : i; }); });
+    });
+  };
+
   var sorted = items.slice().sort(function(a, b) {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
@@ -4244,7 +4266,11 @@ function DumpBar() {
                   : <div style={{ color: "#d1d5db", fontSize: 11 }}>{item.content.length > 120 ? item.content.substring(0, 120) + "..." : item.content}</div>
                 )}
                 {item.memo && <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 4, padding: "4px 6px", background: "#0a0a0f", borderRadius: 4 }}>{item.memo}</div>}
-                <div style={{ fontSize: 9, color: "#4b5563", marginTop: 4 }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
+                {item.analysis && <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4, padding: "4px 6px", background: "#052e1644", borderRadius: 4, borderLeft: "2px solid #22c55e44" }}>{item.analysis}</div>}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+                  <div style={{ fontSize: 9, color: "#4b5563" }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
+                  {!item.analysis && <button onClick={function() { analyzeItem(item.id); }} disabled={item.analyzing} style={{ fontSize: 9, padding: "2px 8px", borderRadius: 4, border: "1px solid #14b8a644", background: "#14b8a611", color: item.analyzing ? "#6b7280" : "#14b8a6", cursor: item.analyzing ? "wait" : "pointer" }}>{item.analyzing ? "⏳..." : "🔍 Analyseer"}</button>}
+                </div>
               </div>
             );
           })}
