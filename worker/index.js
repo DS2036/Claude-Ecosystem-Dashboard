@@ -10,6 +10,8 @@
  * - GET  /api/snapshots   → List snapshots
  * - POST /api/restore     → Restore from snapshot
  * - GET  /api/health      → Health check
+ * - GET  /api/dump        → Get all dump items (cloud sync)
+ * - POST /api/dump        → Save all dump items (cloud sync)
  */
 
 // KV Namespaces (bind in wrangler.toml):
@@ -52,6 +54,12 @@ export default {
       }
       if (path === '/api/restore' && request.method === 'POST') {
         return await handleRestore(request, env);
+      }
+      if (path === '/api/dump' && request.method === 'GET') {
+        return await handleGetDump(request, env);
+      }
+      if (path === '/api/dump' && request.method === 'POST') {
+        return await handleSaveDump(request, env);
       }
       if (path === '/api/health') {
         return jsonResponse({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
@@ -274,6 +282,37 @@ async function handleRestore(request, env) {
     message: `Restore initiated for ${snapshot.name}. Git checkout ${snapshot.commit} required.`,
     command: snapshot.commit ? `git checkout ${snapshot.commit}` : null,
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DUMP SYNC - Cross-device sync via KV
+// ═══════════════════════════════════════════════════════════════════════════════
+const DUMP_KEY = 'dump:items';
+
+async function handleGetDump(request, env) {
+  if (!env.LOGS) {
+    return jsonResponse({ items: [], error: 'KV not configured' });
+  }
+  const value = await env.LOGS.get(DUMP_KEY);
+  if (!value) {
+    return jsonResponse({ items: [], updated: null });
+  }
+  const data = JSON.parse(value);
+  return jsonResponse(data);
+}
+
+async function handleSaveDump(request, env) {
+  if (!env.LOGS) {
+    return jsonResponse({ error: 'KV not configured' }, 500);
+  }
+  const body = await request.json();
+  const data = {
+    items: body.items || [],
+    updated: new Date().toISOString(),
+    source: body.source || 'unknown',
+  };
+  await env.LOGS.put(DUMP_KEY, JSON.stringify(data));
+  return jsonResponse({ success: true, count: data.items.length, updated: data.updated });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -47,10 +47,25 @@ const api = {
       return await r.json();
     } catch (e) { console.error("AI request failed:", e); return null; }
   },
+  async getDump() {
+    try {
+      const r = await fetch(WORKER_API + "/api/dump");
+      return await r.json();
+    } catch (e) { console.error("Get dump failed:", e); return { items: [] }; }
+  },
+  async saveDump(items, source) {
+    try {
+      await fetch(WORKER_API + "/api/dump", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: items, source: source || "unknown" }),
+      });
+    } catch (e) { console.error("Save dump failed:", e); }
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.17.0
+// CLAUDE CONTROL CENTER v4.18.0
 // Complete Dashboard: 20 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -88,6 +103,7 @@ const api = {
 // v4.14.0 - Use Cases tab: roadmap (A→B→C→D), 6 use cases, USPs, revenue targets (20 tabs)
 // v4.15.0 - Blokken-layout: Ecosystem grid, Issues cards, InfraNodus 22 graphs, Staging fix BFW
 // v4.16.0 - Issues filter fix: alle knoppen werken, OK klikbaar, collectAllItems, visuele feedback
+// v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -4163,18 +4179,40 @@ function UseCases() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DUMP BAR — v4.17.0
+// DUMP BAR — v4.18.0
 // Simpele inbox bovenaan: plak link/tekst + opmerking, klap open voor items
 // ═══════════════════════════════════════════════════════════════════════════════
 function DumpBar() {
-  var items, setItems, inp, setInp, memo, setMemo, open, setOpen;
+  var items, setItems, inp, setInp, memo, setMemo, open, setOpen, syncing, setSyncing, lastSync, setLastSync;
   var _s1 = useState(function() { try { return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]"); } catch(e) { return []; } });
   items = _s1[0]; setItems = _s1[1];
   var _s2 = useState(""); inp = _s2[0]; setInp = _s2[1];
   var _s3 = useState(""); memo = _s3[0]; setMemo = _s3[1];
   var _s4 = useState(false); open = _s4[0]; setOpen = _s4[1];
+  var _s5 = useState(false); syncing = _s5[0]; setSyncing = _s5[1];
+  var _s6 = useState(""); lastSync = _s6[0]; setLastSync = _s6[1];
 
+  // Save to localStorage on every change
   useEffect(function() { localStorage.setItem("ccc-dump-items", JSON.stringify(items)); }, [items]);
+
+  // Sync: pull from cloud on mount, merge with local
+  useEffect(function() {
+    api.getDump().then(function(data) {
+      if (data && data.items && data.items.length > 0) {
+        setItems(function(local) {
+          var localIds = {};
+          local.forEach(function(i) { localIds[i.id] = true; });
+          var cloudOnly = data.items.filter(function(ci) { return !localIds[ci.id]; });
+          if (cloudOnly.length > 0) {
+            var merged = local.concat(cloudOnly);
+            return merged;
+          }
+          return local;
+        });
+        if (data.updated) setLastSync(data.updated);
+      }
+    }).catch(function() {});
+  }, []);
 
   var detectType = function(t) {
     var l = t.toLowerCase();
@@ -4190,6 +4228,38 @@ function DumpBar() {
   var icons = { youtube: "🎬", instagram: "📸", twitter: "🐦", github: "💻", article: "📰", link: "🔗", note: "📝" };
   var colors = { youtube: "#ef4444", instagram: "#e879f9", twitter: "#38bdf8", github: "#a78bfa", article: "#fb923c", link: "#60a5fa", note: "#14b8a6" };
 
+  // Push to cloud after every change (debounced via useEffect)
+  var pushRef = useState(0);
+  var pushCount = pushRef[0]; var setPushCount = pushRef[1];
+  useEffect(function() {
+    if (pushCount === 0) return;
+    var device = navigator.userAgent.indexOf("Mac") > -1 ? (navigator.userAgent.indexOf("iPhone") > -1 ? "iPhone" : "Mac") : "unknown";
+    api.saveDump(items, device).then(function() { setLastSync(new Date().toISOString()); }).catch(function() {});
+  }, [pushCount]);
+
+  var syncNow = function() {
+    setSyncing(true);
+    api.getDump().then(function(data) {
+      if (data && data.items) {
+        setItems(function(local) {
+          // Merge: keep all local + add cloud-only items
+          var localIds = {};
+          local.forEach(function(i) { localIds[i.id] = true; });
+          var cloudIds = {};
+          data.items.forEach(function(i) { cloudIds[i.id] = true; });
+          var cloudOnly = data.items.filter(function(ci) { return !localIds[ci.id]; });
+          var merged = local.concat(cloudOnly);
+          // Push merged back to cloud
+          var device = navigator.userAgent.indexOf("iPhone") > -1 ? "iPhone" : "Mac";
+          api.saveDump(merged, device);
+          return merged;
+        });
+        if (data.updated) setLastSync(data.updated);
+      }
+      setSyncing(false);
+    }).catch(function() { setSyncing(false); });
+  };
+
   var addItem = function() {
     var c = inp.trim();
     var m = memo.trim();
@@ -4198,10 +4268,11 @@ function DumpBar() {
     var item = { id: Date.now(), content: c, memo: m, type: type, icon: icons[type], created: new Date().toISOString(), pinned: false };
     setItems(function(prev) { return [item].concat(prev); });
     setInp(""); setMemo("");
+    setPushCount(function(n) { return n + 1; });
   };
 
-  var deleteItem = function(id) { setItems(function(prev) { return prev.filter(function(i) { return i.id !== id; }); }); };
-  var togglePin = function(id) { setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { pinned: !i.pinned }) : i; }); }); };
+  var deleteItem = function(id) { setItems(function(prev) { return prev.filter(function(i) { return i.id !== id; }); }); setPushCount(function(n) { return n + 1; }); };
+  var togglePin = function(id) { setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { pinned: !i.pinned }) : i; }); }); setPushCount(function(n) { return n + 1; }); };
 
   var analyzeItem = function(id) {
     var item = items.find(function(i) { return i.id === id; });
@@ -4220,8 +4291,10 @@ function DumpBar() {
         text = r.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
       }
       setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: text }) : i; }); });
+      setPushCount(function(n) { return n + 1; });
     }).catch(function() {
       setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "Fout bij analyse" }) : i; }); });
+      setPushCount(function(n) { return n + 1; });
     });
   };
 
@@ -4245,6 +4318,7 @@ function DumpBar() {
           style={{ flex: 1, maxWidth: 180, minWidth: 80, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, outline: "none" }} />
         {inp.trim() && <span style={{ fontSize: 14 }}>{icons[detectType(inp)]}</span>}
         <button onClick={addItem} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>➕</button>
+        <button onClick={syncNow} disabled={syncing} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 10, cursor: syncing ? "wait" : "pointer" }} title="Sync across devices">{syncing ? "⏳" : "🔄"}</button>
         {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>{open ? "▲" : "▼"}</button>}
       </div>
       {open && items.length > 0 && (
@@ -5028,7 +5102,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.17.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.18.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5131,7 +5205,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.17.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.18.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
