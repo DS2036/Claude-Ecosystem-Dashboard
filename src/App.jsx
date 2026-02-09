@@ -4195,22 +4195,28 @@ function DumpBar() {
   // Save to localStorage on every change
   useEffect(function() { localStorage.setItem("ccc-dump-items", JSON.stringify(items)); }, [items]);
 
-  // Sync: pull from cloud on mount, merge with local
+  // Auto-sync: pull from cloud on mount, merge, push back
   useEffect(function() {
+    var device = navigator.userAgent.indexOf("iPhone") > -1 ? "iPhone" : "Mac";
     api.getDump().then(function(data) {
-      if (data && data.items && data.items.length > 0) {
-        setItems(function(local) {
-          var localIds = {};
-          local.forEach(function(i) { localIds[i.id] = true; });
-          var cloudOnly = data.items.filter(function(ci) { return !localIds[ci.id]; });
-          if (cloudOnly.length > 0) {
-            var merged = local.concat(cloudOnly);
-            return merged;
-          }
-          return local;
+      var cloudItems = (data && data.items) ? data.items : [];
+      setItems(function(local) {
+        // Merge: alle items van beide kanten
+        var allById = {};
+        local.forEach(function(i) { allById[i.id] = i; });
+        cloudItems.forEach(function(ci) {
+          if (!allById[ci.id]) allById[ci.id] = ci;
+          // Cloud versie heeft analyse? Neem die over
+          else if (ci.analysis && !allById[ci.id].analysis) allById[ci.id] = ci;
         });
-        if (data.updated) setLastSync(data.updated);
-      }
+        var merged = Object.keys(allById).map(function(k) { return allById[k]; });
+        // Push merged set terug naar cloud
+        if (merged.length > 0) {
+          api.saveDump(merged, device);
+        }
+        if (data && data.updated) setLastSync(data.updated);
+        return merged;
+      });
     }).catch(function() {});
   }, []);
 
@@ -4318,7 +4324,7 @@ function DumpBar() {
           style={{ flex: 1, maxWidth: 180, minWidth: 80, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, outline: "none" }} />
         {inp.trim() && <span style={{ fontSize: 14 }}>{icons[detectType(inp)]}</span>}
         <button onClick={addItem} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>➕</button>
-        <button onClick={syncNow} disabled={syncing} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 10, cursor: syncing ? "wait" : "pointer" }} title="Sync across devices">{syncing ? "⏳" : "🔄"}</button>
+        <button onClick={syncNow} disabled={syncing} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #14b8a6", background: syncing ? "#111" : "#14b8a622", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 12, fontWeight: 700, cursor: syncing ? "wait" : "pointer" }}>{syncing ? "⏳ Sync..." : "🔄 Sync"}</button>
         {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>{open ? "▲" : "▼"}</button>}
       </div>
       {open && items.length > 0 && (
