@@ -4216,13 +4216,20 @@ function DumpBar() {
     api.getDump().then(function(data) {
       var cloudItems = (data && data.items) ? data.items : [];
       setItems(function(local) {
-        // Merge: alle items van beide kanten
+        // Merge: alle items van beide kanten, cloud metadata altijd overnemen
         var allById = {};
         local.forEach(function(i) { allById[i.id] = i; });
         cloudItems.forEach(function(ci) {
-          if (!allById[ci.id]) allById[ci.id] = ci;
-          // Cloud versie heeft analyse? Neem die over
-          else if (ci.analysis && !allById[ci.id].analysis) allById[ci.id] = ci;
+          if (!allById[ci.id]) { allById[ci.id] = ci; }
+          else {
+            // Cloud enrichments overnemen naar lokaal item
+            var li = allById[ci.id];
+            if (ci.title && !li.title) li.title = ci.title;
+            if (ci.author && !li.author) li.author = ci.author;
+            if (ci.thumbnail && !li.thumbnail) li.thumbnail = ci.thumbnail;
+            if (ci.analysis && !li.analysis) { li.analysis = ci.analysis; li.analyzed = ci.analyzed; li.analyzed_by = ci.analyzed_by; li.analyzed_at = ci.analyzed_at; }
+            allById[ci.id] = li;
+          }
         });
         var merged = Object.keys(allById).map(function(k) { return allById[k]; });
         // Push merged set terug naar cloud
@@ -4263,13 +4270,20 @@ function DumpBar() {
     api.getDump().then(function(data) {
       if (data && data.items) {
         setItems(function(local) {
-          // Merge: keep all local + add cloud-only items
-          var localIds = {};
-          local.forEach(function(i) { localIds[i.id] = true; });
-          var cloudIds = {};
-          data.items.forEach(function(i) { cloudIds[i.id] = true; });
-          var cloudOnly = data.items.filter(function(ci) { return !localIds[ci.id]; });
-          var merged = local.concat(cloudOnly);
+          // Merge: keep all local + add cloud-only items + cloud metadata overnemen
+          var localById = {};
+          local.forEach(function(i) { localById[i.id] = i; });
+          data.items.forEach(function(ci) {
+            if (!localById[ci.id]) { localById[ci.id] = ci; }
+            else {
+              var li = localById[ci.id];
+              if (ci.title && !li.title) li.title = ci.title;
+              if (ci.author && !li.author) li.author = ci.author;
+              if (ci.thumbnail && !li.thumbnail) li.thumbnail = ci.thumbnail;
+              if (ci.analysis && !li.analysis) { li.analysis = ci.analysis; li.analyzed = ci.analyzed; li.analyzed_by = ci.analyzed_by; li.analyzed_at = ci.analyzed_at; }
+            }
+          });
+          var merged = Object.keys(localById).map(function(k) { return localById[k]; });
           // Push merged back to cloud
           var device = navigator.userAgent.indexOf("iPhone") > -1 ? "iPhone" : "Mac";
           api.saveDump(merged, device);
