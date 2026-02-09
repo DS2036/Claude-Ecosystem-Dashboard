@@ -20,6 +20,15 @@ jobs:
       - run: npm ci
       - run: npm run build
       
+      - name: Deploy Worker (main)
+        if: github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          workingDirectory: worker
+
       - name: Deploy to Production (main)
         if: github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
