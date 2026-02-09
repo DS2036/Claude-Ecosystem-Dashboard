@@ -1,4 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, createContext, useContext } from "react";
+
+// ─── DEVICE CONTEXT ───
+// Elimineert isPhone prop drilling door 21+ componenten
+const DeviceContext = createContext({ isPhone: false, S: {}, reducedMotion: false });
+function useDevice() { return useContext(DeviceContext); }
 
 // ─── WORKER API CONFIGURATION ───
 const WORKER_API = "https://claude-control-center.franky-f29.workers.dev";
@@ -65,7 +70,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.19.0
+// CLAUDE CONTROL CENTER v4.20.0
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -106,6 +111,7 @@ const api = {
 // v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
+// v4.20.0 - Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -413,10 +419,10 @@ function TreeNode({ node, depth = 0, searchTerm }) {
 
   return (
     <div style={{ marginLeft: depth > 0 ? 16 : 0 }}>
-      <div onClick={() => has && setOpen(!open)} style={{
+      <div role={has ? "button" : undefined} tabIndex={has ? 0 : undefined} aria-expanded={has ? open : undefined} aria-label={has ? `Open/sluit ${node.name}` : undefined} onKeyDown={has ? (e => (e.key === "Enter" || e.key === " ") && setOpen(!open)) : undefined} onClick={() => has && setOpen(!open)} style={{
         display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", borderRadius: 8,
         cursor: has ? "pointer" : "default", border: `1px solid ${s.border}22`,
-        background: match && searchTerm ? s.bg : "transparent", marginBottom: 2, transition: "all 0.15s",
+        background: match && searchTerm ? s.bg : "transparent", marginBottom: 2, transition: "background 0.15s, border-color 0.15s",
       }}
         onMouseEnter={e => e.currentTarget.style.background = s.bg}
         onMouseLeave={e => e.currentTarget.style.background = match && searchTerm ? s.bg : "transparent"}
@@ -441,7 +447,8 @@ function TreeNode({ node, depth = 0, searchTerm }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.9 COMPONENT: AI ADVISOR - Persistent Q&A log + Delete + Navigation links
 // ═══════════════════════════════════════════════════════════════════════════════
-function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevice, isPhone }) {
+function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevice }) {
+  const { isPhone, S, reducedMotion } = useDevice();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [question, setQuestion] = useState("");
@@ -867,7 +874,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
                     <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                       <span style={{ fontSize: 10, color: "#6b7280" }}>📍 Ga naar:</span>
                       {turn.linkedTabs.map(tabId => (
-                        <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer", transition: "all 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#312e81"} onMouseLeave={e => e.currentTarget.style.background = "#1e1b4b"}>{tabLabels[tabId]}</button>
+                        <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer", transition: "background 0.15s, color 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#312e81"} onMouseLeave={e => e.currentTarget.style.background = "#1e1b4b"}>{tabLabels[tabId]}</button>
                       ))}
                     </div>
                   )}
@@ -926,7 +933,8 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: MEMORY CENTER
 // ═══════════════════════════════════════════════════════════════════════════════
-function MemoryCenter({ isPhone }) {
+function MemoryCenter() {
+  const { isPhone, S } = useDevice();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [stats, setStats] = useState(null);
@@ -1178,7 +1186,8 @@ function SessionsArchive() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: GIT & DEPLOY CENTER
 // ═══════════════════════════════════════════════════════════════════════════════
-function GitDeployCenter({ isPhone }) {
+function GitDeployCenter() {
+  const { isPhone, S } = useDevice();
   const [repos] = useState([
     { name: "Claude-Ecosystem-Dashboard", status: "clean", branch: "main", lastPush: "now", cloudflare: "claude-ecosystem-dashboard.pages.dev" },
     { name: "Claude-Code-Mac-Sync", status: "clean", branch: "main", lastPush: "1 day ago", cloudflare: null },
@@ -1223,7 +1232,8 @@ function GitDeployCenter({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: VERSION SNAPSHOTS
 // ═══════════════════════════════════════════════════════════════════════════════
-function VersionSnapshots({ isPhone }) {
+function VersionSnapshots() {
+  const { isPhone, S } = useDevice();
   const [snapshots, setSnapshots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newSnapshot, setNewSnapshot] = useState({ name: "", project: "Claude-Ecosystem-Dashboard" });
@@ -1297,7 +1307,8 @@ function VersionSnapshots({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: ACTIVITY LOG
 // ═══════════════════════════════════════════════════════════════════════════════
-function ActivityLog({ isPhone }) {
+function ActivityLog() {
+  const { isPhone, S } = useDevice();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -1356,7 +1367,8 @@ function ActivityLog({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: STAGING & VARIANTS
 // ═══════════════════════════════════════════════════════════════════════════════
-function StagingVariants({ isPhone }) {
+function StagingVariants() {
+  const { isPhone, S } = useDevice();
   const [projects] = useState([
     { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: "claude-ecosystem-staging.pages.dev", variants: [] },
     { name: "Econation", production: "econation.be", staging: "econation-b-dev.franky-f29.workers.dev", variants: [] },
@@ -1417,7 +1429,8 @@ function StagingVariants({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: CROSS-DEVICE SYNC STATUS
 // ═══════════════════════════════════════════════════════════════════════════════
-function CrossDeviceSync({ isPhone }) {
+function CrossDeviceSync() {
+  const { isPhone, S } = useDevice();
   const [devices] = useState([
     { id: "mba", name: "MacBook Air", type: "💻", lastSync: new Date(), memoryVersion: "2026-02-06T12:00:00", pendingUpdates: 0, isOnline: true, lastActivity: "SDK-HRM InfraNodus analyse" },
     { id: "mm4", name: "Mac Mini (MM4)", type: "🖥️", lastSync: new Date(Date.now() - 1000 * 60 * 60 * 2), memoryVersion: "2026-02-06T09:30:00", pendingUpdates: 3, isOnline: true, lastActivity: "SDK-HRM Training prep" },
@@ -1522,7 +1535,8 @@ function CrossDeviceSync({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: INFRANODUS DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
-function InfraNodusDashboard({ isPhone }) {
+function InfraNodusDashboard() {
+  const { isPhone, S } = useDevice();
   const [filter, setFilter] = useState("all");
   const graphs = [
     { name: "SDK-HRM-vision", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["Leerkurve", "Per-contact"] },
@@ -1610,7 +1624,8 @@ function InfraNodusDashboard({ isPhone }) {
 // V3.1 TAB: SYSTEM KNOWLEDGE BASE (Backup voor als claude-mem niet beschikbaar is)
 // Dit is de CENTRALE WAARHEID - onafhankelijk van externe memory systemen
 // ═══════════════════════════════════════════════════════════════════════════════
-function SystemKnowledgeBase({ isPhone }) {
+function SystemKnowledgeBase() {
+  const { isPhone, S } = useDevice();
   // KRITIEKE REGELS - NOOIT VERGETEN
   const kritiekRegels = [
     { id: "r1", regel: "Cloud Control Center LOCATIE", waarde: "/Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/", type: "path", prioriteit: "critical" },
@@ -1926,7 +1941,8 @@ function SystemKnowledgeBase({ isPhone }) {
 // V3.6 TAB: CLAUDE UPDATES - Dagelijkse updates over nieuwe features
 // Franky wil NIET 7000 video's kijken - Claude moet dit zelf bijhouden
 // ═══════════════════════════════════════════════════════════════════════════════
-function ClaudeUpdates({ isPhone }) {
+function ClaudeUpdates() {
+  const { isPhone, S } = useDevice();
   // Recente Claude/Anthropic updates (handmatig bijgehouden tot API beschikbaar)
   const [updates] = useState([
     { id: 1, date: "2026-02-06", type: "feature", title: "Claude Code CLI v2.1.32", description: "Nieuwe versie met verbeterde context handling", relevance: "high", implemented: true },
@@ -2051,7 +2067,8 @@ function ClaudeUpdates({ isPhone }) {
 // Evolutie: ClawdBot → MoldBot → OpenClaw
 // Franky heeft 3 agents gebouwd maar afgebouwd - dit bereidt de infrastructuur voor
 // ═══════════════════════════════════════════════════════════════════════════════
-function OpenClaudeBot({ isPhone }) {
+function OpenClaudeBot() {
+  const { isPhone, S } = useDevice();
   // Agent configuraties (voorbereid, nog niet actief)
   const [agents] = useState([
     { id: "agent-1", name: "Telegram Commander", status: "planned", description: "Commands via Telegram terwijl Franky onderweg is", platform: "Telegram", mm4Required: true },
@@ -2179,7 +2196,8 @@ function OpenClaudeBot({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: AGENT HIERARCHY (voor 10-100 agenten orchestratie)
 // ═══════════════════════════════════════════════════════════════════════════════
-function AgentHierarchy({ isPhone }) {
+function AgentHierarchy() {
+  const { isPhone, S } = useDevice();
   const [agents] = useState([
     { id: "orch-1", name: "Main Orchestrator", role: "orchestrator", status: "working", currentTask: "Coördineren SDK-HRM deployment", completedTasks: 47, successRate: 98.5 },
     { id: "spec-sdk", name: "SDK-HRM Specialist", role: "specialist", status: "working", currentTask: "Model transfer naar MM4", completedTasks: 23, successRate: 95.2 },
@@ -2279,7 +2297,8 @@ function AgentHierarchy({ isPhone }) {
 // V4.1 TAB: SDK-HRM — Volledig overzicht Sapient-HRM project
 // Aparte tab met expandable/collapsible secties en volledige uitleg teksten
 // ═══════════════════════════════════════════════════════════════════════════════
-function SDKHRMHub({ isPhone }) {
+function SDKHRMHub() {
+  const { isPhone, S } = useDevice();
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -2944,7 +2963,8 @@ function MiniChart({ data, width = 500, height = 180, color = "#ef4444", label =
   );
 }
 
-function TrainingBenchmarks({ isPhone }) {
+function TrainingBenchmarks() {
+  const { isPhone, S } = useDevice();
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -3080,7 +3100,7 @@ function TrainingBenchmarks({ isPhone }) {
 
       {/* ── RUN 1: ARC PRE-TRAINING ── */}
       <div style={{ background: "#0f0800", border: "1px solid #9a3412", borderRadius: 12, padding: 0, overflow: "hidden" }}>
-        <div onClick={() => toggle("arc")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.arc ? "#f9731611" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit ARC sectie" aria-expanded={!!expanded.arc} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("arc")} onClick={() => toggle("arc")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.arc ? "#f9731611" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🧠</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3134,7 +3154,7 @@ function TrainingBenchmarks({ isPhone }) {
 
       {/* ── RUN 2: LFM2 BENCHMARK — VOOR vs NA ── */}
       <div style={{ background: "#000a1a", border: "1px solid #1e40af", borderRadius: 12, padding: 0, overflow: "hidden" }}>
-        <div onClick={() => toggle("lfm2")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.lfm2 ? "#60a5fa11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit LFM2 sectie" aria-expanded={!!expanded.lfm2} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("lfm2")} onClick={() => toggle("lfm2")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.lfm2 ? "#60a5fa11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📊</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3243,7 +3263,7 @@ function TrainingBenchmarks({ isPhone }) {
 
       {/* ── RUN 3: OOD BENCHMARK EVOLUTIE (v2-v6) ── */}
       <div style={{ background: "#0a001a", border: "1px solid #7c3aed", borderRadius: 12, padding: 0, overflow: "hidden" }}>
-        <div onClick={() => toggle("ood")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.ood ? "#a78bfa11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit OOD benchmark sectie" aria-expanded={!!expanded.ood} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("ood")} onClick={() => toggle("ood")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.ood ? "#a78bfa11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🔬</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3371,7 +3391,7 @@ function TrainingBenchmarks({ isPhone }) {
 
       {/* ── COMMERCIËLE VALIDATIE CHECKLIST ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #854d0e", borderRadius: 12, padding: 0, overflow: "hidden" }}>
-        <div onClick={() => toggle("readiness")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.readiness ? "#fbbf2411" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit commercial readiness sectie" aria-expanded={!!expanded.readiness} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("readiness")} onClick={() => toggle("readiness")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.readiness ? "#fbbf2411" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🎯</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3453,7 +3473,8 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-function RevenueIntelligence({ isPhone }) {
+function RevenueIntelligence() {
+  const { isPhone, S } = useDevice();
   const [expanded, setExpanded] = useState({});
   const [feed, setFeed] = useState(null);
   const [feedLoading, setFeedLoading] = useState(false);
@@ -3675,7 +3696,7 @@ function RevenueIntelligence({ isPhone }) {
 
       {/* ── TOP 5 REVENUE STREAMS ── */}
       <div style={{ background: "#0a0f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("streams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.streams ? "#22c55e11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit revenue streams sectie" aria-expanded={!!expanded.streams} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("streams")} onClick={() => toggle("streams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.streams ? "#22c55e11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🏆</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3722,7 +3743,7 @@ function RevenueIntelligence({ isPhone }) {
 
       {/* ── CHROME EXTENSION ROADMAP ── */}
       <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("chrome")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.chrome ? "#60a5fa11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit Chrome extensie sectie" aria-expanded={!!expanded.chrome} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("chrome")} onClick={() => toggle("chrome")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.chrome ? "#60a5fa11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🌐</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3752,7 +3773,7 @@ function RevenueIntelligence({ isPhone }) {
 
       {/* ── BUILD-UP CHECKLIST ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #fbbf2466", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("buildup")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.buildup ? "#fbbf2411" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit build-up checklist sectie" aria-expanded={!!expanded.buildup} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("buildup")} onClick={() => toggle("buildup")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.buildup ? "#fbbf2411" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📋</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3787,7 +3808,7 @@ function RevenueIntelligence({ isPhone }) {
 
       {/* ── DAILY INTELLIGENCE MONITORING ── */}
       <div style={{ background: "#0a0a1a", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("daily")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.daily ? "#a855f711" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit dagelijkse projecties sectie" aria-expanded={!!expanded.daily} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("daily")} onClick={() => toggle("daily")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.daily ? "#a855f711" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📡</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3852,7 +3873,7 @@ function RevenueIntelligence({ isPhone }) {
 
       {/* ── LIVE INTELLIGENCE FEED (Perplexity API) ── */}
       <div style={{ background: "#0a001a", border: "2px solid #8b5cf6", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("livefeed")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.livefeed ? "#8b5cf611" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit live feed sectie" aria-expanded={!!expanded.livefeed} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("livefeed")} onClick={() => toggle("livefeed")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.livefeed ? "#8b5cf611" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 22 }}>⚡</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -3917,7 +3938,7 @@ function RevenueIntelligence({ isPhone }) {
                   const borderColor = catColors[entry.category] || "#6b7280";
                   return (
                     <div key={entry.id} style={{ background: "#111", border: `1px solid ${borderColor}33`, borderLeft: `3px solid ${borderColor}`, borderRadius: 8, overflow: "hidden" }}>
-                      <div onClick={() => toggle(`feed_${entry.id}`)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", cursor: "pointer", background: expanded[`feed_${entry.id}`] ? `${borderColor}08` : "transparent" }}>
+                      <div role="button" tabIndex="0" aria-label={`Open/sluit ${entry.title || "feed item"}`} aria-expanded={!!expanded[`feed_${entry.id}`]} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle(`feed_${entry.id}`)} onClick={() => toggle(`feed_${entry.id}`)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", cursor: "pointer", background: expanded[`feed_${entry.id}`] ? `${borderColor}08` : "transparent" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{ fontSize: 18 }}>{entry.icon}</span>
                           <div>
@@ -4002,7 +4023,8 @@ function RevenueIntelligence({ isPhone }) {
 // Concrete doelstellingen, use cases, en roadmap richting
 // Wat SDK-HRM doet voor eindgebruikers — georganiseerd per fase
 // ═══════════════════════════════════════════════════════════════════════════════
-function UseCases({ isPhone }) {
+function UseCases() {
+  const { isPhone, S } = useDevice();
   const [expanded, setExpanded] = useState({});
   const toggle = id => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
@@ -4094,7 +4116,7 @@ function UseCases({ isPhone }) {
             const pct = Math.round((p.done / p.total) * 100);
             return (
               <div key={p.id} style={{ marginBottom: 8 }}>
-                <div onClick={() => toggle("p_" + p.id)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "6px 8px", borderRadius: 8, background: expanded["p_" + p.id] ? p.color + "11" : "transparent" }}>
+                <div role="button" tabIndex="0" aria-label={`Open/sluit ${p.label || "prediction"}`} aria-expanded={!!expanded["p_" + p.id]} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("p_" + p.id)} onClick={() => toggle("p_" + p.id)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "6px 8px", borderRadius: 8, background: expanded["p_" + p.id] ? p.color + "11" : "transparent" }}>
                   <span style={{ fontSize: 12, fontWeight: 900, color: p.color, fontFamily: "monospace", minWidth: 14 }}>{p.id}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
@@ -4183,8 +4205,8 @@ function UseCases({ isPhone }) {
 // DUMP BAR — v4.18.0
 // Simpele inbox bovenaan: plak link/tekst + opmerking, klap open voor items
 // ═══════════════════════════════════════════════════════════════════════════════
-function DumpBar(props) {
-  var isPhone = props && props.isPhone;
+function DumpBar() {
+  var _dev = useDevice(), isPhone = _dev.isPhone, S = _dev.S;
   var items, setItems, inp, setInp, memo, setMemo, open, setOpen, syncing, setSyncing, lastSync, setLastSync;
   var _s1 = useState(function() { try { return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]"); } catch(e) { return []; } });
   items = _s1[0]; setItems = _s1[1];
@@ -4377,7 +4399,8 @@ function DumpBar(props) {
 // Franky's crypto expertise: 10+ jaar ervaring, trading, DeFi, stablecoins
 // Nuanced classificatie: scam vs legitimate crypto activiteit
 // ═══════════════════════════════════════════════════════════════════════════════
-function CryptoIntelligence({ isPhone }) {
+function CryptoIntelligence() {
+  const { isPhone, S } = useDevice();
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -4518,7 +4541,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── SCAM TYPES (Expandable) ── */}
       <div style={{ background: "#0f0000", border: "1px solid #ef444466", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("scams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.scams ? "#ef444411" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit scam analyse sectie" aria-expanded={!!expanded.scams} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("scams")} onClick={() => toggle("scams")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.scams ? "#ef444411" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🚨</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4558,7 +4581,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── LEGITIMATE TYPES (Expandable) ── */}
       <div style={{ background: "#000f00", border: "1px solid #22c55e66", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("legit")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.legit ? "#22c55e11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit legit projecten sectie" aria-expanded={!!expanded.legit} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("legit")} onClick={() => toggle("legit")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.legit ? "#22c55e11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>✅</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4592,7 +4615,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── REGULATORY LANDSCAPE ── */}
       <div style={{ background: "#000a1a", border: "1px solid #60a5fa66", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("regs")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.regs ? "#60a5fa11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit regulatie sectie" aria-expanded={!!expanded.regs} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("regs")} onClick={() => toggle("regs")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.regs ? "#60a5fa11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>⚖️</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4628,7 +4651,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── FIAT→CRYPTO TIMELINE ── */}
       <div style={{ background: "#0a0a0f", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("timeline")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.timeline ? "#a855f711" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit timeline sectie" aria-expanded={!!expanded.timeline} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("timeline")} onClick={() => toggle("timeline")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.timeline ? "#a855f711" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📅</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4669,7 +4692,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── EXPERTISE PROFILE ── */}
       <div style={{ background: "#0f0a00", border: "1px solid #f59e0b66", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("expertise")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.expertise ? "#f59e0b11" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit expertise sectie" aria-expanded={!!expanded.expertise} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("expertise")} onClick={() => toggle("expertise")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.expertise ? "#f59e0b11" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🎓</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4704,7 +4727,7 @@ function CryptoIntelligence({ isPhone }) {
 
       {/* ── SDK-HRM INTEGRATION ── */}
       <div style={{ background: "#0a0a0f", border: "1px solid #f9731666", borderRadius: 12, overflow: "hidden" }}>
-        <div onClick={() => toggle("integration")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.integration ? "#f9731611" : "transparent" }}>
+        <div role="button" tabIndex="0" aria-label="Open/sluit integratie sectie" aria-expanded={!!expanded.integration} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("integration")} onClick={() => toggle("integration")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.integration ? "#f9731611" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>🔗</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -4772,7 +4795,8 @@ function CryptoIntelligence({ isPhone }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ISSUES PANEL — Klikbare filters + opgelost/backlog functie
 // ═══════════════════════════════════════════════════════════════════════════════
-function IssuesPanel({ issues, allItems, isPhone }) {
+function IssuesPanel({ issues, allItems }) {
+  const { isPhone, S, reducedMotion } = useDevice();
   const [filter, setFilter] = useState("all");
   const [resolved, setResolved] = useState(() => {
     try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch(e) { return []; }
@@ -4823,7 +4847,7 @@ function IssuesPanel({ issues, allItems, isPhone }) {
             <button key={f.id} onClick={() => { setFilter(f.id); setShowBacklog(false); }} style={{
               background: active ? f.bg : "#111", border: `1px solid ${active ? f.border : "#374151"}`,
               borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer",
-              transition: "all 0.15s", outline: active ? `2px solid ${f.color}44` : "none", outlineOffset: 2,
+              transition: "background 0.15s, border-color 0.15s, transform 0.15s", outline: active ? `2px solid ${f.color}44` : "none", outlineOffset: 2,
               transform: active ? "scale(1.05)" : "scale(1)"
             }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: f.color }}>{f.count}</div>
@@ -4834,7 +4858,7 @@ function IssuesPanel({ issues, allItems, isPhone }) {
         {resolvedIssues.length > 0 && (
           <button onClick={() => { setShowBacklog(!showBacklog); if (!showBacklog) setFilter("backlog"); else setFilter("all"); }} style={{
             background: showBacklog ? "#0f0f23" : "#111", border: `1px solid ${showBacklog ? "#5b21b6" : "#374151"}`,
-            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "all 0.15s",
+            borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "background 0.15s, border-color 0.15s, transform 0.15s",
             outline: showBacklog ? "2px solid #a78bfa44" : "none", outlineOffset: 2,
             transform: showBacklog ? "scale(1.05)" : "scale(1)"
           }}>
@@ -4979,7 +5003,8 @@ var TOOLS_DATA = {
   ],
 };
 
-function AllToolsPanel({ isPhone }) {
+function AllToolsPanel() {
+  const { isPhone, S, reducedMotion } = useDevice();
   var _f = useState("all"), filter = _f[0], setFilter = _f[1];
   var _e = useState({ builtin: false, plugins: true, mcpServers: true, skills: true, vercelSkills: true, marketplaces: true }), expanded = _e[0], setExpanded = _e[1];
 
@@ -5071,7 +5096,7 @@ function AllToolsPanel({ isPhone }) {
         var isOpen = expanded[cat.id];
         return <div key={cat.id} style={{ background: f.bgCard, border: "1px solid " + cat.color + "33", borderRadius: 12, overflow: "hidden" }}>
           {/* Section header - clickable */}
-          <div onClick={function() { toggle(cat.id); }} style={{
+          <div role="button" tabIndex="0" aria-label={"Open/sluit " + cat.label} aria-expanded={!!isOpen} onKeyDown={function(e) { if (e.key === "Enter" || e.key === " ") toggle(cat.id); }} onClick={function() { toggle(cat.id); }} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: isPhone ? "14px 16px" : "10px 14px",
             cursor: "pointer", background: cat.color + "0a",
@@ -5155,7 +5180,8 @@ function EcoChildItem({ node, depth = 0 }) {
   );
 }
 
-function EcosystemGrid({ search, setSearch, isPhone }) {
+function EcosystemGrid({ search, setSearch }) {
+  const { isPhone, S } = useDevice();
   return (
     <>
       <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: isPhone ? "14px 16px" : "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: isPhone ? 16 : 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
@@ -5211,20 +5237,27 @@ function EcosystemGrid({ search, setSearch, isPhone }) {
 }
 
 export default function ControlCenter() {
-  const [tab, setTab] = useState("ecosystem");
+  // Tab state with URL hash support (FIX 5)
+  const [tab, setTab] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    return hash && ["ecosystem","issues","memory","git","versions","activity","staging","sync","infranodus","agents","knowledge","updates","openbot","sdkhrm","benchmarks","crypto","revenue","usecases","alltools","advisor"].includes(hash) ? hash : "ecosystem";
+  });
   const [search, setSearch] = useState("");
-  const counts = countByStatus(ECOSYSTEM);
-  const issues = collectIssues(ECOSYSTEM);
-  const allItems = collectAllItems(ECOSYSTEM);
-  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
+  // FIX 7: useMemo op dure berekeningen (ECOSYSTEM is statisch)
+  const counts = useMemo(() => countByStatus(ECOSYSTEM), []);
+  const issues = useMemo(() => collectIssues(ECOSYSTEM), []);
+  const allItems = useMemo(() => collectAllItems(ECOSYSTEM), []);
+  const total = useMemo(() => Object.values(counts).reduce((a, b) => a + b, 0), [counts]);
 
   // Device auto-detection
   const [currentDevice, setCurrentDevice] = useState(() => detectDevice());
   const [showDeviceSelector, setShowDeviceSelector] = useState(() => needsDeviceSelection());
 
-  // iPhone responsive scaling
+  // iPhone responsive scaling + reduced motion (FIX 1 + FIX 6)
   const isPhone = currentDevice === 'iPhone';
-  const S = {
+  const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
+  const S = useMemo(() => ({
     tabFont: isPhone ? 13 : 10,
     tabPad: isPhone ? "10px 14px 8px" : "6px 10px 4px",
     tabMinWidth: isPhone ? 120 : 100,
@@ -5246,12 +5279,23 @@ export default function ControlCenter() {
     bgInput: isPhone ? "#1c1c2a" : "#111",
     bgCardInner: isPhone ? "#252538" : "#111118",
     bgFooter: isPhone ? "#22223a" : "#0f0f0f",
-  };
+  }), [isPhone]);
 
   // Log page load
   useEffect(() => {
     logActivity("page_load", `Dashboard opened on ${currentDevice}`, currentDevice);
   }, []);
+
+  // FIX 5: Sync tab state to URL hash
+  useEffect(() => { window.location.hash = tab; }, [tab]);
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && hash !== tab) setTab(hash);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [tab]);
 
   // Device selector for manual override
   const setDeviceManually = (device) => {
@@ -5294,12 +5338,13 @@ export default function ControlCenter() {
   ];
 
   return (
+    <DeviceContext.Provider value={{ isPhone, S, reducedMotion }}>
     <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: S.bgBody, color: "#e5e5e5", minHeight: "100vh", padding: S.containerPad }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#0f0f23", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }}>
+          <div style={{ background: "#0f0f23", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }} role="dialog" aria-label="Selecteer je apparaat">
             <div style={{ fontSize: 40, marginBottom: 16 }}>🖥️</div>
             <h2 style={{ color: "#a78bfa", margin: "0 0 8px 0", fontSize: 20 }}>Welkom op Cloud Control Center!</h2>
             <p style={{ color: "#9ca3af", fontSize: 13, marginBottom: 6 }}>Op welk Mac device ben je nu?</p>
@@ -5313,6 +5358,7 @@ export default function ControlCenter() {
                 <button
                   key={d.id}
                   onClick={() => setDeviceManually(d.id)}
+                  aria-label={`Selecteer ${d.label}`}
                   style={{
                     padding: "14px 20px",
                     borderRadius: 10,
@@ -5344,16 +5390,18 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.19.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.20.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <nav aria-label="Apparaat selectie" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {devices.map(d => {
               const isActive = currentDevice === d.id;
               return (
                 <button
                   key={d.id}
                   onClick={() => setDeviceManually(d.id)}
+                  aria-label={isActive ? `Actief op ${d.label}` : `Wissel naar ${d.label}`}
+                  aria-pressed={isActive}
                   style={{
                     fontSize: S.smallFont,
                     padding: S.smallButtonPad,
@@ -5362,45 +5410,44 @@ export default function ControlCenter() {
                     color: isActive ? "#4ade80" : "#6b7280",
                     border: `1px solid ${isActive ? "#166534" : "#374151"}`,
                     cursor: "pointer",
-                    transition: "all 0.15s"
+                    transition: reducedMotion ? "none" : "background 0.15s, color 0.15s, border-color 0.15s"
                   }}
-                  title={isActive ? `Actief op ${d.id}` : `Klik om te wisselen naar ${d.id}`}
                 >
                   {isActive ? "●" : "◌"} {d.icon} {d.label}
                 </button>
               );
             })}
-          </div>
+          </nav>
         </div>
         {/* Status Bar */}
-        <div style={{ display: "flex", gap: S.gap, marginTop: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: S.gap, marginTop: 10, flexWrap: "wrap" }} role="status" aria-label="Systeem status overzicht">
           {[{ k: "OK", ...STATUS.OK, c: counts.OK }, { k: "WARN", ...STATUS.WARN, c: counts.WARN }, { k: "ERROR", ...STATUS.ERROR, c: counts.ERROR }, { k: "PENDING", ...STATUS.PENDING, c: counts.PENDING }].map(s => (
-            <div key={s.k} style={{ display: "flex", alignItems: "center", gap: 4, padding: isPhone ? "6px 12px" : "3px 8px", borderRadius: 6, background: `${s.color}15`, border: `1px solid ${s.color}33`, fontSize: S.statusFont }}>
+            <div key={s.k} style={{ display: "flex", alignItems: "center", gap: 4, padding: isPhone ? "6px 12px" : "3px 8px", borderRadius: 6, background: `${s.color}15`, border: `1px solid ${s.color}33`, fontSize: S.statusFont }} aria-label={`${s.c} ${s.k}`}>
               <span style={{ color: s.color, fontWeight: 800 }}>{s.c}</span>
               <span style={{ color: s.color }}>{s.icon}</span>
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", marginTop: 10, background: "#1a1a2e" }}>
+        <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", marginTop: 10, background: "#1a1a2e" }} role="progressbar" aria-label="Status verdeling">
           {[{ c: counts.OK, color: STATUS.OK.color }, { c: counts.WARN, color: STATUS.WARN.color }, { c: counts.ERROR, color: STATUS.ERROR.color }, { c: counts.PENDING, color: STATUS.PENDING.color }].map((s, i) => <div key={i} style={{ width: `${(s.c / total) * 100}%`, background: s.color }} />)}
         </div>
       </div>
 
       {/* DUMP - Altijd zichtbaar bovenaan */}
-      <DumpBar isPhone={isPhone} />
+      <DumpBar />
 
       {/* ADVISOR - Prominent bar (always visible) */}
-      <AIAdvisor issues={issues} compact={true} onNavigate={setTab} currentDevice={currentDevice} isPhone={isPhone} />
+      <AIAdvisor issues={issues} compact={true} onNavigate={setTab} currentDevice={currentDevice} />
 
       {/* Tabs - Responsive grid layout (wraps instead of scrolling) */}
-      <div style={{
+      <nav aria-label="Dashboard navigatie" style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(" + S.tabMinWidth + "px, 1fr))",
         gap: S.gap,
         marginBottom: 12
       }}>
         {tabs.filter(t => t.id !== "advisor").map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
+          <button key={t.id} onClick={() => setTab(t.id)} aria-label={`${t.label} tab`} aria-pressed={tab === t.id} style={{
             padding: S.tabPad,
             borderRadius: 8,
             border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
@@ -5421,39 +5468,40 @@ export default function ControlCenter() {
             {t.lastUpdated && <span style={{ fontSize: S.tinyFont, color: tab === t.id ? t.color + "99" : "#374151", fontWeight: 400 }}>{t.lastUpdated}</span>}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Content */}
-      {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} isPhone={isPhone} />}
+      {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} />}
 
-      {tab === "issues" && <IssuesPanel issues={issues} allItems={allItems} isPhone={isPhone} />}
+      {tab === "issues" && <IssuesPanel issues={issues} allItems={allItems} />}
 
-      {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} isPhone={isPhone} />}
-      {tab === "memory" && <MemoryCenter isPhone={isPhone} />}
-      {tab === "git" && <GitDeployCenter isPhone={isPhone} />}
-      {tab === "versions" && <VersionSnapshots isPhone={isPhone} />}
-      {tab === "activity" && <ActivityLog isPhone={isPhone} />}
-      {tab === "staging" && <StagingVariants isPhone={isPhone} />}
-      {tab === "sync" && <CrossDeviceSync isPhone={isPhone} />}
-      {tab === "infranodus" && <InfraNodusDashboard isPhone={isPhone} />}
-      {tab === "agents" && <AgentHierarchy isPhone={isPhone} />}
-      {tab === "knowledge" && <SystemKnowledgeBase isPhone={isPhone} />}
-      {tab === "updates" && <ClaudeUpdates isPhone={isPhone} />}
-      {tab === "openbot" && <OpenClaudeBot isPhone={isPhone} />}
-      {tab === "sdkhrm" && <SDKHRMHub isPhone={isPhone} />}
-      {tab === "benchmarks" && <TrainingBenchmarks isPhone={isPhone} />}
-      {tab === "crypto" && <CryptoIntelligence isPhone={isPhone} />}
-      {tab === "revenue" && <RevenueIntelligence isPhone={isPhone} />}
-      {tab === "usecases" && <UseCases isPhone={isPhone} />}
-      {tab === "alltools" && <AllToolsPanel isPhone={isPhone} />}
+      {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} />}
+      {tab === "memory" && <MemoryCenter />}
+      {tab === "git" && <GitDeployCenter />}
+      {tab === "versions" && <VersionSnapshots />}
+      {tab === "activity" && <ActivityLog />}
+      {tab === "staging" && <StagingVariants />}
+      {tab === "sync" && <CrossDeviceSync />}
+      {tab === "infranodus" && <InfraNodusDashboard />}
+      {tab === "agents" && <AgentHierarchy />}
+      {tab === "knowledge" && <SystemKnowledgeBase />}
+      {tab === "updates" && <ClaudeUpdates />}
+      {tab === "openbot" && <OpenClaudeBot />}
+      {tab === "sdkhrm" && <SDKHRMHub />}
+      {tab === "benchmarks" && <TrainingBenchmarks />}
+      {tab === "crypto" && <CryptoIntelligence />}
+      {tab === "revenue" && <RevenueIntelligence />}
+      {tab === "usecases" && <UseCases />}
+      {tab === "alltools" && <AllToolsPanel />}
 
       {/* Footer */}
-      <div style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.19.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+      <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.20.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
-      </div>
+      </footer>
     </div>
+    </DeviceContext.Provider>
   );
 }
