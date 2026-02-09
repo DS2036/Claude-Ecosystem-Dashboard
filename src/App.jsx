@@ -70,7 +70,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.20.0
+// CLAUDE CONTROL CENTER v4.21.0
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -112,6 +112,7 @@ const api = {
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
 // v4.20.0 - Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
+// v4.21.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -178,7 +179,7 @@ const STATUS = {
   ERROR: { label: "Probleem", color: "#ef4444", bg: "#1a0000", border: "#991b1b", icon: "✖" },
   INFO: { label: "Info", color: "#60a5fa", bg: "#001a33", border: "#1e40af", icon: "ℹ" },
   PENDING: { label: "Wachtend", color: "#a78bfa", bg: "#0f0033", border: "#5b21b6", icon: "◌" },
-  DEAD: { label: "Inactief", color: "#6b7280", bg: "#111", border: "#374151", icon: "○" },
+  DEAD: { label: "Inactief", color: "#6b7280", bg: "#1e1e2e", border: "#454d60", icon: "○" },
   SYNCING: { label: "Syncing", color: "#06b6d4", bg: "#001a1a", border: "#0e7490", icon: "↻" },
 };
 
@@ -662,12 +663,12 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   // v3.9.6: INGEKLAPT - alleen titel + open knop
   if (compact && isCollapsed && !expanded) {
     return (
-      <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #312e81", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: 16 }}>🤖</span>
             <span style={{ fontWeight: 700, fontSize: 12, color: "#a78bfa" }}>AI Advisor</span>
-            {chatThread.length > 0 && <span style={{ fontSize: 10, color: "#6b7280", background: "#1e1b4b", padding: "2px 6px", borderRadius: 4 }}>{chatThread.length} in gesprek</span>}
+            {chatThread.length > 0 && <span style={{ fontSize: 10, color: "#6b7280", background: "#2d2a5e", padding: "2px 6px", borderRadius: 4 }}>{chatThread.length} in gesprek</span>}
             {allQuestions.length > 0 && <span style={{ fontSize: 10, color: "#6b7280" }}>• {allQuestions.length} vragen totaal</span>}
           </div>
           <button onClick={() => setIsCollapsed(false)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
@@ -681,16 +682,16 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   // Compact mode for header bar (OPEN)
   if (compact && !expanded) {
     return (
-      <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 10, padding: 10, marginBottom: 12 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #312e81", borderRadius: 10, padding: 10, marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontSize: 16 }}>🤖</span>
           <span style={{ fontWeight: 700, fontSize: 12, color: "#a78bfa" }}>Advisor</span>
-          <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))} placeholder="Stel een vraag of geef een opdracht..." style={{ flex: 1, minWidth: 200, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 11, outline: "none" }} />
-          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
+          <input type="text" value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))} placeholder="Stel een vraag of geef een opdracht..." style={{ flex: 1, minWidth: 200, padding: "6px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 11, outline: "none" }} />
+          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#2d2a5e", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
           <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #5b21b6", background: "#312e81", color: "#c4b5fd", fontSize: 10, cursor: "pointer" }}>{loading ? "⏳" : "→"}</button>
-          <button onClick={toggleExpand} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Open fullscreen">⛶</button>
-          <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Alle vragen">📋 {allQuestions.length}</button>
-          <button onClick={() => setIsCollapsed(true)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Inklappen">▲</button>
+          <button onClick={toggleExpand} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Open fullscreen">⛶</button>
+          <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Alle vragen">📋 {allQuestions.length}</button>
+          <button onClick={() => setIsCollapsed(true)} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 10, cursor: "pointer" }} title="Inklappen">▲</button>
           {chatThread.length > 0 && <span style={{ fontSize: 9, color: "#6b7280" }}>({chatThread.length} in gesprek)</span>}
         </div>
         {error && <div style={{ color: "#f87171", fontSize: 10, padding: "6px 0" }}>❌ {error}</div>}
@@ -698,7 +699,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
         {/* Show last response + linked tabs */}
         {chatThread.length > 0 && (
           <div style={{ marginTop: 8 }}>
-            <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap", maxHeight: 120, overflow: "auto" }}>
+            <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 6, padding: 10, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap", maxHeight: 120, overflow: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                 <span style={{ fontSize: 9, color: "#6b7280" }}>💬 {chatThread[chatThread.length - 1].question.substring(0, 50)}...</span>
                 <button onClick={() => deleteTurn(chatThread[chatThread.length - 1].id)} style={{ fontSize: 9, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }}>🗑️</button>
@@ -710,26 +711,26 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
               <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 9, color: "#6b7280" }}>Ga naar:</span>
                 {chatThread[chatThread.length - 1].linkedTabs.map(tabId => (
-                  <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId] || tabId}</button>
+                  <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId] || tabId}</button>
                 ))}
               </div>
             )}
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              <button onClick={startNewSession} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", cursor: "pointer" }}>🔄 Nieuw</button>
-              <button onClick={toggleExpand} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>⛶ Volledig</button>
+              <button onClick={startNewSession} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #454d60", background: "#1a1a2e", color: "#9ca3af", cursor: "pointer" }}>🔄 Nieuw</button>
+              <button onClick={toggleExpand} style={{ fontSize: 9, padding: "4px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", cursor: "pointer" }}>⛶ Volledig</button>
             </div>
           </div>
         )}
 
         {/* All questions panel (compact) */}
         {showAllQuestions && (
-          <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 6, padding: 10, marginTop: 8, maxHeight: 250, overflow: "auto" }}>
+          <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 6, padding: 10, marginTop: 8, maxHeight: 250, overflow: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: "#a78bfa", fontWeight: 600 }}>📋 Alle vragen ({allQuestions.length})</span>
               <span style={{ fontSize: 9, color: "#6b7280" }}>{allQuestions.filter(q => q.resolved).length} opgelost</span>
             </div>
             {allQuestions.slice(0, 15).map(q => (
-              <div key={q.id} style={{ padding: 6, borderBottom: "1px solid #1f2937", opacity: q.resolved ? 0.5 : 1 }}>
+              <div key={q.id} style={{ padding: 6, borderBottom: "1px solid #2d3748", opacity: q.resolved ? 0.5 : 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 10, color: "#e5e5e5", flex: 1 }}>{q.resolved ? "✅ " : ""}{q.question.substring(0, 40)}...</span>
                   <div style={{ display: "flex", gap: 4 }}>
@@ -750,12 +751,12 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
   const containerStyle = expanded ? {
     position: "fixed",
     top: 0, left: 0, right: 0, bottom: 0,
-    background: "#0a0a0a",
+    background: "#1a1a2e",
     zIndex: 1000,
     padding: 20,
     overflow: "auto"
   } : {
-    background: "#0a0a1a",
+    background: "#1a1a2e",
     border: "1px solid #312e81",
     borderRadius: 12,
     padding: 16
@@ -773,9 +774,9 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "8px 14px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#1e1b4b", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 12, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
+          <button onClick={() => setAgentMode(!agentMode)} style={{ padding: "8px 14px", borderRadius: 6, border: `1px solid ${agentMode ? "#22c55e" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#2d2a5e", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 12, cursor: "pointer" }}>{agentMode ? "🤖 Agent" : "💬 Vraag"}</button>
           <button onClick={() => setShowAllQuestions(!showAllQuestions)} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #f59e0b", background: "#1a1400", color: "#fbbf24", fontSize: 12, cursor: "pointer" }}>📋 Alle vragen ({allQuestions.length})</button>
-          <button onClick={() => setShowHistory(!showHistory)} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>📜 Sessies ({savedSessions.length})</button>
+          <button onClick={() => setShowHistory(!showHistory)} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 12, cursor: "pointer" }}>📜 Sessies ({savedSessions.length})</button>
           {chatThread.length > 0 && <button onClick={startNewSession} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #10b981", background: "#052e16", color: "#4ade80", fontSize: 12, cursor: "pointer" }}>🔄 Nieuw gesprek</button>}
           {expanded && <button onClick={toggleExpand} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #ef4444", background: "#1a0000", color: "#f87171", fontSize: 12, cursor: "pointer" }}>✕ Sluiten</button>}
         </div>
@@ -789,12 +790,12 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
 
       {/* Quick Actions */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button onClick={() => ask(null, true)} disabled={loading} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Volledige Analyse"}</button>
+        <button onClick={() => ask(null, true)} disabled={loading} style={{ padding: "10px 18px", borderRadius: 8, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳..." : "🔍 Volledige Analyse"}</button>
       </div>
 
       {/* ALL QUESTIONS Panel - Toont VRAAG + ANTWOORD */}
       {showAllQuestions && (
-        <div style={{ background: "#0f0f23", border: "1px solid #f59e0b", borderRadius: 10, padding: 16, marginBottom: 16 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #f59e0b", borderRadius: 10, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontWeight: 600, color: "#fbbf24", fontSize: 14 }}>📋 Alle Gestelde Vragen ({allQuestions.length})</span>
             <div style={{ display: "flex", gap: 8 }}>
@@ -804,13 +805,13 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           </div>
           <div style={{ maxHeight: expanded ? "calc(100vh - 350px)" : 500, overflow: "auto" }}>
             {allQuestions.map(q => (
-              <div key={q.id} style={{ padding: 14, marginBottom: 12, background: q.resolved ? "#1a1a2e55" : "#1a1a2e", borderRadius: 10, border: `1px solid ${q.resolved ? "#374151" : "#f59e0b44"}` }}>
+              <div key={q.id} style={{ padding: 14, marginBottom: 12, background: q.resolved ? "#1a1a2e55" : "#1a1a2e", borderRadius: 10, border: `1px solid ${q.resolved ? "#454d60" : "#f59e0b44"}` }}>
                 {/* Header met acties */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 12, color: q.type === "agent" ? "#4ade80" : "#a78bfa" }}>{q.type === "agent" ? "🤖 Agent" : "💬 Vraag"}</span>
                     <span style={{ fontSize: 10, color: "#6b7280" }}>{new Date(q.timestamp).toLocaleDateString("nl-BE")} {new Date(q.timestamp).toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" })}</span>
-                    <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#37415155", color: "#9ca3af" }}>{q.device}</span>
+                    <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#454d6055", color: "#9ca3af" }}>{q.device}</span>
                     {q.resolved && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#16653455", color: "#4ade80" }}>✅ Opgelost</span>}
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
@@ -820,13 +821,13 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
                 </div>
 
                 {/* VRAAG */}
-                <div style={{ background: "#1a1a3e", border: "1px solid #312e81", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                <div style={{ background: "#262644", border: "1px solid #312e81", borderRadius: 8, padding: 10, marginBottom: 8 }}>
                   <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>👤 Vraag:</div>
                   <div style={{ fontSize: 12, color: "#e5e5e5" }}>{q.question}</div>
                 </div>
 
                 {/* ANTWOORD */}
-                <div style={{ background: "#0a1628", border: "1px solid #1e40af", borderRadius: 8, padding: 10 }}>
+                <div style={{ background: "#1a2640", border: "1px solid #1e40af", borderRadius: 8, padding: 10 }}>
                   <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 4 }}>🤖 Antwoord:</div>
                   <div style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{q.answer}</div>
                 </div>
@@ -836,7 +837,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
                   <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                     <span style={{ fontSize: 10, color: "#6b7280" }}>📍 Ga naar:</span>
                     {q.linkedTabs.map(tabId => (
-                      <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "3px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId]}</button>
+                      <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 9, padding: "3px 8px", borderRadius: 4, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", cursor: "pointer" }}>{tabLabels[tabId]}</button>
                     ))}
                   </div>
                 )}
@@ -848,7 +849,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
 
       {/* Chat Thread - Conversation history */}
       {chatThread.length > 0 && !showAllQuestions && (
-        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 10, padding: 16, marginBottom: 16, maxHeight: expanded ? "calc(100vh - 400px)" : 350, overflow: "auto" }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 10, padding: 16, marginBottom: 16, maxHeight: expanded ? "calc(100vh - 400px)" : 350, overflow: "auto" }}>
           {chatThread.map((turn, idx) => (
             <div key={turn.id} style={{ marginBottom: idx < chatThread.length - 1 ? 16 : 0 }}>
               {/* User question */}
@@ -861,20 +862,20 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
                     </div>
                     <button onClick={() => deleteTurn(turn.id)} style={{ fontSize: 9, color: "#ef4444", background: "transparent", border: "none", cursor: "pointer" }}>🗑️</button>
                   </div>
-                  <div style={{ background: "#1a1a3e", border: "1px solid #312e81", borderRadius: 8, padding: 10, fontSize: 12, color: "#e5e5e5" }}>{turn.question}</div>
+                  <div style={{ background: "#262644", border: "1px solid #312e81", borderRadius: 8, padding: 10, fontSize: 12, color: "#e5e5e5" }}>{turn.question}</div>
                 </div>
               </div>
               {/* Advisor response */}
               <div style={{ display: "flex", gap: 10 }}>
                 <span style={{ fontSize: 16 }}>🤖</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ background: "#0a1628", border: "1px solid #1e40af", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{turn.answer}</div>
+                  <div style={{ background: "#1a2640", border: "1px solid #1e40af", borderRadius: 8, padding: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{turn.answer}</div>
                   {/* Linked tabs navigation */}
                   {turn.linkedTabs?.length > 0 && (
                     <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                       <span style={{ fontSize: 10, color: "#6b7280" }}>📍 Ga naar:</span>
                       {turn.linkedTabs.map(tabId => (
-                        <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", cursor: "pointer", transition: "background 0.15s, color 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#312e81"} onMouseLeave={e => e.currentTarget.style.background = "#1e1b4b"}>{tabLabels[tabId]}</button>
+                        <button key={tabId} onClick={() => navigateToTab(tabId)} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", cursor: "pointer", transition: "background 0.15s, color 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#312e81"} onMouseLeave={e => e.currentTarget.style.background = "#2d2a5e"}>{tabLabels[tabId]}</button>
                       ))}
                     </div>
                   )}
@@ -893,7 +894,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           onChange={e => setQuestion(e.target.value)}
           onKeyDown={e => e.key === "Enter" && question.trim() && (ask(question), setQuestion(""))}
           placeholder={chatThread.length > 0 ? "Stel een vervolgvraag..." : (agentMode ? "Geef een opdracht..." : "Stel een vraag...")}
-          style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#374151"}`, background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }}
+          style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#454d60"}`, background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none" }}
         />
         <button onClick={() => { if (question.trim()) { ask(question); setQuestion(""); } }} disabled={loading || !question.trim()} style={{ padding: "12px 24px", borderRadius: 10, border: `1px solid ${agentMode ? "#166534" : "#5b21b6"}`, background: agentMode ? "#052e16" : "#312e81", color: agentMode ? "#4ade80" : "#c4b5fd", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>{loading ? "⏳" : (chatThread.length > 0 ? "Vervolg →" : "Vraag")}</button>
       </div>
@@ -902,7 +903,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
 
       {/* Saved Sessions Panel */}
       {showHistory && (
-        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 10, padding: 16, marginTop: 16 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 10, padding: 16, marginTop: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontWeight: 600, color: "#a78bfa", fontSize: 14 }}>📜 Opgeslagen Sessies</span>
             <button onClick={clearAllSessions} style={{ fontSize: 11, color: "#ef4444", background: "transparent", border: "1px solid #991b1b", borderRadius: 4, padding: "6px 10px", cursor: "pointer" }}>🗑️ Wis alles</button>
@@ -912,7 +913,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
           ) : (
             <div style={{ maxHeight: 300, overflow: "auto" }}>
               {savedSessions.map(session => (
-                <div key={session.id} onClick={() => loadSession(session)} style={{ padding: 12, borderBottom: "1px solid #1f2937", cursor: "pointer", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#1a1a2e"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <div key={session.id} onClick={() => loadSession(session)} style={{ padding: 12, borderBottom: "1px solid #2d3748", cursor: "pointer", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#1a1a2e"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <span style={{ color: "#e5e5e5", fontSize: 13 }}>{session.summary}</span>
@@ -962,7 +963,7 @@ function MemoryCenter() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {stats && (
-        <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 12, padding: 16 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 12, padding: 16 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa", marginBottom: 12 }}>🧠 Memory Stats</div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ background: "#1a1a2e", padding: "12px 20px", borderRadius: 8, textAlign: "center" }}>
@@ -971,23 +972,23 @@ function MemoryCenter() {
             </div>
             {Object.entries(stats.bySource).map(([src, count]) => (
               <div key={src} style={{ background: "#1a1a2e", padding: "8px 14px", borderRadius: 8, textAlign: "center" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: count > 0 ? "#60a5fa" : "#374151" }}>{count}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: count > 0 ? "#60a5fa" : "#454d60" }}>{count}</div>
                 <div style={{ fontSize: 10, color: "#6b7280" }}>{src}</div>
               </div>
             ))}
           </div>
         </div>
       )}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#60a5fa", marginBottom: 12 }}>🔍 Search Memory</div>
         <div style={{ display: "flex", gap: 8 }}>
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && searchMemory()} placeholder="Zoek in observations..." style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
+          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && searchMemory()} placeholder="Zoek in observations..." style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
           <button onClick={searchMemory} disabled={loading} style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #3b82f6", background: "#1e3a8a", color: "#93c5fd", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{loading ? "..." : "Zoek"}</button>
         </div>
         {searchResults.length > 0 && (
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
             {searchResults.map(r => (
-              <div key={r.id} style={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
+              <div key={r.id} style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: 12 }}>
                 <div style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>{r.title}</div>
                 <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                   <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#22c55e22", color: "#4ade80" }}>{r.project}</span>
@@ -999,17 +1000,17 @@ function MemoryCenter() {
           </div>
         )}
       </div>
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#22c55e", marginBottom: 12 }}>➕ Quick Inject</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", gap: 8 }}>
-            <select value={injectForm.project} onChange={e => setInjectForm({ ...injectForm, project: e.target.value })} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12 }}>
+            <select value={injectForm.project} onChange={e => setInjectForm({ ...injectForm, project: e.target.value })} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 12 }}>
               <option value="general">general</option>
               <option value="Claude-Ecosystem-Dashboard">Claude-Ecosystem-Dashboard</option>
               <option value="BlackFuelWhiskey">BlackFuelWhiskey</option>
               <option value="Econation">Econation</option>
             </select>
-            <select value={injectForm.type} onChange={e => setInjectForm({ ...injectForm, type: e.target.value })} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12 }}>
+            <select value={injectForm.type} onChange={e => setInjectForm({ ...injectForm, type: e.target.value })} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 12 }}>
               <option value="discovery">discovery</option>
               <option value="decision">decision</option>
               <option value="feature">feature</option>
@@ -1017,8 +1018,8 @@ function MemoryCenter() {
               <option value="change">change</option>
             </select>
           </div>
-          <input type="text" value={injectForm.title} onChange={e => setInjectForm({ ...injectForm, title: e.target.value })} placeholder="Titel..." style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
-          <textarea value={injectForm.text} onChange={e => setInjectForm({ ...injectForm, text: e.target.value })} placeholder="Beschrijving..." rows={3} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", resize: "vertical" }} />
+          <input type="text" value={injectForm.title} onChange={e => setInjectForm({ ...injectForm, title: e.target.value })} placeholder="Titel..." style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
+          <textarea value={injectForm.text} onChange={e => setInjectForm({ ...injectForm, text: e.target.value })} placeholder="Beschrijving..." rows={3} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none", resize: "vertical" }} />
           <button style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>💾 Inject naar Claude-Mem</button>
         </div>
       </div>
@@ -1060,9 +1061,9 @@ function SessionsArchive() {
     massive: { bg: "#1a0000", border: "#991b1b", color: "#ef4444" },
     large: { bg: "#1a1400", border: "#854d0e", color: "#f59e0b" },
     medium: { bg: "#001a33", border: "#1e40af", color: "#60a5fa" },
-    small: { bg: "#0f0f23", border: "#374151", color: "#9ca3af" },
+    small: { bg: "#0f0f23", border: "#454d60", color: "#9ca3af" },
     active: { bg: "#052e16", border: "#166534", color: "#4ade80" },
-    archived: { bg: "#111", border: "#374151", color: "#6b7280" },
+    archived: { bg: "#111", border: "#454d60", color: "#6b7280" },
   };
 
   const priorityColors = {
@@ -1073,7 +1074,7 @@ function SessionsArchive() {
   };
 
   return (
-    <div style={{ background: "#0f0f0f", border: "1px solid #5b21b6", borderRadius: 12, padding: 16 }}>
+    <div style={{ background: "#1a1a2e", border: "1px solid #5b21b6", borderRadius: 12, padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa", display: "flex", alignItems: "center", gap: 8 }}>
@@ -1136,7 +1137,7 @@ function SessionsArchive() {
                 </div>
                 <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                   {session.topics.slice(0, 4).map((topic, i) => (
-                    <span key={i} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#1f2937", color: "#9ca3af" }}>
+                    <span key={i} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "#2d3748", color: "#9ca3af" }}>
                       {topic}
                     </span>
                   ))}
@@ -1154,7 +1155,7 @@ function SessionsArchive() {
                 <button style={{
                   padding: "6px 10px",
                   borderRadius: 6,
-                  border: "1px solid #374151",
+                  border: "1px solid #454d60",
                   background: "#1a1a2e",
                   color: "#93c5fd",
                   fontSize: 10,
@@ -1170,7 +1171,7 @@ function SessionsArchive() {
       </div>
 
       {/* CLI Commands reference */}
-      <div style={{ background: "#0a0a0a", border: "1px solid #1f2937", borderRadius: 8, padding: 12, marginTop: 16 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 8, padding: 12, marginTop: 16 }}>
         <div style={{ color: "#6b7280", fontSize: 11, fontWeight: 600, marginBottom: 8 }}>🖥️ CLI Commands</div>
         <div style={{ fontFamily: "monospace", fontSize: 10, color: "#4ade80", lineHeight: 1.8 }}>
           <div># Absorbeer sessie van clipboard:</div>
@@ -1202,7 +1203,7 @@ function GitDeployCenter() {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
         {repos.map(repo => (
-          <div key={repo.name} style={{ background: repo.status === "dirty" ? "#1a1400" : "#0f0f0f", border: `1px solid ${repo.status === "dirty" ? "#854d0e" : "#1f2937"}`, borderRadius: 12, padding: 14 }}>
+          <div key={repo.name} style={{ background: repo.status === "dirty" ? "#1a1400" : "#0f0f0f", border: `1px solid ${repo.status === "dirty" ? "#854d0e" : "#2d3748"}`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#e5e5e5" }}>📂 {repo.name}</div>
               <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: repo.status === "clean" ? "#22c55e22" : "#f59e0b22", color: repo.status === "clean" ? "#4ade80" : "#fbbf24" }}>{repo.status === "clean" ? "✓ clean" : `⚠ ${repo.dirtyFiles} dirty`}</span>
@@ -1210,15 +1211,15 @@ function GitDeployCenter() {
             <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 8 }}>🌿 {repo.branch} • ⏱️ {repo.lastPush}</div>
             {repo.cloudflare && <div style={{ fontSize: 11, color: "#06b6d4", marginBottom: 8 }}>☁️ <a href={`https://${repo.cloudflare}`} target="_blank" rel="noopener noreferrer" style={{ color: "#06b6d4" }}>{repo.cloudflare}</a></div>}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <button onClick={() => addLog(`🔽 git pull ${repo.name}`)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#93c5fd", fontSize: 11, cursor: "pointer" }}>🔽 Pull</button>
-              <button onClick={() => addLog(`🔼 git push ${repo.name}`)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#93c5fd", fontSize: 11, cursor: "pointer" }}>🔼 Push</button>
+              <button onClick={() => addLog(`🔽 git pull ${repo.name}`)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #454d60", background: "#1a1a2e", color: "#93c5fd", fontSize: 11, cursor: "pointer" }}>🔽 Pull</button>
+              <button onClick={() => addLog(`🔼 git push ${repo.name}`)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #454d60", background: "#1a1a2e", color: "#93c5fd", fontSize: 11, cursor: "pointer" }}>🔼 Push</button>
               {repo.cloudflare && <button onClick={() => addLog(`☁️ Deploy ${repo.name}`)} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>☁️ Deploy</button>}
             </div>
           </div>
         ))}
       </div>
       {actionLog.length > 0 && (
-        <div style={{ background: "#0a0a0a", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#6b7280", marginBottom: 8 }}>📋 Action Log</div>
           <div style={{ fontFamily: "monospace", fontSize: 11, color: "#9ca3af", maxHeight: 150, overflow: "auto" }}>
             {actionLog.map((log, i) => <div key={i}><span style={{ color: "#4b5563" }}>{log.time}</span> {log.msg}</div>)}
@@ -1259,19 +1260,19 @@ function VersionSnapshots() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 12, padding: 16 }}>
+      <div style={{ background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 12, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa", marginBottom: 12 }}>📸 Create Snapshot</div>
         <div style={{ display: "flex", gap: 8 }}>
-          <select value={newSnapshot.project} onChange={e => setNewSnapshot({ ...newSnapshot, project: e.target.value })} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 12 }}>
+          <select value={newSnapshot.project} onChange={e => setNewSnapshot({ ...newSnapshot, project: e.target.value })} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 12 }}>
             <option>Claude-Ecosystem-Dashboard</option>
             <option>BlackFuelWhiskey</option>
             <option>Econation</option>
           </select>
-          <input type="text" value={newSnapshot.name} onChange={e => setNewSnapshot({ ...newSnapshot, name: e.target.value })} placeholder="Snapshot naam (bv: v1.2.0 - Feature X)" style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
-          <button onClick={createSnapshot} style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #5b21b6", background: "#1e1b4b", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>📸 Save</button>
+          <input type="text" value={newSnapshot.name} onChange={e => setNewSnapshot({ ...newSnapshot, name: e.target.value })} placeholder="Snapshot naam (bv: v1.2.0 - Feature X)" style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none" }} />
+          <button onClick={createSnapshot} style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #5b21b6", background: "#2d2a5e", color: "#c4b5fd", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>📸 Save</button>
         </div>
       </div>
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#60a5fa", marginBottom: 12 }}>🕐 Snapshot History</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {loading ? (
@@ -1281,7 +1282,7 @@ function VersionSnapshots() {
           ) : snapshots.map(snap => {
             const d = snap.timestamp ? new Date(snap.timestamp).toLocaleString("nl-BE") : snap.date || "?";
             return (
-              <div key={snap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12, flexWrap: "wrap", gap: 8 }}>
+              <div key={snap.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: 12, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ minWidth: 150 }}>
                   <div style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>{snap.name}</div>
                   <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
@@ -1293,7 +1294,7 @@ function VersionSnapshots() {
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #166534", background: "#052e16", color: "#4ade80", fontSize: 11, cursor: "pointer" }}>🔄 Restore</button>
-                  <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #374151", background: "#1a1a2e", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>👁️ View</button>
+                  <button style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #454d60", background: "#1a1a2e", color: "#9ca3af", fontSize: 11, cursor: "pointer" }}>👁️ View</button>
                 </div>
               </div>
             );
@@ -1327,12 +1328,12 @@ function ActivityLog() {
   const filtered = filter === "All" ? activities : activities.filter(a => a.source === filter);
 
   return (
-    <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
+    <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#f472b6" }}>📜 Activity Log</div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <button onClick={fetchLogs} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#6b7280", fontSize: 11, cursor: "pointer" }}>🔄</button>
-          {["All", "Chat", "CLI", "Dashboard"].map(f => <button key={f} onClick={() => setFilter(f)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #374151", background: filter === f ? "#1e1b4b" : "#111", color: filter === f ? "#c4b5fd" : "#6b7280", fontSize: 11, cursor: "pointer" }}>{f}</button>)}
+          <button onClick={fetchLogs} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#6b7280", fontSize: 11, cursor: "pointer" }}>🔄</button>
+          {["All", "Chat", "CLI", "Dashboard"].map(f => <button key={f} onClick={() => setFilter(f)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #454d60", background: filter === f ? "#2d2a5e" : "#111", color: filter === f ? "#c4b5fd" : "#6b7280", fontSize: 11, cursor: "pointer" }}>{f}</button>)}
         </div>
       </div>
       {loading ? (
@@ -1344,12 +1345,12 @@ function ActivityLog() {
           {filtered.map(act => {
             const t = act.timestamp ? new Date(act.timestamp) : null;
             const time = t ? t.toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" }) : "??:??";
-            const tc = typeColors[act.type] || { bg: "#37415122", color: "#9ca3af" };
+            const tc = typeColors[act.type] || { bg: "#454d6022", color: "#9ca3af" };
             return (
-              <div key={act.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: "10px 12px", flexWrap: "wrap" }}>
+              <div key={act.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: "10px 12px", flexWrap: "wrap" }}>
                 <div style={{ fontSize: 11, color: "#4b5563", fontFamily: "monospace", minWidth: 45 }}>{time}</div>
                 <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: act.source === "Chat" ? "#3b82f622" : act.source === "Dashboard" ? "#a78bfa22" : "#22c55e22", color: act.source === "Chat" ? "#60a5fa" : act.source === "Dashboard" ? "#c4b5fd" : "#4ade80", minWidth: 50, textAlign: "center" }}>{act.source || "?"}</div>
-                {act.mac && <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#1f2937", color: "#9ca3af", minWidth: 30, textAlign: "center" }}>{act.mac}</div>}
+                {act.mac && <div style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#2d3748", color: "#9ca3af", minWidth: 30, textAlign: "center" }}>{act.mac}</div>}
                 <div style={{ flex: 1, minWidth: 120 }}>
                   <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{act.action}</span>
                   {act.detail && <span style={{ color: "#6b7280", fontSize: 12 }}> — {act.detail}</span>}
@@ -1378,13 +1379,13 @@ function StagingVariants() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {projects.map(proj => (
-        <div key={proj.name} style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
+        <div key={proj.name} style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#e5e5e5" }}>🌐 {proj.name}</div>
             <button style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #0e7490", background: "#001a1a", color: "#22d3ee", fontSize: 11, cursor: "pointer" }}>➕ Create Staging</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 12 }}>
-            <div style={{ background: proj.production ? "#052e16" : "#1a1a1a", border: `1px solid ${proj.production ? "#166534" : "#374151"}`, borderRadius: 8, padding: 12 }}>
+            <div style={{ background: proj.production ? "#052e16" : "#1a1a1a", border: `1px solid ${proj.production ? "#166534" : "#454d60"}`, borderRadius: 8, padding: 12 }}>
               <div style={{ fontSize: 11, color: proj.production ? "#4ade80" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.production ? "🟢 PRODUCTION" : "⚫ PRODUCTION"}</div>
               {proj.production ? (
                 <a href={`https://${proj.production}`} target="_blank" rel="noopener noreferrer" style={{ color: "#86efac", fontSize: 12, wordBreak: "break-all" }}>{proj.production}</a>
@@ -1392,7 +1393,7 @@ function StagingVariants() {
                 <span style={{ color: "#6b7280", fontSize: 13, fontStyle: "italic" }}>Not deployed</span>
               )}
             </div>
-            <div style={{ background: proj.staging ? "#1a1400" : "#1a1a1a", border: `1px solid ${proj.staging ? "#854d0e" : "#374151"}`, borderRadius: 8, padding: 12 }}>
+            <div style={{ background: proj.staging ? "#1a1400" : "#1a1a1a", border: `1px solid ${proj.staging ? "#854d0e" : "#454d60"}`, borderRadius: 8, padding: 12 }}>
               <div style={{ fontSize: 11, color: proj.staging ? "#fbbf24" : "#6b7280", fontWeight: 600, marginBottom: 4 }}>{proj.staging ? "🟡 STAGING" : "⚫ STAGING"}</div>
               {proj.staging ? (
                 <a href={`https://${proj.staging}`} target="_blank" rel="noopener noreferrer" style={{ color: "#fde68a", fontSize: 12, wordBreak: "break-all" }}>{proj.staging}</a>
@@ -1406,7 +1407,7 @@ function StagingVariants() {
               <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>Variants for Client Preview:</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {proj.variants.map(v => (
-                  <div key={v.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 10 }}>
+                  <div key={v.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: 10 }}>
                     <div>
                       <div style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 13 }}>{v.name}</div>
                       <a href={`https://${v.url}`} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", fontSize: 11 }}>{v.url}</a>
@@ -1470,7 +1471,7 @@ function CrossDeviceSync() {
       {/* Device Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
         {devices.map((device) => (
-          <div key={device.id} style={{ background: "#0f0f0f", border: `1px solid ${device.isOnline ? (device.pendingUpdates > 0 ? "#854d0e" : "#166534") : "#374151"}`, borderRadius: 12, padding: 14 }}>
+          <div key={device.id} style={{ background: "#1a1a2e", border: `1px solid ${device.isOnline ? (device.pendingUpdates > 0 ? "#854d0e" : "#166534") : "#454d60"}`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 18 }}>{device.type}</span>
@@ -1488,7 +1489,7 @@ function CrossDeviceSync() {
                 <span style={{ color: device.pendingUpdates > 0 ? "#fbbf24" : "#4ade80", fontWeight: 600 }}>{device.pendingUpdates} updates</span>
               </div>
               {device.lastActivity && (
-                <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px solid #1f2937" }}>
+                <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px solid #2d3748" }}>
                   <span style={{ color: "#4b5563", fontSize: 10 }}>Laatste activiteit:</span>
                   <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 2 }}>{device.lastActivity}</p>
                 </div>
@@ -1503,7 +1504,7 @@ function CrossDeviceSync() {
 
       {/* Pending Actions */}
       {pendingActions.length > 0 && (
-        <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
           <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <span>🕐</span> Te Synchroniseren
           </div>
@@ -1524,7 +1525,7 @@ function CrossDeviceSync() {
       )}
 
       {/* Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Sync Methode:</strong> iCloud (~/.claude/) + GitHub (project repos)</p>
         <p style={{ marginTop: 4 }}><strong>Verplichte bestanden:</strong> MEMORY.json, FRANKY-LEARNINGS.md, SESSION-BACKLOG.md</p>
       </div>
@@ -1572,15 +1573,15 @@ function InfraNodusDashboard() {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* Stats */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ background: "#0f0f23", border: "1px solid #5b21b6", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #5b21b6", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#a78bfa" }}>{graphs.length}</div>
           <div style={{ fontSize: 10, color: "#6b7280" }}>Graphs</div>
         </div>
-        <div style={{ background: "#0f0f23", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #166534", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#4ade80" }}>{cats.length}</div>
           <div style={{ fontSize: 10, color: "#6b7280" }}>Categorieën</div>
         </div>
-        <div style={{ background: "#0f0f23", border: "1px solid #854d0e", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
+        <div style={{ background: "#1e1e34", border: "1px solid #854d0e", borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90 }}>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#fbbf24" }}>{graphs.filter(g => g.type === "MEMORY").length}</div>
           <div style={{ fontSize: 10, color: "#6b7280" }}>Memory Graphs</div>
         </div>
@@ -1588,9 +1589,9 @@ function InfraNodusDashboard() {
 
       {/* Category filter */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        <button onClick={() => setFilter("all")} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === "all" ? "#a78bfa" : "#374151"}`, background: filter === "all" ? "#5b21b622" : "#111", color: filter === "all" ? "#c4b5fd" : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Alle ({graphs.length})</button>
+        <button onClick={() => setFilter("all")} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === "all" ? "#a78bfa" : "#454d60"}`, background: filter === "all" ? "#5b21b622" : "#111", color: filter === "all" ? "#c4b5fd" : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Alle ({graphs.length})</button>
         {cats.map(cat => (
-          <button key={cat} onClick={() => setFilter(cat)} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === cat ? catColors[cat] : "#374151"}`, background: filter === cat ? catColors[cat] + "22" : "#111", color: filter === cat ? catColors[cat] : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>{catLabels[cat]} ({graphs.filter(g => g.cat === cat).length})</button>
+          <button key={cat} onClick={() => setFilter(cat)} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${filter === cat ? catColors[cat] : "#454d60"}`, background: filter === cat ? catColors[cat] + "22" : "#111", color: filter === cat ? catColors[cat] : "#6b7280", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>{catLabels[cat]} ({graphs.filter(g => g.cat === cat).length})</button>
         ))}
       </div>
 
@@ -1598,7 +1599,7 @@ function InfraNodusDashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
         {filtered.map(g => (
           <a key={g.name + g.type} href={`https://infranodus.com/Franky-DSVD/${g.name}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>
-            <div style={{ background: "#0f0f0f", border: `1px solid ${catColors[g.cat]}33`, borderRadius: 10, padding: 12, cursor: "pointer", transition: "border-color 0.15s" }}
+            <div style={{ background: "#1a1a2e", border: `1px solid ${catColors[g.cat]}33`, borderRadius: 10, padding: 12, cursor: "pointer", transition: "border-color 0.15s" }}
               onMouseEnter={e => e.currentTarget.style.borderColor = catColors[g.cat]}
               onMouseLeave={e => e.currentTarget.style.borderColor = catColors[g.cat] + "33"}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
@@ -1682,7 +1683,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* KRITIEKE REGELS */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #991b1b", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #991b1b", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#ef4444", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>🚨</span> KRITIEKE REGELS (NOOIT VERGETEN)
         </div>
@@ -1705,7 +1706,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* SYNC BESTANDEN */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #166534", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #166534", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#4ade80", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📁</span> VERPLICHTE SYNC BESTANDEN (elke sessie lezen!)
         </div>
@@ -1721,13 +1722,13 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* DEVICES */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>🖥️</span> DEVICES & ROLLEN
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {devices.map((d, idx) => (
-            <div key={idx} style={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 10, minWidth: 140 }}>
+            <div key={idx} style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: 10, minWidth: 140 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: d.status === "online" ? "#4ade80" : d.status === "pending setup" ? "#fbbf24" : "#6b7280" }} />
                 <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{d.naam}</span>
@@ -1740,7 +1741,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* PROJECT LOCATIES */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#a78bfa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📂</span> ACTIEVE PROJECTEN
         </div>
@@ -1758,7 +1759,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* BESLISSINGEN LOG */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📋</span> RECENTE BESLISSINGEN
         </div>
@@ -1776,7 +1777,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* SDK-HRM TRAINING & STRATEGIE (7 Feb 2026 — MM4 Training Sessie) */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #f97316", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #f97316", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#f97316", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>🧠</span> SDK-HRM TRAINING & STRATEGIE (7 Feb 2026 — MM4)
         </div>
@@ -1795,7 +1796,7 @@ function SystemKnowledgeBase() {
               { label: "Domeinen", value: "66", color: "#fbbf24" },
               { label: "Target", value: "1.05M samples", color: "#ef4444" },
             ].map(m => (
-              <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
+              <div key={m.label} style={{ background: "#1e1e30", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
                 <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
               </div>
@@ -1804,7 +1805,7 @@ function SystemKnowledgeBase() {
         </div>
 
         {/* Nested Architecture */}
-        <div style={{ background: "#0a0a1a", border: "1px solid #312e81", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid #312e81", borderRadius: 8, padding: 12, marginBottom: 10 }}>
           <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 12, marginBottom: 8 }}>Nested Architecture — HRM inside LFM2</div>
           <div style={{ fontFamily: "monospace", fontSize: 10, color: "#c4b5fd", lineHeight: 1.6 }}>
             <div style={{ color: "#60a5fa" }}>LFM2-2.6B (body) — 2560-dim, ~5GB</div>
@@ -1899,7 +1900,7 @@ function SystemKnowledgeBase() {
         </div>
 
         {/* Checkpoint System */}
-        <div style={{ background: "#111", border: "1px solid #374151", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+        <div style={{ background: "#1e1e30", border: "1px solid #454d60", borderRadius: 8, padding: 12, marginBottom: 10 }}>
           <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 12, marginBottom: 8 }}>Checkpoint V3 (MPS-Safe Fixes)</div>
           {["✓ Checkpoint VÓÓR evaluatie (niet erna)", "✓ while True → for range(16) — geen MPS kernel hang", "✓ Interval: 500→100 steps, Max keep: 5", "✓ MAX_EVAL_BATCHES: 20, EVAL_TIMEOUT: 120s"].map(f => (
             <div key={f} style={{ fontSize: 10, color: "#86efac", padding: "2px 0" }}>{f}</div>
@@ -1917,7 +1918,7 @@ function SystemKnowledgeBase() {
         </div>
 
         {/* Deployment Sizes */}
-        <div style={{ background: "#111", border: "1px solid #374151", borderRadius: 8, padding: 12, marginTop: 10 }}>
+        <div style={{ background: "#1e1e30", border: "1px solid #454d60", borderRadius: 8, padding: 12, marginTop: 10 }}>
           <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 12, marginBottom: 8 }}>Deployment Groottes</div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 10, color: "#d1d5db" }}>
             <div><strong style={{ color: "#f97316" }}>HRM-27M:</strong> 27MB (int8) — 109MB (float32)</div>
@@ -1928,7 +1929,7 @@ function SystemKnowledgeBase() {
       </div>
 
       {/* Export Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Backup:</strong> Dit dashboard is zelf de backup - gepusht naar GitHub na elke wijziging</p>
         <p style={{ marginTop: 4 }}><strong>Sync:</strong> Clone dit repo op MM4/MM2 voor dezelfde kennis overal</p>
         <p style={{ marginTop: 4 }}><strong>Onafhankelijk:</strong> Werkt zonder claude-mem - alle kritieke info staat IN de code</p>
@@ -1990,7 +1991,7 @@ function ClaudeUpdates() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {recommendations.map((rec, idx) => (
-            <div key={idx} style={{ background: "#0a0a0a", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
+            <div key={idx} style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 8, padding: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
                   <span style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13 }}>{rec.feature}</span>
@@ -2007,26 +2008,22 @@ function ClaudeUpdates() {
       </div>
 
       {/* Recent Updates */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#22d3ee", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📰</span> RECENTE UPDATES
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
           {updates.map(upd => (
-            <div key={upd.id} style={{ display: "flex", alignItems: "center", gap: 10, background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[upd.type] }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{upd.title}</span>
-                  {upd.relevance === "critical" && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: "#ef444422", color: "#ef4444" }}>CRITICAL</span>}
-                </div>
-                <p style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>{upd.description}</p>
+            <div key={upd.id} style={{ background: "#222238", border: "1px solid #2d3748", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[upd.type], flexShrink: 0 }} />
+                <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{upd.title}</span>
+                {upd.relevance === "critical" && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: "#ef444422", color: "#ef4444" }}>CRITICAL</span>}
               </div>
-              <div style={{ textAlign: "right" }}>
+              <p style={{ color: "#9ca3af", fontSize: 10, marginTop: 2, marginBottom: 8 }}>{upd.description}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 10, color: "#6b7280" }}>{upd.date}</span>
-                <div style={{ marginTop: 4 }}>
-                  <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: upd.implemented ? "#22c55e22" : "#37415122", color: upd.implemented ? "#4ade80" : "#6b7280" }}>{upd.implemented ? "✓ Actief" : "○ Pending"}</span>
-                </div>
+                <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: upd.implemented ? "#22c55e22" : "#454d6022", color: upd.implemented ? "#4ade80" : "#6b7280" }}>{upd.implemented ? "✓ Actief" : "○ Pending"}</span>
               </div>
             </div>
           ))}
@@ -2034,27 +2031,25 @@ function ClaudeUpdates() {
       </div>
 
       {/* Tools Status */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#a78bfa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>🔧</span> TOOLS & PLUGINS STATUS
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
           {toolsStatus.map((tool, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: statusColors[tool.status] }} />
+            <div key={idx} style={{ background: "#222238", border: "1px solid #2d3748", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: statusColors[tool.status], flexShrink: 0 }} />
                 <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{tool.name}</span>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <span style={{ color: "#9ca3af", fontSize: 10 }}>{tool.note}</span>
-              </div>
+              <span style={{ color: "#9ca3af", fontSize: 10 }}>{tool.note}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Doel:</strong> Franky hoeft niet constant video's te kijken - dit dashboard houdt alles bij</p>
         <p style={{ marginTop: 4 }}><strong>Toekomst:</strong> Automatische checks via Anthropic API/changelog</p>
       </div>
@@ -2107,25 +2102,21 @@ function OpenClaudeBot() {
       </div>
 
       {/* Geplande Agents */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📋</span> GEPLANDE AGENTS
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
           {agents.map(agent => (
-            <div key={agent.id} style={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: 8, padding: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 13 }}>{agent.name}</span>
-                    <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: `${statusColors[agent.status]}22`, color: statusColors[agent.status] }}>{agent.status}</span>
-                  </div>
-                  <p style={{ color: "#9ca3af", fontSize: 11, marginTop: 4 }}>{agent.description}</p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#37415122", color: "#9ca3af" }}>{agent.platform}</span>
-                  {agent.mm4Required && <p style={{ color: "#6b7280", fontSize: 9, marginTop: 4 }}>Vereist MM4</p>}
-                </div>
+            <div key={agent.id} style={{ background: "#222238", border: "1px solid #2d3748", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 13 }}>{agent.name}</span>
+                <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: `${statusColors[agent.status]}22`, color: statusColors[agent.status] }}>{agent.status}</span>
+              </div>
+              <p style={{ color: "#9ca3af", fontSize: 11, marginBottom: 8 }}>{agent.description}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#454d6022", color: "#9ca3af" }}>{agent.platform}</span>
+                {agent.mm4Required && <span style={{ color: "#6b7280", fontSize: 9 }}>Vereist MM4</span>}
               </div>
             </div>
           ))}
@@ -2133,16 +2124,16 @@ function OpenClaudeBot() {
       </div>
 
       {/* Requirements Checklist */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#fbbf24", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>✓</span> VEREISTEN VOOR DEPLOYMENT
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
           {requirements.map((req, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: statusColors[req.status] }} />
-                <span style={{ color: "#e5e5e5", fontSize: 12 }}>{req.req}</span>
+            <div key={idx} style={{ background: "#222238", border: "1px solid #2d3748", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: statusColors[req.status], flexShrink: 0 }} />
+                <span style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>{req.req}</span>
               </div>
               <span style={{ color: "#6b7280", fontSize: 10 }}>{req.note}</span>
             </div>
@@ -2151,7 +2142,7 @@ function OpenClaudeBot() {
       </div>
 
       {/* History */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#9ca3af", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span>📜</span> FRANKY'S AGENT ERVARING
         </div>
@@ -2175,7 +2166,7 @@ function OpenClaudeBot() {
           <span>📱</span> TELEGRAM INTEGRATIE CONCEPT
         </div>
         <p style={{ color: "#93c5fd", fontSize: 12 }}>Doel: Franky rijdt in de wagen → stuurt Telegram command → MM4 voert uit</p>
-        <div style={{ marginTop: 10, padding: 10, background: "#0a0a0a", borderRadius: 8 }}>
+        <div style={{ marginTop: 10, padding: 10, background: "#1a1a2e", borderRadius: 8 }}>
           <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/status - Check MM4 training status</p>
           <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/sync - Trigger sync naar alle devices</p>
           <p style={{ color: "#6b7280", fontSize: 11, fontFamily: "monospace" }}>/stop - Pauzeer huidige training</p>
@@ -2184,7 +2175,7 @@ function OpenClaudeBot() {
       </div>
 
       {/* Info */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Huidige status:</strong> Alleen monitoring - geen installaties</p>
         <p style={{ marginTop: 4 }}><strong>Volgende stap:</strong> MM4 setup voltooien, dan agents heroverwegen</p>
         <p style={{ marginTop: 4 }}><strong>Franky's beslissing:</strong> Agents ZULLEN geïmplementeerd worden, timing TBD</p>
@@ -2221,7 +2212,7 @@ function AgentHierarchy() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Header Stats */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0f0f23", border: "1px solid #1e1b4b", borderRadius: 12, padding: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1e1e34", border: "1px solid #2d2a5e", borderRadius: 12, padding: 14 }}>
         <div>
           <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>
             <span>👥</span> Multi-Agent Orchestration
@@ -2247,7 +2238,7 @@ function AgentHierarchy() {
               </div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {roleAgents.map(agent => (
-                  <div key={agent.id} style={{ background: "#0a0a0a", borderRadius: 8, padding: 10, minWidth: 180 }}>
+                  <div key={agent.id} style={{ background: "#1a1a2e", borderRadius: 8, padding: 10, minWidth: 180 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: statusColors[agent.status] }} />
                       <span style={{ fontWeight: 600, color: "#e5e5e5", fontSize: 12 }}>{agent.name}</span>
@@ -2266,26 +2257,26 @@ function AgentHierarchy() {
       </div>
 
       {/* Task Queue */}
-      <div style={{ background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 12, padding: 14 }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #2d3748", borderRadius: 12, padding: 14 }}>
         <div style={{ fontWeight: 700, color: "#6b7280", marginBottom: 10, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
           <span>📋</span> Task Queue
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
           {taskQueue.map(task => (
-            <div key={task.id} style={{ display: "flex", alignItems: "center", gap: 10, background: "#1a1a2e", borderRadius: 8, padding: 10 }}>
-              <span style={{ fontSize: 12 }}>{task.priority === "critical" ? "🔴" : task.priority === "high" ? "🟡" : "⚪"}</span>
-              <div style={{ flex: 1 }}>
-                <p style={{ color: "#e5e5e5", fontSize: 12 }}>{task.description}</p>
-                <p style={{ color: "#6b7280", fontSize: 10 }}>{task.assignedTo ? `Toegewezen: ${agents.find(a => a.id === task.assignedTo)?.name}` : "Wacht op toewijzing"}</p>
+            <div key={task.id} style={{ background: "#222238", border: "1px solid #2d3748", borderRadius: 10, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 12 }}>{task.priority === "critical" ? "🔴" : task.priority === "high" ? "🟡" : "⚪"}</span>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: task.status === "in_progress" ? "#166534" : "#454d60", color: task.status === "in_progress" ? "#4ade80" : "#9ca3af" }}>{task.status}</span>
               </div>
-              <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: task.status === "in_progress" ? "#166534" : "#374151", color: task.status === "in_progress" ? "#4ade80" : "#9ca3af" }}>{task.status}</span>
+              <p style={{ color: "#e5e5e5", fontSize: 12, marginBottom: 6 }}>{task.description}</p>
+              <p style={{ color: "#6b7280", fontSize: 10 }}>{task.assignedTo ? `Toegewezen: ${agents.find(a => a.id === task.assignedTo)?.name}` : "Wacht op toewijzing"}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Safety Note */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Veiligheid:</strong> Elke taak wordt gevalideerd voordat deze als "completed" wordt gemarkeerd. Bij fouten: automatische rollback.</p>
         <p style={{ marginTop: 4 }}><strong>Hiërarchie:</strong> Orchestrator delegeert → Specialists coördineren → Workers uitvoeren → Validators controleren</p>
       </div>
@@ -2304,7 +2295,7 @@ function SDKHRMHub() {
 
   // Reusable expandable section component
   const Section = ({ id, icon, title, date, color, border, bg, summary, children }) => (
-    <div style={{ background: bg || "#0f0f0f", border: `1px solid ${border || "#374151"}`, borderRadius: 12, padding: 0, overflow: "hidden" }}>
+    <div style={{ background: bg || "#0f0f0f", border: `1px solid ${border || "#454d60"}`, borderRadius: 12, padding: 0, overflow: "hidden" }}>
       <div
         onClick={() => toggle(id)}
         style={{
@@ -2328,7 +2319,7 @@ function SDKHRMHub() {
         <span style={{ color: "#6b7280", fontSize: 16, transition: "transform 0.2s", transform: expanded[id] ? "rotate(180deg)" : "rotate(0deg)", marginLeft: 8 }}>▾</span>
       </div>
       {expanded[id] && (
-        <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${border || "#374151"}33` }}>
+        <div style={{ padding: "0 16px 16px 16px", borderTop: `1px solid ${border || "#454d60"}33` }}>
           {children}
         </div>
       )}
@@ -2379,7 +2370,7 @@ function SDKHRMHub() {
               { label: "Domeinen", value: "66", color: "#fbbf24" },
               { label: "Target", value: "1.05M samples", color: "#ef4444" },
             ].map(m => (
-              <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
+              <div key={m.label} style={{ background: "#1e1e30", borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
                 <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
               </div>
@@ -2397,7 +2388,7 @@ function SDKHRMHub() {
             <p style={{ marginTop: 8 }}>Het model traint op 66 verschillende domeinen verdeeld over 10 lagen, van core scam detection tot financiele fraude en platform-specifieke patronen. Het doel is uiteindelijk 1.051.000 training samples te verzamelen.</p>
             <p style={{ marginTop: 8 }}>De training draait met ~1.76 seconden per stap op MPS. Checkpoints worden elke 100 stappen opgeslagen met maximaal 5 behouden (de laatste 5). De gehele pipeline is privacy-first: alles draait lokaal, geen cloud, geen data die het apparaat verlaat.</p>
 
-            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
               <div style={{ fontWeight: 700, color: "#f97316", fontSize: 12, marginBottom: 8 }}>Neurale Architectuur Detail:</div>
               <ul style={{ paddingLeft: 20, fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
                 <li><strong style={{ color: "#a78bfa" }}>Rotary Positional Embeddings (RoPE)</strong> — vervangt traditionele absolute positionele encodings door query/key vectoren te roteren in complexe ruimte. Biedt betere length generalization en relatieve positie-awareness via de "rotate half" techniek.</li>
@@ -2410,7 +2401,7 @@ function SDKHRMHub() {
               </ul>
             </div>
 
-            <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e81" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1a1a2e", borderRadius: 8, border: "1px solid #312e81" }}>
               <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 12, marginBottom: 8 }}>MPS Porting Learnings (CUDA → Apple Silicon):</div>
               <ul style={{ paddingLeft: 20, fontSize: 11, color: "#c4b5fd", lineHeight: 1.7 }}>
                 <li>FlashAttention vervangen door SDPA (Scaled Dot Product Attention)</li>
@@ -2437,7 +2428,7 @@ function SDKHRMHub() {
         <div style={{ marginTop: 12, fontSize: 12, color: "#d1d5db", lineHeight: 1.8 }}>
           <p><strong style={{ color: "#ef4444" }}>Probleem:</strong> Twee keer is alle trainingsvoortgang verloren gegaan doordat de MPS GPU vastliep in een evaluatie-loop. De eerste keer 5750 stappen, de tweede keer 228 stappen. Dit komt omdat MPS GPU-calls op kernel-niveau blokkeren (Uninterruptible Sleep / UN state) — Python code wordt simpelweg niet meer uitgevoerd, dus timeouts en while-loop checks werken niet.</p>
 
-          <div style={{ marginTop: 12, marginBottom: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#22c55e", marginBottom: 8 }}>3 Kritieke Fixes:</div>
             {[
               { fix: "Checkpoint VÓÓR evaluatie", detail: "Het model wordt nu opgeslagen VOORDAT de evaluatie begint. Als de eval vastloopt, is de trainingsvoortgang al veilig opgeslagen. Voorheen werd pas NA de eval opgeslagen, waardoor alles verloren ging." },
@@ -2462,7 +2453,7 @@ function SDKHRMHub() {
           <p>Franky's kern-innovatie: het combineren van twee AI-modellen in een geneste architectuur die op een enkel edge device draait. Het concept is "Brain inside Body" — het kleine maar krachtige HRM-model (het brein) draait binnen het grotere LFM2-model (het lichaam).</p>
 
           {/* Architecture Diagram */}
-          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e81", fontFamily: "monospace", fontSize: 11, lineHeight: 1.8 }}>
+          <div style={{ marginTop: 12, marginBottom: 12, padding: 14, background: "#1a1a2e", borderRadius: 8, border: "1px solid #312e81", fontFamily: "monospace", fontSize: 11, lineHeight: 1.8 }}>
             <div style={{ color: "#60a5fa", fontWeight: 700 }}>LFM2-2.6B (body) — ontvangt alle input (tekst, email, voice, beeld)</div>
             <div style={{ color: "#6b7280" }}>{"    ↓ 1000 tokens (2560-dim embeddings)"}</div>
             <div style={{ color: "#f59e0b", fontWeight: 700 }}>DeepEncoder Bridge — comprimeert 2560→512 dim, 1000→50 tokens (97% info behoud)</div>
@@ -2492,7 +2483,7 @@ function SDKHRMHub() {
                 { label: "Features", value: "~28", color: "#fbbf24" },
                 { label: "Bridge", value: "~8MB", color: "#a78bfa" },
               ].map(m => (
-                <div key={m.label} style={{ background: "#111", borderRadius: 6, padding: "4px 8px", textAlign: "center" }}>
+                <div key={m.label} style={{ background: "#1e1e30", borderRadius: 6, padding: "4px 8px", textAlign: "center" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.value}</div>
                   <div style={{ fontSize: 8, color: "#6b7280" }}>{m.label}</div>
                 </div>
@@ -2500,7 +2491,7 @@ function SDKHRMHub() {
             </div>
           </div>
 
-          <div style={{ marginTop: 12, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 12, padding: 10, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>3 Strategieen (Optie 1 gekozen):</div>
             {[
               "1. ✅ HRM inside LFM2 — HRM als reasoning core, LFM2 als language/context shell (ACTIEF)",
@@ -2513,7 +2504,7 @@ function SDKHRMHub() {
 
           <p style={{ marginTop: 12 }}><strong style={{ color: "#22c55e" }}>Google Nested Learning (NeurIPS 2025):</strong> Multi-timescale aanpak met snelle modules (nieuwe scams, maandelijks updatebaar) en trage modules (core reasoning, stabiel). Het Continuum Memory System voorkomt catastrophic forgetting. Maandelijkse updates gaan naar de snelle modules ZONDER het basismodel te hertrainen. Perfect voor een abonnementsmodel: nieuwe bedreigingen maandelijks, core blijft stabiel.</p>
 
-          <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e81" }}>
+          <div style={{ marginTop: 12, padding: 12, background: "#1a1a2e", borderRadius: 8, border: "1px solid #312e81" }}>
             <div style={{ fontWeight: 700, color: "#c4b5fd", fontSize: 12, marginBottom: 8 }}>Hoe de compressie werkt — stap voor stap:</div>
             <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
               <p><strong style={{ color: "#60a5fa" }}>Fase 1 — LFM2 ontvangt input:</strong> Een email, website of spraakfragment komt binnen. LFM2-2.6B verwerkt dit met zijn 30 lagen (22 convolutie + 8 attention) tot 2560-dimensionale embeddings. Op dit punt begrijpt LFM2 de taal, context en inhoud, maar het is te groot om diep te redeneren over dreigingen.</p>
@@ -2522,7 +2513,7 @@ function SDKHRMHub() {
             </div>
           </div>
 
-          <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 8 }}>Multi-Timescale Learning — Hoe updates werken:</div>
             <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
               <p><strong style={{ color: "#22c55e" }}>Snelle modules (fast modules):</strong> Worden maandelijks bijgewerkt met nieuwe scam-patronen, trending phishing campagnes, en seizoensgebonden dreigingen. Deze updates gaan via LoRA adapters (10-50MB) die in seconden geladen worden. Ze reageren op immediate context — wat er NU gebeurt in het dreigingslandschap.</p>
@@ -2640,7 +2631,7 @@ function SDKHRMHub() {
             </div>
           ))}
 
-          <div style={{ marginTop: 12, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 12, padding: 10, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Belgische Targets:</div>
             <div style={{ fontSize: 11, color: "#d1d5db" }}>Bancontact/Payconiq (nationale betaalinfra), Worldline (HQ Brussel, global payment processor), Ethias (verzekeraar), Billit (facturatie), Aion Bank (digitale bank). Telecom partners: Proximus, Orange, KPN (NL). Banken: Belfius, KBC, ING. Deze partners bieden directe toegang tot miljoenen eindgebruikers via bestaande kanalen.</div>
             <div style={{ marginTop: 8, fontSize: 11, color: "#22c55e", fontWeight: 600 }}>ROI Argument: Bank verliest €50K aan phishing, SDK-HRM kost €500/maand = 100x ROI</div>
@@ -2742,7 +2733,7 @@ function SDKHRMHub() {
             </div>
           ))}
 
-          <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Marktcijfers:</div>
             <div style={{ fontSize: 11, color: "#d1d5db" }}>On-device AI markt: $30.6 miljard in 2029 (25% groei/jaar). Embedded IoT security: $18.3 miljard in 2033 (11.5% groei/jaar). Automotive = 25% van IoT security, snelst groeiend segment.</div>
           </div>
@@ -2786,7 +2777,7 @@ function SDKHRMHub() {
             </div>
           ))}
 
-          <div style={{ marginTop: 8, padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+          <div style={{ marginTop: 8, padding: 10, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
             <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Deployment Groottes:</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8, fontSize: 11, color: "#d1d5db" }}>
               <div><strong style={{ color: "#f97316" }}>HRM-27M:</strong> 27MB (int8) — 109MB (float32)</div>
@@ -2905,7 +2896,7 @@ function SDKHRMHub() {
       </Section>
 
       {/* Footer */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 11, color: "#6b7280" }}>
         <p><strong>Laatste update:</strong> 7 februari 2026 — MM4 Training Sessie</p>
         <p style={{ marginTop: 4 }}><strong>Bronnen:</strong> 19 InfraNodus graphs, ARC training logs, sessie-notities</p>
         <p style={{ marginTop: 4 }}><strong>Opmerking:</strong> Deze tab bevat de volledige uitgesproken teksten en analyses uit de trainingssessie. Klik op elk onderdeel om de complete uitleg te lezen.</p>
@@ -2933,7 +2924,7 @@ function MiniChart({ data, width = 500, height = 180, color = "#ef4444", label =
   const areaPath = `M${sx(data[0].x)},${sy(data[0].y)} ${data.map(d => `L${sx(d.x)},${sy(d.y)}`).join(" ")} L${sx(data[data.length-1].x)},${pad.top + h} L${sx(data[0].x)},${pad.top + h} Z`;
 
   return (
-    <div style={{ background: "#0a0a14", border: "1px solid #1f2937", borderRadius: 10, padding: 12 }}>
+    <div style={{ background: "#0a0a14", border: "1px solid #2d3748", borderRadius: 10, padding: 12 }}>
       {label && <div style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb", marginBottom: 8 }}>{label}</div>}
       <svg width={width} height={height} style={{ display: "block", maxWidth: "100%" }} viewBox={`0 0 ${width} ${height}`}>
         {/* Grid lines */}
@@ -2942,7 +2933,7 @@ function MiniChart({ data, width = 500, height = 180, color = "#ef4444", label =
           const y = sy(yVal);
           return (
             <g key={i}>
-              <line x1={pad.left} y1={y} x2={width - pad.right} y2={y} stroke="#1f2937" strokeWidth="1" />
+              <line x1={pad.left} y1={y} x2={width - pad.right} y2={y} stroke="#2d3748" strokeWidth="1" />
               <text x={pad.left - 8} y={y + 4} textAnchor="end" fill="#6b7280" fontSize="10">{yVal < 0.01 ? yVal.toExponential(1) : yVal.toFixed(yVal >= 10 ? 0 : yVal >= 1 ? 1 : 2)}</text>
             </g>
           );
@@ -3129,7 +3120,7 @@ function TrainingBenchmarks() {
                 { label: "Tijd", value: "2h 52min", color: "#f472b6" },
                 { label: "Checkpoint", value: "1.8GB", color: "#ef4444" },
               ].map(m => (
-                <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                <div key={m.label} style={{ background: "#1e1e30", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
                   <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.value}</div>
                   <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
                 </div>
@@ -3175,7 +3166,7 @@ function TrainingBenchmarks() {
             {/* Comparison cards */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
               {/* Before */}
-              <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 10, padding: 14 }}>
+              <div style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 10, padding: 14 }}>
                 <div style={{ fontWeight: 700, color: "#9ca3af", fontSize: 13, marginBottom: 10 }}>BASELINE (voor fine-tuning)</div>
                 <div style={{ textAlign: "center", margin: "10px 0" }}>
                   <div style={{ fontSize: 36, fontWeight: 800, color: "#f59e0b" }}>86.1%</div>
@@ -3199,7 +3190,7 @@ function TrainingBenchmarks() {
             </div>
 
             {/* LoRA Training Details */}
-            <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 10, border: "1px solid #312e81" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1a1a2e", borderRadius: 10, border: "1px solid #312e81" }}>
               <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 13, marginBottom: 8 }}>LoRA Fine-Tuning Details</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 8 }}>
                 {[
@@ -3210,7 +3201,7 @@ function TrainingBenchmarks() {
                   { label: "Data", value: "252", sub: "209 + SAFE oversample", color: "#f472b6" },
                   { label: "Adapter", value: "~13MB", sub: "LoRA rank 8", color: "#06b6d4" },
                 ].map(m => (
-                  <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                  <div key={m.label} style={{ background: "#1e1e30", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: m.color }}>{m.value}</div>
                     <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
                     <div style={{ fontSize: 9, color: "#4b5563", marginTop: 2 }}>{m.sub}</div>
@@ -3220,14 +3211,14 @@ function TrainingBenchmarks() {
             </div>
 
             {/* Category Breakdown */}
-            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 10, border: "1px solid #374151" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 10, border: "1px solid #454d60" }}>
               <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13, marginBottom: 10 }}>Per Categorie — Voor vs Na</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
                 {categoryResults.map((c, i) => {
                   const improved = c.after > c.before;
                   const perfect = c.after === 100;
                   return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", background: perfect ? "#22c55e08" : improved ? "#f59e0b08" : "#0a0a0a", borderRadius: 6, border: `1px solid ${perfect ? "#16653433" : "#37415133"}` }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", background: perfect ? "#22c55e08" : improved ? "#f59e0b08" : "#0a0a0a", borderRadius: 6, border: `1px solid ${perfect ? "#16653433" : "#454d6033"}` }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ fontSize: 14 }}>{c.icon}</span>
                         <span style={{ fontSize: 12, color: "#d1d5db" }}>{c.cat}</span>
@@ -3289,7 +3280,7 @@ function TrainingBenchmarks() {
             <div style={{ marginTop: 12, overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #374151" }}>
+                  <tr style={{ borderBottom: "1px solid #454d60" }}>
                     {["Versie", "OOD %", "Test Set", "Strategie", "Status"].map(h => (
                       <th key={h} style={{ padding: "8px 10px", textAlign: "left", color: "#9ca3af", fontWeight: 600, fontSize: 11 }}>{h}</th>
                     ))}
@@ -3304,7 +3295,7 @@ function TrainingBenchmarks() {
                     { v: "v6", pct: "65.7%", set: "445 (schoon)", strat: "Adversarial boost", status: "Afgesloten", color: "#ef4444" },
                     { v: "v4+rules", pct: "78.9%", set: "445 (schoon)", strat: "Hybrid rule engine", status: "ACTIEF", color: "#22c55e" },
                   ].map((r, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid #1f2937", background: r.v === "v4+rules" ? "#22c55e08" : "transparent" }}>
+                    <tr key={i} style={{ borderBottom: "1px solid #2d3748", background: r.v === "v4+rules" ? "#22c55e08" : "transparent" }}>
                       <td style={{ padding: "8px 10px", fontWeight: r.v === "v4+rules" ? 700 : 400, color: r.color }}>{r.v}</td>
                       <td style={{ padding: "8px 10px", fontWeight: 700, color: r.color }}>{r.pct}</td>
                       <td style={{ padding: "8px 10px", color: "#9ca3af" }}>{r.set}</td>
@@ -3328,7 +3319,7 @@ function TrainingBenchmarks() {
                   { label: "Overrides", value: "15", sub: "regels winnen", color: "#f97316" },
                   { label: "Delta", value: "+2.9%", sub: "vs model-only", color: "#a78bfa" },
                 ].map(m => (
-                  <div key={m.label} style={{ background: "#111", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                  <div key={m.label} style={{ background: "#1e1e30", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
                     <div style={{ fontSize: 16, fontWeight: 800, color: m.color }}>{m.value}</div>
                     <div style={{ fontSize: 10, color: "#6b7280" }}>{m.label}</div>
                     <div style={{ fontSize: 9, color: "#4b5563", marginTop: 2 }}>{m.sub}</div>
@@ -3342,7 +3333,7 @@ function TrainingBenchmarks() {
             </div>
 
             {/* Rule Engine Coverage */}
-            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
               <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 12, marginBottom: 8 }}>Rule Engine — 5 Regelcategorieën</div>
               {[
                 { naam: "BEC/Invoice Scam", detail: "Bankwijziging patronen, wire transfers, vendor impersonation (EN/NL/FR)", color: "#ef4444" },
@@ -3359,7 +3350,7 @@ function TrainingBenchmarks() {
             </div>
 
             {/* Lessen Geleerd */}
-            <div style={{ marginTop: 12, padding: 12, background: "#0a0a1a", borderRadius: 8, border: "1px solid #312e8144" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1a1a2e", borderRadius: 8, border: "1px solid #312e8144" }}>
               <div style={{ fontWeight: 700, color: "#a78bfa", fontSize: 12, marginBottom: 8 }}>Lessen Geleerd (6 versies)</div>
               <div style={{ fontSize: 11, color: "#d1d5db", lineHeight: 1.7 }}>
                 {[
@@ -3417,7 +3408,7 @@ function TrainingBenchmarks() {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 12, padding: 12, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+            <div style={{ marginTop: 12, padding: 12, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
               <div style={{ fontWeight: 700, color: "#fbbf24", fontSize: 13, marginBottom: 6 }}>Wat moet er nog gebeuren om naar buiten te komen?</div>
               <div style={{ fontSize: 13, color: "#d1d5db", lineHeight: 1.8 }}>
                 <p>De huidige 209 scenario's zijn een proof-of-concept. Voor een geloofwaardige claim heb je minimaal <strong style={{ color: "#f97316" }}>5.000 scenario's</strong> nodig met een <strong style={{ color: "#f97316" }}>externe testset</strong> die het model nooit gezien heeft. Vergelijking met bestaande tools (Gmail, Defender) op dezelfde dataset bewijst je niche-voordeel. Focus: meertalig NL/FR/EN + privacy-first + on-device.</p>
@@ -3436,7 +3427,7 @@ function TrainingBenchmarks() {
                   { metric: "Dataset", target: "5000+", current: "209", color: "#ef4444" },
                   { metric: "Zero-day", target: "Bewezen", current: "Niet getest", color: "#ef4444" },
                 ].map(m => (
-                  <div key={m.metric} style={{ padding: 10, background: "#111", borderRadius: 8, border: "1px solid #374151" }}>
+                  <div key={m.metric} style={{ padding: 10, background: "#1e1e30", borderRadius: 8, border: "1px solid #454d60" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.metric}</div>
                     <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>Target: {m.target}</div>
                     <div style={{ fontSize: 11, color: m.color, marginTop: 2 }}>Nu: {m.current}</div>
@@ -3449,7 +3440,7 @@ function TrainingBenchmarks() {
       </div>
 
       {/* Footer */}
-      <div style={{ padding: 12, background: "#0a0a0a", borderRadius: 8, fontSize: 12, color: "#6b7280" }}>
+      <div style={{ padding: 12, background: "#1a1a2e", borderRadius: 8, fontSize: 12, color: "#6b7280" }}>
         <p><strong>Runs:</strong> 2 trainingsruns vastgelegd (ARC pre-training + LFM2 LoRA fine-tuning)</p>
         <p style={{ marginTop: 4 }}><strong>Locaties:</strong> HRM checkpoint op MM4 intern • LFM2 + adapter op 8TB AI-Models</p>
         <p style={{ marginTop: 4 }}><strong>Volgende run:</strong> LFM2 fine-tuning op 2000+ scenario's (na data opschaling via InfraNodus)</p>
@@ -3670,8 +3661,8 @@ function RevenueIntelligence() {
               onClick={() => triggerScan()}
               disabled={scanning || !apiOnline}
               style={{
-                padding: "12px 18px", background: scanning ? "#4b5563" : apiOnline ? "linear-gradient(135deg, #8b5cf6, #6d28d9)" : "#1f2937",
-                border: `1px solid ${apiOnline ? "#8b5cf688" : "#374151"}`, borderRadius: 10, cursor: scanning || !apiOnline ? "default" : "pointer",
+                padding: "12px 18px", background: scanning ? "#4b5563" : apiOnline ? "linear-gradient(135deg, #8b5cf6, #6d28d9)" : "#2d3748",
+                border: `1px solid ${apiOnline ? "#8b5cf688" : "#454d60"}`, borderRadius: 10, cursor: scanning || !apiOnline ? "default" : "pointer",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 80
               }}
             >
@@ -3712,7 +3703,7 @@ function RevenueIntelligence() {
         {expanded.streams && (
           <div style={{ padding: 16, borderTop: "1px solid #22c55e33" }}>
             {revenueStreams.map(s => (
-              <div key={s.rank} style={{ background: s.rank === 1 ? "#22c55e08" : "#111", border: `1px solid ${s.rank === 1 ? "#22c55e44" : "#1f2937"}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+              <div key={s.rank} style={{ background: s.rank === 1 ? "#22c55e08" : "#111", border: `1px solid ${s.rank === 1 ? "#22c55e44" : "#2d3748"}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 22, fontWeight: 800, color: s.rank === 1 ? "#22c55e" : "#6b7280" }}>#{s.rank}</span>
@@ -3794,7 +3785,7 @@ function RevenueIntelligence() {
                   {cat === "technical" ? "⚙️ Technisch" : cat === "legal" ? "⚖️ Legaal" : "📣 Marketing"}
                 </div>
                 {items.map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid #1f293733" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid #2d374833" }}>
                     <span style={{ fontSize: 14 }}>{item.done ? "✅" : "⬜"}</span>
                     <span style={{ flex: 1, color: item.done ? "#6b7280" : "#d1d5db", fontSize: 12, textDecoration: item.done ? "line-through" : "none" }}>{item.item}</span>
                     <span style={{ padding: "2px 6px", background: `${prioColor(item.priority)}22`, color: prioColor(item.priority), borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{item.priority}</span>
@@ -3807,7 +3798,7 @@ function RevenueIntelligence() {
       </div>
 
       {/* ── DAILY INTELLIGENCE MONITORING ── */}
-      <div style={{ background: "#0a0a1a", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid #a855f766", borderRadius: 12, overflow: "hidden" }}>
         <div role="button" tabIndex="0" aria-label="Open/sluit dagelijkse projecties sectie" aria-expanded={!!expanded.daily} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle("daily")} onClick={() => toggle("daily")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer", background: expanded.daily ? "#a855f711" : "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📡</span>
@@ -3829,7 +3820,7 @@ function RevenueIntelligence() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {dailyTopics.map((t, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10 }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#1e1e30", border: "1px solid #2d3748", borderRadius: 8, padding: 10 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#e5e7eb", fontSize: 12 }}>{t.topic}</div>
                     <div style={{ color: "#6b7280", fontSize: 11, marginTop: 2 }}>{t.why}</div>
@@ -3857,7 +3848,7 @@ function RevenueIntelligence() {
             </thead>
             <tbody>
               {projections.map((p, i) => (
-                <tr key={i} style={{ borderBottom: "1px solid #1f293733" }}>
+                <tr key={i} style={{ borderBottom: "1px solid #2d374833" }}>
                   <td style={{ padding: "8px 12px", color: "#e5e7eb", fontWeight: 600 }}>{p.month}</td>
                   <td style={{ padding: "8px 12px", color: "#9ca3af" }}>{p.users}</td>
                   <td style={{ padding: "8px 12px", color: "#60a5fa" }}>{p.paying}</td>
@@ -3910,8 +3901,8 @@ function RevenueIntelligence() {
                 <div style={{ color: "#9ca3af", fontSize: 14 }}>Nog geen intelligence data beschikbaar</div>
                 <div style={{ color: "#6b7280", fontSize: 12, marginTop: 8, lineHeight: 1.8 }}>
                   <strong style={{ color: "#8b5cf6" }}>Setup:</strong><br/>
-                  1. Voeg <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>PERPLEXITY_API_KEY=pplx-xxx</code> toe aan <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>~/.env</code><br/>
-                  2. Run: <code style={{ background: "#1f2937", padding: "2px 6px", borderRadius: 4 }}>python3 scripts/perplexity_monitor.py</code><br/>
+                  1. Voeg <code style={{ background: "#2d3748", padding: "2px 6px", borderRadius: 4 }}>PERPLEXITY_API_KEY=pplx-xxx</code> toe aan <code style={{ background: "#2d3748", padding: "2px 6px", borderRadius: 4 }}>~/.env</code><br/>
+                  2. Run: <code style={{ background: "#2d3748", padding: "2px 6px", borderRadius: 4 }}>python3 scripts/perplexity_monitor.py</code><br/>
                   3. Klik 🔄 Refresh hierboven
                 </div>
                 <div style={{ color: "#4b5563", fontSize: 11, marginTop: 12 }}>Kosten: ~$0.005-0.01 per scan (8 topics) = minder dan €1/maand bij dagelijks gebruik</div>
@@ -3937,7 +3928,7 @@ function RevenueIntelligence() {
                   const catColors = { threats: "#ef4444", competition: "#f59e0b", product: "#60a5fa", regulation: "#22c55e", technology: "#8b5cf6" };
                   const borderColor = catColors[entry.category] || "#6b7280";
                   return (
-                    <div key={entry.id} style={{ background: "#111", border: `1px solid ${borderColor}33`, borderLeft: `3px solid ${borderColor}`, borderRadius: 8, overflow: "hidden" }}>
+                    <div key={entry.id} style={{ background: "#1e1e30", border: `1px solid ${borderColor}33`, borderLeft: `3px solid ${borderColor}`, borderRadius: 8, overflow: "hidden" }}>
                       <div role="button" tabIndex="0" aria-label={`Open/sluit ${entry.title || "feed item"}`} aria-expanded={!!expanded[`feed_${entry.id}`]} onKeyDown={e => (e.key === "Enter" || e.key === " ") && toggle(`feed_${entry.id}`)} onClick={() => toggle(`feed_${entry.id}`)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", cursor: "pointer", background: expanded[`feed_${entry.id}`] ? `${borderColor}08` : "transparent" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{ fontSize: 18 }}>{entry.icon}</span>
@@ -3960,7 +3951,7 @@ function RevenueIntelligence() {
                           </div>
                           {/* Citations */}
                           {entry.citations && entry.citations.length > 0 && (
-                            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1f293744" }}>
+                            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #2d374844" }}>
                               <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 600, marginBottom: 4 }}>📎 BRONNEN:</div>
                               {entry.citations.map((url, ci) => (
                                 <div key={ci} style={{ fontSize: 10, color: "#60a5fa", marginBottom: 2, wordBreak: "break-all" }}>
@@ -4007,7 +3998,7 @@ function RevenueIntelligence() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+      <div style={{ background: "#1e1e30", border: "1px solid #2d3748", borderRadius: 8, padding: 12 }}>
         <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
           <p><strong style={{ color: "#22c55e" }}>Eerste stap:</strong> Chrome extensie bouwen met LFM2 lokaal (WASM). Nul serverkosten = ~95% marge.</p>
           <p style={{ marginTop: 4 }}><strong style={{ color: "#22c55e" }}>Monitoring:</strong> Perplexity API (~€1/maand) voor dagelijkse scam + markt intelligence. InfraNodus voor structurering.</p>
@@ -4069,15 +4060,15 @@ function UseCases() {
           Een Chrome extensie die meertalig (NL/FR/EN) en 100% lokaal op je device draait. Scant emails, websites, marktplaatsen en chat-berichten op scams. Premium feature: GDPR/NIS2 compliance rapporten voor Europese KMO's.
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 14 }}>
-          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #f97316" }}>
+          <div style={{ background: "#1e1e30", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #f97316" }}>
             <div style={{ fontSize: 10, color: "#f97316", fontWeight: 700 }}>IDEE</div>
             <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>Lokale AI die meekijkt terwijl je browst — geen cloud, geen data die je browser verlaat</div>
           </div>
-          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #22c55e" }}>
+          <div style={{ background: "#1e1e30", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #22c55e" }}>
             <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 700 }}>MARKT</div>
             <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>$2.67B → $15.99B (2034). BeNeLux onbediend. GDPR boetes tot 4% omzet drijven vraag</div>
           </div>
-          <div style={{ background: "#111", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #a78bfa" }}>
+          <div style={{ background: "#1e1e30", borderRadius: 10, padding: "10px 12px", borderLeft: "3px solid #a78bfa" }}>
             <div style={{ fontSize: 10, color: "#a78bfa", fontWeight: 700 }}>REVENUE</div>
             <div style={{ fontSize: 12, color: "#e5e7eb", marginTop: 4 }}>Freemium extensie + GDPR scan (€29-99). Doel: €5K/mnd MRR via 1000 Pro users</div>
           </div>
@@ -4088,7 +4079,7 @@ function UseCases() {
       <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8" }}>Wat de gebruiker ziet</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
         {useCases.map(uc => (
-          <div key={uc.title} style={{ background: "#0f0f0f", border: `1px solid ${uc.color}33`, borderRadius: 12, padding: 14 }}>
+          <div key={uc.title} style={{ background: "#1a1a2e", border: `1px solid ${uc.color}33`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 22 }}>{uc.icon}</span>
@@ -4110,7 +4101,7 @@ function UseCases() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
 
         {/* Roadmap */}
-        <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 12, padding: 14 }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 12, padding: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8", marginBottom: 10 }}>Roadmap A → D</div>
           {phases.map(p => {
             const pct = Math.round((p.done / p.total) * 100);
@@ -4122,12 +4113,12 @@ function UseCases() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "#e5e7eb" }}>{p.title}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: p.status === "ACTIEF" ? "#22c55e22" : "#374151", color: p.status === "ACTIEF" ? "#4ade80" : "#6b7280", fontWeight: 600 }}>{p.status}</span>
+                        <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: p.status === "ACTIEF" ? "#22c55e22" : "#454d60", color: p.status === "ACTIEF" ? "#4ade80" : "#6b7280", fontWeight: 600 }}>{p.status}</span>
                         <span style={{ fontSize: 9, color: "#4b5563" }}>{p.deadline}</span>
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
-                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#1f2937" }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#2d3748" }}>
                         <div style={{ width: `${pct}%`, height: "100%", background: p.color, borderRadius: 2 }} />
                       </div>
                       <span style={{ fontSize: 9, color: p.color, fontWeight: 700, minWidth: 25 }}>{pct}%</span>
@@ -4161,7 +4152,7 @@ function UseCases() {
               { tier: "Gezin", price: "€9.99/mnd", detail: "5 devices + elderly dashboard", color: "#f472b6" },
               { tier: "GDPR Scan", price: "€29-99", detail: "Compliance rapport PDF (NL/FR/EN)", color: "#a78bfa" },
             ].map(r => (
-              <div key={r.tier} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #1f2937" }}>
+              <div key={r.tier} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #2d3748" }}>
                 <div>
                   <span style={{ fontSize: 12, fontWeight: 600, color: r.color }}>{r.tier}</span>
                   <span style={{ fontSize: 10, color: "#6b7280", marginLeft: 6 }}>{r.detail}</span>
@@ -4176,7 +4167,7 @@ function UseCases() {
           </div>
 
           {/* USPs */}
-          <div style={{ background: "#0a0a1a", border: "1px solid #374151", borderRadius: 12, padding: 14 }}>
+          <div style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 12, padding: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8", marginBottom: 8 }}>Waarom SDK-HRM</div>
             {[
               { label: "Meertalig NL/FR/EN", sub: "Niemand anders doet BeNeLux", color: "#f97316" },
@@ -4345,19 +4336,19 @@ function DumpBar() {
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={syncNow} disabled={syncing} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #14b8a6", background: syncing ? "#111" : "#14b8a622", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 14, fontWeight: 700, cursor: syncing ? "wait" : "pointer" }}>{syncing ? "⏳" : "🔄 Sync"}</button>
-            {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{open ? "▲ Dicht" : "▼ " + items.length + " items"}</button>}
+            {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{open ? "▲ Dicht" : "▼ " + items.length + " items"}</button>}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input type="text" placeholder="Plak URL of tekst..." value={inp} onChange={function(e) { setInp(e.target.value); }}
             onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
-            style={{ flex: 1, minWidth: 150, padding: "12px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e7eb", fontSize: 16, outline: "none" }} />
+            style={{ flex: 1, minWidth: 150, padding: "12px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#e5e7eb", fontSize: 16, outline: "none" }} />
           {inp.trim() && <span style={{ fontSize: 22, alignSelf: "center" }}>{icons[detectType(inp)]}</span>}
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <input type="text" placeholder="Opmerking / wat wil je eruit halen..." value={memo} onChange={function(e) { setMemo(e.target.value); }}
             onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
-            style={{ flex: 1, padding: "12px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 15, outline: "none" }} />
+            style={{ flex: 1, padding: "12px 14px", borderRadius: 8, border: "1px solid #454d60", background: "#1e1e30", color: "#9ca3af", fontSize: 15, outline: "none" }} />
           <button onClick={addItem} style={{ padding: "12px 20px", borderRadius: 8, border: "1px solid #14b8a6", background: "#14b8a633", color: "#14b8a6", fontSize: 16, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>➕ Dump</button>
         </div>
       </div>
@@ -4367,7 +4358,7 @@ function DumpBar() {
             var c = colors[item.type] || "#14b8a6";
             var isUrl = item.content && item.content.indexOf("http") === 0;
             return (
-              <div key={item.id} style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 10, padding: 14, borderLeft: "3px solid " + c }}>
+              <div key={item.id} style={{ background: "#1e1e30", border: "1px solid #2d3748", borderRadius: 10, padding: 14, borderLeft: "3px solid " + c }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: 16 }}>{item.icon || icons[item.type]} <span style={{ fontSize: 13, color: c, fontWeight: 700 }}>{item.type}</span></span>
                   <div style={{ display: "flex", gap: 12 }}>
@@ -4672,7 +4663,7 @@ function CryptoIntelligence() {
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, position: "relative" }}>
                     <div style={{ position: "absolute", left: -18, width: 10, height: 10, borderRadius: "50%", background: col, border: `2px solid ${col}66` }} />
-                    {i < timelineEvents.length - 1 && <div style={{ position: "absolute", left: -14, top: 14, width: 2, height: 26, background: "#1f2937" }} />}
+                    {i < timelineEvents.length - 1 && <div style={{ position: "absolute", left: -14, top: 14, width: 2, height: 26, background: "#2d3748" }} />}
                     <span style={{ color: col, fontWeight: 700, fontSize: 12, minWidth: 50 }}>{e.year}</span>
                     <span style={{ color: "#d1d5db", fontSize: 12 }}>{e.event}</span>
                   </div>
@@ -4744,7 +4735,7 @@ function CryptoIntelligence() {
           <div style={{ padding: 16, borderTop: "1px solid #f9731633" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {integrationPoints.map(ip => (
-                <div key={ip.module} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10 }}>
+                <div key={ip.module} style={{ display: "flex", alignItems: "center", gap: 12, background: "#1e1e30", border: "1px solid #2d3748", borderRadius: 8, padding: 10 }}>
                   <div style={{ minWidth: 60, textAlign: "center" }}>
                     <span style={{ padding: "2px 8px", background: ip.priority === "P0" ? "#ef444422" : ip.priority === "P1" ? "#f59e0b22" : "#6b728022", color: ip.priority === "P0" ? "#ef4444" : ip.priority === "P1" ? "#f59e0b" : "#6b7280", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{ip.priority}</span>
                   </div>
@@ -4767,7 +4758,7 @@ function CryptoIntelligence() {
         <div style={{ fontWeight: 700, fontSize: 16, color: "#22c55e", marginBottom: 12 }}>🗺️ Training Data Roadmap — Crypto</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
           {trainingRoadmap.map(p => (
-            <div key={p.phase} style={{ background: p.status === "next" ? "#22c55e11" : "#111", border: `1px solid ${p.status === "next" ? "#22c55e" : "#1f2937"}`, borderRadius: 8, padding: 12 }}>
+            <div key={p.phase} style={{ background: p.status === "next" ? "#22c55e11" : "#111", border: `1px solid ${p.status === "next" ? "#22c55e" : "#2d3748"}`, borderRadius: 8, padding: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontWeight: 800, color: p.status === "next" ? "#22c55e" : "#e5e7eb", fontSize: 14 }}>{p.phase}</span>
                 <span style={{ padding: "2px 8px", background: p.status === "next" ? "#22c55e22" : "#ffffff11", color: p.status === "next" ? "#22c55e" : "#6b7280", borderRadius: 4, fontSize: 10 }}>{p.status === "next" ? "VOLGENDE" : p.status.toUpperCase()}</span>
@@ -4781,7 +4772,7 @@ function CryptoIntelligence() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 12 }}>
+      <div style={{ background: "#1e1e30", border: "1px solid #2d3748", borderRadius: 8, padding: 12 }}>
         <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
           <p><strong style={{ color: "#f59e0b" }}>InfraNodus graph:</strong> SDK-HRM-crypto-security (12 clusters) — <a href="https://infranodus.com" target="_blank" rel="noreferrer" style={{ color: "#60a5fa" }}>bekijk in InfraNodus</a></p>
           <p style={{ marginTop: 4 }}><strong style={{ color: "#f59e0b" }}>Kernprincipe:</strong> Precision boven paranoia — het model moet het verschil kennen tussen een Binance security alert en een phishing mail</p>
@@ -4845,7 +4836,7 @@ function IssuesPanel({ issues, allItems }) {
           const active = filter === f.id;
           return (
             <button key={f.id} onClick={() => { setFilter(f.id); setShowBacklog(false); }} style={{
-              background: active ? f.bg : "#111", border: `1px solid ${active ? f.border : "#374151"}`,
+              background: active ? f.bg : "#111", border: `1px solid ${active ? f.border : "#454d60"}`,
               borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer",
               transition: "background 0.15s, border-color 0.15s, transform 0.15s", outline: active ? `2px solid ${f.color}44` : "none", outlineOffset: 2,
               transform: active ? "scale(1.05)" : "scale(1)"
@@ -4857,7 +4848,7 @@ function IssuesPanel({ issues, allItems }) {
         })}
         {resolvedIssues.length > 0 && (
           <button onClick={() => { setShowBacklog(!showBacklog); if (!showBacklog) setFilter("backlog"); else setFilter("all"); }} style={{
-            background: showBacklog ? "#0f0f23" : "#111", border: `1px solid ${showBacklog ? "#5b21b6" : "#374151"}`,
+            background: showBacklog ? "#0f0f23" : "#111", border: `1px solid ${showBacklog ? "#5b21b6" : "#454d60"}`,
             borderRadius: 10, padding: "10px 18px", textAlign: "center", minWidth: 90, cursor: "pointer", transition: "background 0.15s, border-color 0.15s, transform 0.15s",
             outline: showBacklog ? "2px solid #a78bfa44" : "none", outlineOffset: 2,
             transform: showBacklog ? "scale(1.05)" : "scale(1)"
@@ -4869,7 +4860,7 @@ function IssuesPanel({ issues, allItems }) {
       </div>
 
       {/* Actief filter label */}
-      <div style={{ fontSize: 11, color: "#6b7280", borderBottom: "1px solid #1f2937", paddingBottom: 6 }}>
+      <div style={{ fontSize: 11, color: "#6b7280", borderBottom: "1px solid #2d3748", paddingBottom: 6 }}>
         {filter === "all" && `Alle issues (${activeIssues.length})`}
         {filter === "error" && `${errCount} kritieke issues`}
         {filter === "warn" && `${warnCount} waarschuwingen`}
@@ -4921,7 +4912,7 @@ function IssuesPanel({ issues, allItems }) {
           {resolvedIssues.map(i => {
             const rd = resolved.find(r => r.id === i.id);
             return (
-              <div key={i.id} style={{ background: "#0f0f0f", border: "1px solid #374151", borderRadius: 10, padding: 12, opacity: 0.75 }}>
+              <div key={i.id} style={{ background: "#1a1a2e", border: "1px solid #454d60", borderRadius: 10, padding: 12, opacity: 0.75 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: 13 }}>{i.icon}</span>
@@ -5080,7 +5071,7 @@ function AllToolsPanel() {
           return <button key={btn.id} onClick={function() { setFilter(btn.id); }} style={{
             padding: f.btnPad,
             borderRadius: 8,
-            border: "1px solid " + (active ? btn.color + "66" : "#1f2937"),
+            border: "1px solid " + (active ? btn.color + "66" : "#2d3748"),
             background: active ? btn.color + "22" : f.bgInput,
             color: active ? btn.color : "#6b7280",
             fontSize: f.small,
@@ -5115,7 +5106,7 @@ function AllToolsPanel() {
             {cat.items.map(function(tool) {
               var st = statusColors[tool.status] || statusColors["not-installed"];
               return <div key={tool.id} style={{
-                background: f.bgCardInner, border: "1px solid #1f2937", borderRadius: 10,
+                background: f.bgCardInner, border: "1px solid #2d3748", borderRadius: 10,
                 padding: f.cardPad, display: "flex", flexDirection: "column", gap: 4,
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
@@ -5172,7 +5163,7 @@ function EcoChildItem({ node, depth = 0 }) {
       </div>}
       {node.recommendation && <div style={{ fontSize: 9, color: "#fbbf24", marginLeft: 22, padding: "2px 8px" }}>💡 {node.recommendation}</div>}
       {open && has && (
-        <div style={{ borderLeft: "1px solid #374151", marginLeft: 12, marginTop: 2 }}>
+        <div style={{ borderLeft: "1px solid #454d60", marginLeft: 12, marginTop: 2 }}>
           {node.children.map(c => <EcoChildItem key={c.id} node={c} depth={depth + 1} />)}
         </div>
       )}
@@ -5184,7 +5175,7 @@ function EcosystemGrid({ search, setSearch }) {
   const { isPhone, S } = useDevice();
   return (
     <>
-      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: isPhone ? "14px 16px" : "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: isPhone ? 16 : 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: isPhone ? "14px 16px" : "10px 14px", borderRadius: 10, border: "1px solid #2d3748", background: "#1e1e30", color: "#e5e5e5", fontSize: isPhone ? 16 : 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(" + (isPhone ? 240 : 280) + "px, 1fr))", gap: 10 }}>
         {ECOSYSTEM.filter(n => {
           if (!search) return true;
@@ -5201,7 +5192,7 @@ function EcosystemGrid({ search, setSearch }) {
           const warnCount = allChildren.filter(c => c.status === STATUS.WARN).length;
           const errCount = allChildren.filter(c => c.status === STATUS.ERROR).length;
           return (
-            <div key={n.id} style={{ background: "#0f0f0f", border: `1px solid ${s.border}44`, borderRadius: 10, padding: 14 }}>
+            <div key={n.id} style={{ background: "#1a1a2e", border: `1px solid ${s.border}44`, borderRadius: 10, padding: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 18 }}>{n.icon}</span>
@@ -5274,11 +5265,11 @@ export default function ControlCenter() {
     gap: isPhone ? 8 : 4,
     cardPad: isPhone ? 14 : 10,
     statusFont: isPhone ? 13 : 11,
-    bgBody: isPhone ? "#22223a" : "#0f0f18",
-    bgCard: isPhone ? "#1e1e32" : "#0a0a1a",
-    bgInput: isPhone ? "#1c1c2a" : "#111",
-    bgCardInner: isPhone ? "#252538" : "#111118",
-    bgFooter: isPhone ? "#22223a" : "#0f0f0f",
+    bgBody: isPhone ? "#2a2a44" : "#171724",
+    bgCard: isPhone ? "#262640" : "#1a1a2e",
+    bgInput: isPhone ? "#222236" : "#1e1e30",
+    bgCardInner: isPhone ? "#2d2d46" : "#222238",
+    bgFooter: isPhone ? "#2a2a44" : "#1a1a28",
   }), [isPhone]);
 
   // Log page load
@@ -5344,7 +5335,7 @@ export default function ControlCenter() {
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#0f0f23", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }} role="dialog" aria-label="Selecteer je apparaat">
+          <div style={{ background: "#1e1e34", border: "2px solid #5b21b6", borderRadius: 16, padding: 24, maxWidth: 400, textAlign: "center" }} role="dialog" aria-label="Selecteer je apparaat">
             <div style={{ fontSize: 40, marginBottom: 16 }}>🖥️</div>
             <h2 style={{ color: "#a78bfa", margin: "0 0 8px 0", fontSize: 20 }}>Welkom op Cloud Control Center!</h2>
             <p style={{ color: "#9ca3af", fontSize: 13, marginBottom: 6 }}>Op welk Mac device ben je nu?</p>
@@ -5386,7 +5377,7 @@ export default function ControlCenter() {
       )}
 
       {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #0f0f23, #1a0a2e, #0a1628)", border: "1px solid #1e1b4b", borderRadius: 16, padding: "16px 20px", marginBottom: 12 }}>
+      <div style={{ background: "linear-gradient(135deg, #0f0f23, #1a0a2e, #0a1628)", border: "1px solid #2d2a5e", borderRadius: 16, padding: "16px 20px", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
@@ -5406,9 +5397,9 @@ export default function ControlCenter() {
                     fontSize: S.smallFont,
                     padding: S.smallButtonPad,
                     borderRadius: 6,
-                    background: isActive ? "#22c55e22" : "#37415122",
+                    background: isActive ? "#22c55e22" : "#454d6022",
                     color: isActive ? "#4ade80" : "#6b7280",
-                    border: `1px solid ${isActive ? "#166534" : "#374151"}`,
+                    border: `1px solid ${isActive ? "#166534" : "#454d60"}`,
                     cursor: "pointer",
                     transition: reducedMotion ? "none" : "background 0.15s, color 0.15s, border-color 0.15s"
                   }}
@@ -5447,10 +5438,10 @@ export default function ControlCenter() {
         marginBottom: 12
       }}>
         {tabs.filter(t => t.id !== "advisor").map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} aria-label={`${t.label} tab`} aria-pressed={tab === t.id} style={{
+          <button key={t.id} onClick={() => { setTab(t.id); logActivity("tab_switch", `Opened ${t.label}`, currentDevice); }} aria-label={`${t.label} tab`} aria-pressed={tab === t.id} style={{
             padding: S.tabPad,
             borderRadius: 8,
-            border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
+            border: `1px solid ${tab === t.id ? t.color + "66" : "#2d3748"}`,
             background: tab === t.id ? t.color + "22" : S.bgInput,
             color: tab === t.id ? t.color : "#6b7280",
             fontSize: S.tabFont,
@@ -5465,7 +5456,7 @@ export default function ControlCenter() {
             minHeight: S.touchMin
           }}>
             <span>{t.label}</span>
-            {t.lastUpdated && <span style={{ fontSize: S.tinyFont, color: tab === t.id ? t.color + "99" : "#374151", fontWeight: 400 }}>{t.lastUpdated}</span>}
+            {t.lastUpdated && <span style={{ fontSize: S.tinyFont, color: tab === t.id ? t.color + "99" : "#454d60", fontWeight: 400 }}>{t.lastUpdated}</span>}
           </button>
         ))}
       </nav>
@@ -5495,7 +5486,7 @@ export default function ControlCenter() {
       {tab === "alltools" && <AllToolsPanel />}
 
       {/* Footer */}
-      <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
+      <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #2d3748", borderRadius: 10, textAlign: "center" }}>
         <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.20.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
