@@ -1,0 +1,37 @@
+{
+  "lastCheck": {
+    "date": "2026-02-09",
+    "time": "21:03",
+    "status": "completed"
+  },
+  "nextCheck": "2026-02-16",
+  "sources": [{"name":"Artes.law","url":"https://artes.law","status":"ok","foundTerms":"GDPR, privacy, cookie, consent"},{"name":"EDPB","url":"https://edpb.europa.eu/news/news_en","status":"ok","foundTerms":"GDPR, privacy, cookie, consent, omnibus"},{"name":"GBA België","url":"https://gegevensbeschermingsautoriteit.be/burger/nieuws","status":"ok","foundTerms":"privacy, cookie"}],
+  "projects": [{"name":"BlackFuel Whiskey","repo":"DS2036/BlackFuelWhiskey","gpc":true,"consent":true,"lastCheck":"2026-02-09"}, {"name":"IDGS Constructions","repo":"DS2036/IDGS-Constructions","gpc":true,"consent":true,"lastCheck":"2026-02-09"}, {"name":"Econation","repo":"","gpc":false,"consent":false,"lastCheck":"2026-02-09"}],
+  "regulations": {
+    "gdpr": [
+      {"id": 1, "title": "Consent Fatigue - Browser Privacy Signal (GPC)", "status": "VERPLICHT", "deadline": "NU", "implemented": true},
+      {"id": 2, "title": "Datalek Meldingen 96u", "status": "GEWIJZIGD", "deadline": "2025", "implemented": true},
+      {"id": 3, "title": "Artikel 88a/88b AVG", "status": "NIEUW", "deadline": "2025", "implemented": false},
+      {"id": 4, "title": "Notie Persoonsgegevens", "status": "VERDUIDELIJKT", "deadline": "2025", "implemented": false},
+      {"id": 5, "title": "Wetenschappelijk Onderzoek", "status": "VERSOEPELD", "deadline": "2025", "implemented": false},
+      {"id": 6, "title": "Art 9.2 Bijzondere Gegevens", "status": "UITGEBREID", "deadline": "2025", "implemented": false},
+      {"id": 7, "title": "DPIA Lijsten EDPB", "status": "NIEUW", "deadline": "2025", "implemented": false},
+      {"id": 8, "title": "Inzagerecht Art.15", "status": "BEPERKT", "deadline": "2025", "implemented": false},
+      {"id": 9, "title": "Transparantieplicht Art.13", "status": "VERSOEPELD", "deadline": "2025", "implemented": false}
+    ],
+    "dataAct": [
+      {"id": 1, "title": "Bedrijfsgeheimen Beschermd", "status": "NIEUW"},
+      {"id": 2, "title": "Data Delen Bedrijven-Overheden", "status": "STRENGER"},
+      {"id": 3, "title": "Art.23 Cloudproviders Overstappen", "status": "NIEUW"},
+      {"id": 4, "title": "Art.31 Maatwerk Cloud", "status": "NIEUW"},
+      {"id": 5, "title": "Free Flow Non-Personal Data", "status": "VERPLAATST"},
+      {"id": 6, "title": "European Data Innovation Board", "status": "NIEUW"}
+    ]
+  },
+  "monitoringConfig": {
+    "schedule": "Elke maandag 09:00",
+    "scriptPath": "~/Projects/GDPR-COMPLIANCE-MODULE/gdpr-monitor.sh",
+    "reportsPath": "~/Projects/GDPR-COMPLIANCE-MODULE/reports/",
+    "launchAgent": "com.franky.gdpr-monitor.plist"
+  }
+}

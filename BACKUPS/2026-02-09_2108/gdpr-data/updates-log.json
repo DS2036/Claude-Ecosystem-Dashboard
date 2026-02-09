@@ -1,0 +1,16 @@
+{
+  "updates": [
+    {
+      "date": "2026-02-09",
+      "time": "21:03",
+      "source": "Automated Check",
+      "summary": "Wekelijkse compliance check uitgevoerd",
+      "sources_checked": [
+        "Artes.law",
+        "EDPB",
+        "GBA Belgi\u00eb"
+      ],
+      "status": "completed"
+    }
+  ]
+}
