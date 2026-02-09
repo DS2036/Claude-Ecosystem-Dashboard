@@ -70,7 +70,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.23.0
+// CLAUDE CONTROL CENTER v4.25.1
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -111,8 +111,8 @@ const api = {
 // v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
-// v4.23.0 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
-// v4.23.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
+// v4.25.1 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
+// v4.25.1 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
 // v4.25.0 - Dump upgrade: Re-analyze met custom prompt (🎯 targeted extraction), Route-to-tab (📤), extra analyse lagen, yt-dlp + daemon
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -5689,7 +5689,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.23.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.25.1 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <nav aria-label="Apparaat selectie" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5796,7 +5796,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #2d3748", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.23.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.25.1 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
