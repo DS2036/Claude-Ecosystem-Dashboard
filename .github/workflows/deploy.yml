@@ -1,10 +1,17 @@
 name: Deploy to Cloudflare Pages
 
+# UITGESCHAKELD - Handmatige deploy via wrangler vanaf Mac
+# Gebruik: wrangler pages deploy dist --project-name=claude-ecosystem-dashboard
+# 
+# Was: automatisch bij elke push
+# Nu: alleen handmatig triggeren vanuit GitHub Actions tab
+
 on:
-  push:
-    branches:
-      - main
-      - staging
+  workflow_dispatch:  # Alleen handmatig triggeren
+  # push:             # UITGESCHAKELD - te veel failed emails
+  #   branches:
+  #     - main
+  #     - staging
 
 jobs:
   deploy:
@@ -20,27 +27,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       
-      - name: Deploy Worker (main)
-        if: github.ref == 'refs/heads/main'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-          workingDirectory: worker
-
-      - name: Deploy to Production (main)
-        if: github.ref == 'refs/heads/main'
+      - name: Deploy to Production
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=claude-ecosystem-dashboard
-      
-      - name: Deploy to Staging (staging)
-        if: github.ref == 'refs/heads/staging'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=claude-ecosystem-staging
