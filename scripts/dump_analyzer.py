@@ -207,33 +207,26 @@ def ask_claude(prompt, max_tokens=MAX_TOKENS):
 
 # ── Targeted vs Generic prompt builder ──
 def build_targeted_prompt(memo, content_desc, content_text):
-    """Als memo aanwezig: targeted extraction. Anders: generieke analyse."""
+    """Als memo aanwezig: targeted extraction. Anders: korte analyse."""
     if memo and memo.strip():
-        return f"""Je bent een kennisextractor. De gebruiker heeft specifiek aangegeven wat ze zoeken.
+        return f"""KORT en BONDIG. Max 5 bullet points. Geen inleidingen, geen conclusies.
 
-ZOEKFOCUS: {memo}
-
-Extraheer ALLEEN de informatie die relevant is voor bovenstaande focus uit de content hieronder.
-Geef het resultaat in het Nederlands als een gestructureerd overzicht:
-- Kernpunten over het gevraagde onderwerp (bullet points)
-- Concrete details, stappen, of instructies indien aanwezig
-- Eventuele tips of waarschuwingen
-- Als de content NIET over het gevraagde onderwerp gaat, zeg dat kort.
-
-Wees bondig en praktisch. Geen generieke samenvatting — alleen wat de gebruiker zoekt.
-
-{content_desc}
-{content_text}"""
-    else:
-        return f"""Analyseer deze content grondig in het Nederlands. Geef:
-1. Onderwerp en kernboodschap (2-3 zinnen)
-2. Belangrijkste inzichten/takeaways (3-5 bullet points)
-3. Relevantie en bruikbaarheid
+FOCUS: {memo}
+Extraheer ALLEEN wat relevant is voor bovenstaande focus.
 
 {content_desc}
 {content_text}
 
-Geef een heldere, bruikbare analyse."""
+Geef alleen bullet points in het Nederlands. Concreet en praktisch."""
+    else:
+        return f"""KORT en BONDIG in het Nederlands. Max 5 bullet points.
+- Wat is dit? (1 zin)
+- Kern-items/takeaways (3-4 bullets)
+
+{content_desc}
+{content_text}
+
+Alleen bullet points. Geen inleidingen, geen proza."""
 
 # ── Analyzers per type ──
 def analyze_youtube(item):

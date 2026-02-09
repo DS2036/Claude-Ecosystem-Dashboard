@@ -4333,13 +4333,10 @@ function DumpBar() {
     var item = items.find(function(i) { return i.id === id; });
     if (!item || item.analyzing) return;
     setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
-    var prompt = "Analyseer dit item kort en bondig (max 3 zinnen NL). ";
-    if (item.type === "youtube") prompt += "Dit is een YouTube video URL. Beschrijf kort wat de video waarschijnlijk bevat en wat de meerwaarde kan zijn.";
-    else if (item.type === "article") prompt += "Dit is een artikel link. Vat het onderwerp samen.";
-    else if (item.type === "instagram") prompt += "Dit is een Instagram post. Beschrijf kort de relevantie.";
-    else prompt += "Beschrijf kort wat dit is en waarom het nuttig kan zijn.";
-    if (item.memo) prompt += " Context van de gebruiker: " + item.memo;
-    prompt += " Content: " + item.content;
+    var prompt = "KORT en BONDIG in het Nederlands. Max 4-5 bullet points. Geen inleidingen, geen conclusies, alleen kern-items.\n";
+    if (item.memo) prompt += "FOCUS: " + item.memo + "\nExtraheer alleen wat relevant is voor bovenstaande focus.\n";
+    prompt += "Content: " + item.content;
+    if (item.title) prompt += "\nTitel: " + item.title;
     api.askAI([{ role: "user", content: prompt }]).then(function(r) {
       var text = "Analyse niet beschikbaar";
       if (r && r.content) {
@@ -4353,18 +4350,18 @@ function DumpBar() {
     });
   };
 
-  // Re-analyze: stuur een follow-up prompt op basis van bestaande analyse
+  // Re-analyze: follow-up op bestaande analyse — memo + extra prompt
   var reanalyzeItem = function(id, customPrompt) {
     var item = items.find(function(i) { return i.id === id; });
     if (!item || item.analyzing || !customPrompt.trim()) return;
     setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
-    var prompt = "Je bent een kennisextractor. Hieronder staat een eerdere analyse van content. De gebruiker wil nu specifieke info eruit halen.\n\n";
-    prompt += "EERDERE ANALYSE:\n" + (item.analysis || "(geen)") + "\n\n";
-    prompt += "ORIGINELE CONTENT: " + item.content + "\n";
+    var prompt = "KORT en BONDIG. Max 4-5 bullet points. Geen inleidingen, geen proza.\n\n";
+    prompt += "CONTENT: " + item.content + "\n";
     if (item.title) prompt += "TITEL: " + item.title + "\n";
-    if (item.memo) prompt += "OORSPRONKELIJKE MEMO: " + item.memo + "\n";
-    prompt += "\nNIEUWE VRAAG/FOCUS: " + customPrompt + "\n\n";
-    prompt += "Geef een gericht antwoord in het Nederlands. Bullet points waar mogelijk. Wees concreet en praktisch.";
+    if (item.memo) prompt += "ORIGINELE OPMERKING: " + item.memo + "\n";
+    if (item.analysis) prompt += "EERDERE ANALYSE: " + item.analysis + "\n";
+    prompt += "\nEXTRA VRAAG: " + customPrompt + "\n";
+    prompt += "\nGeef alleen bullet points in het Nederlands. Concreet, praktisch, geen opvulling.";
     api.askAI([{ role: "user", content: prompt }]).then(function(r) {
       var text = "Geen resultaat";
       if (r && r.content) {
@@ -4511,14 +4508,17 @@ function DumpBar() {
                     })}
                   </div>
                 )}
-                {/* Re-analyze prompt input */}
+                {/* Re-analyze: toon originele memo + extra prompt veld */}
                 {reanalyzeId === item.id && (
-                  <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
-                    <input type="text" placeholder="Wat wil je eruit halen? bijv. 'teams setup', 'pricing'..." value={rePrompt} onChange={function(e) { setRePrompt(e.target.value); }}
-                      onKeyDown={function(e) { if (e.key === "Enter") reanalyzeItem(item.id, rePrompt); }}
-                      style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #3b82f644", background: "#1a1a2e", color: "#e5e7eb", fontSize: 13, outline: "none" }} />
-                    <button onClick={function() { reanalyzeItem(item.id, rePrompt); }} disabled={item.analyzing || !rePrompt.trim()} style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #3b82f6", background: "#3b82f622", color: "#3b82f6", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{item.analyzing ? "⏳" : "🎯 Extract"}</button>
-                    <button onClick={function() { setReanalyzeId(null); setRePrompt(""); }} style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>✕</button>
+                  <div style={{ marginTop: 8, background: "#1a1a2e", borderRadius: 8, padding: 10, border: "1px solid #3b82f633" }}>
+                    {item.memo && <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 6 }}>📎 Originele opmerking: <span style={{ color: "#d1d5db" }}>{item.memo}</span></div>}
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <input type="text" placeholder="Extra vraag: bijv. 'teams setup', 'hoe werkt X'..." value={rePrompt} onChange={function(e) { setRePrompt(e.target.value); }}
+                        onKeyDown={function(e) { if (e.key === "Enter") reanalyzeItem(item.id, rePrompt); }}
+                        style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #3b82f644", background: "#151520", color: "#e5e7eb", fontSize: 13, outline: "none" }} />
+                      <button onClick={function() { reanalyzeItem(item.id, rePrompt); }} disabled={item.analyzing || !rePrompt.trim()} style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #3b82f6", background: "#3b82f622", color: "#3b82f6", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{item.analyzing ? "⏳" : "🎯 Extract"}</button>
+                      <button onClick={function() { setReanalyzeId(null); setRePrompt(""); }} style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>✕</button>
+                    </div>
                   </div>
                 )}
                 {/* Route-to-tab selector */}

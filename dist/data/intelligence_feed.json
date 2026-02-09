@@ -1,0 +1,197 @@
+{
+  "version": "1.0",
+  "entries": {
+    "phishing_trends": {
+      "id": "phishing_trends",
+      "topic": "Nieuwe phishing/scam technieken",
+      "category": "threats",
+      "icon": "🎣",
+      "frequency": "daily",
+      "content": "- **APT28 Spear-Phishing with CVE-2026-21509 Exploit (Jan 28-30, 2026)**: Russian state-linked APT28 (Fancy Bear) ran a 72-hour campaign sending 29+ emails from compromised gov accounts (Romania, Bolivia, Ukraine) to Eastern/Central Europe (Poland, Slovenia, Turkey, Greece, Ukraine, Slovakia, Romania); targeted defense ministries (40%), transport/logistics (35%), diplomats (25%); vectors: malicious Word/RTF docs exploiting Microsoft Office security bypass (CVE-2026-21509, CVSS 7.8) within 24hrs of disclosure, leading to Beardshell loader, MiniDoor/NotDoor backdoor, PixyNetLoader, COVENANT framework, Filen C2; lures: weapons smuggling (e.g., \"200 RPG-7 rounds from Syria\"), military training invites, EU/NATO consultations, flood warnings[1][3][4][5][7].\n- **Signal Messenger Account Takeover Phishing (Ongoing, advisory Feb 6, 2026)**: State-sponsored (likely Russian-aligned) social engineering targets European politicians, military, diplomats, journalists (Germany+); platforms: Signal app; vectors: (1) fake \"Signal Support\"/\"Security ChatBot\" DMs tricking victims into sharing PIN/SMS codes for attacker device registration; (2) malicious QR codes abusing Signal's device linking; grants access to chats/groups/contacts without vulns[2][9].\n- **ShinyHunters Vishing + SSO Phishing (Recent, Google ID Feb 2026)**: Cybercriminals target SaaS employees (Europe included); vectors: company-branded phishing sites + vishing calls simulating tech support to steal SSO creds/MFA codes for data exfil[3].\n\n**ShinyHunters also noted in broader SaaS abuse with 133K+ phone-phishing emails (U.S., Europe, APAC, LATAM)**[10].\n\nThese techniques highlight urgent needs for SDK-HRM browser detection of Office doc exploits, QR code scanners, vishing-linked phishing pages, and Signal/social engineering lures to protect European users from state/criminal scams. Real-time TTP monitoring can block 72hr campaigns and app-specific social engineering at scale.",
+      "citations": [
+        "https://industrialcyber.co/transport/trellix-details-russian-state-linked-apt28-targets-european-maritime-transport-agencies-with-new-office-exploit/",
+        "https://www.ctrlaltnod.com/news/state-hackers-target-european-officials-in-signal-takeover-campaign/",
+        "https://telefonicatech.com/en/blog/cyber-security-briefing-6-february-2026",
+        "https://www.zscaler.com/blogs/security-research/apt28-leverages-cve-2026-21509-operation-neusploit",
+        "https://www.trellix.com/blogs/research/apt28-stealthy-campaign-leveraging-cve-2026-21509-cloud-c2/"
+      ],
+      "related_questions": [
+        "How can European users protect themselves from these new phishing techniques",
+        "What are the most common platforms targeted by these phishing campaigns",
+        "How effective are current security measures against these advanced phishing attacks"
+      ],
+      "tokens_used": 576,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "ai_security_startups": {
+      "id": "ai_security_startups",
+      "topic": "AI security startup funding & news",
+      "category": "competition",
+      "icon": "🏢",
+      "frequency": "weekly",
+      "content": "- **Nullify**: Secured $12.5 million in seed funding announced February 6, 2026; develops an AI workforce for autonomous vulnerability management, detection, triage, validation, and remediation in product security workflows[1][4].\n- **SquareX**: Acquired by Zscaler (terms undisclosed, acquisition closed Thursday prior to February 7, 2026); provides the industry's first browser detection and response platform with lightweight security extensions for Chrome, Edge, Firefox, and Safari to enable zero-trust browser security[2].\n\nNo funding or product launches reported in the last week (January 31-February 7, 2026) specifically for email security or scam detection AI cybersecurity startups.\n\nDirectly relevant for SDK-HRM browser-based scam detection: SquareX's browser-focused detection/response tech highlights growing demand for embedded browser defenses against zero-trust threats, informing scam pattern recognition and extension-based mitigations. Nullify's AI autonomy model could inspire proactive vulnerability scanning in browser environments to preempt scams.",
+      "citations": [
+        "https://www.securityweek.com/nullify-secures-12-5-million-in-seed-funding-for-cybersecurity-ai-workforce/",
+        "https://www.crn.com/news/security/2026/zscaler-aims-to-boost-browser-security-with-acquisition-of-squarex",
+        "https://business20channel.tv/top-10-cyber-security-startups-to-watch-in-2026-02-02-2026",
+        "https://regtechanalyst.com/ai-security-firm-nullify-bags-12-5m-to-scale-product-defence/",
+        "https://techcrunch.com/2026/01/19/here-are-the-49-us-ai-startups-that-have-raised-100m-or-more-in-2025/"
+      ],
+      "related_questions": [
+        "What are the key features of Nullify's AI workforce",
+        "How does Zscaler's acquisition of SquareX enhance browser security",
+        "What specific threats does Nullify's AI workforce address"
+      ],
+      "tokens_used": 305,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "chrome_extension_trends": {
+      "id": "chrome_extension_trends",
+      "topic": "Chrome Extension monetisation & security trends",
+      "category": "product",
+      "icon": "🌐",
+      "frequency": "weekly",
+      "content": "- **Monetization Trends**: Subscription models dominate Chrome extension revenue in 2026, with tiered pricing (e.g., casual vs. power users/enterprise) and tools like Stripe for seamless in-extension payments; \"paid from day one\" MVPs validate demand quickly; AI-powered features (e.g., LLM side panels, copilots) drive high willingness-to-pay in niches like productivity and workflows[1][3].\n- **Security Policies & Threats**: Chrome Web Store enforces Manifest V3, lightweight/privacy-focused designs, and Single Purpose policy (e.g., no combining ad-blocking with affiliate injection); malicious extensions (e.g., Amazon Ads Blocker ID: pnpchphmplpdimbllknjoiopmfphellj by \"10Xprofit\" on Jan 19, 2026; DPS Websafe ID: bjoddpbfndnpeohkmpbjfhcppkhgobcg) hijack affiliate links, steal ChatGPT tokens (16 extensions, ~900 downloads), exfiltrate cookies/data via C2 panels ($6,000 kits bypass vetting); risks include search hijacking, AiTM attacks, obfuscated code[2][4][6].\n- **Manifest V3 Changes**: Full embrace required for 2026 Web Store success; emphasizes self-contained logic, no sideloading, blocks credential theft/script injection; ties to broader Chrome security (e.g., CVE-2026-0628 mitigation via extension restrictions)[1][8][12].\n- **New Chrome Web Store Policies**: Rewards transparency/security; automated/manual reviews not foolproof but flag multi-functionality mismatches; Isolated Web Apps ban uncontrolled AI, ad-clicking, scraping[4][8].\n- **Popular Security Extensions**: No direct 2026 top lists; legitimate examples implied via threats (e.g., avoid fakes mimicking Adblock Plus); SEO tools like Keyword Surfer, MozBar, SEOQuake noted as trusted/free; Symantec Endpoint Security recommended post-compromise[6][13].\n- **Payment Integration Options**: Stripe for recurring subscriptions/trials/lifetime deals directly in UI; frictionless flows prioritize user conversion[1].\n\nThese trends highlight malicious extensions (e.g., 100k+ userbase networks, ChatGPT spies) evading store vetting via obfuscation/affiliate abuse, directly relevant for SDK-HRM to detect in-browser via Manifest V3 anomalies, permission overreach, and C2 payloads for real-time scam blocking.",
+      "citations": [
+        "https://www.extensionfast.com/blog/how-to-build-a-profitable-chrome-extension-as-a-solo-developer-this-year",
+        "https://thehackernews.com/2026/01/researchers-uncover-chrome-extensions.html",
+        "https://www.openpr.com/news/4343417/ai-powered-chrome-extension-market-to-set-a-phenomenal-growth",
+        "https://www.malwarebytes.com/blog/news/2026/01/malicious-chrome-extensions-can-spy-on-your-chatgpt-chats",
+        "https://wonderingaboutai.substack.com/p/i-built-a-chrome-extension-to-audit"
+      ],
+      "related_questions": [
+        "What are the most effective monetization strategies for Chrome extensions in 2026",
+        "How can I ensure my Chrome extension complies with the latest security policies",
+        "What are the key differences between Manifest V2 and V3"
+      ],
+      "tokens_used": 609,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "nis2_compliance": {
+      "id": "nis2_compliance",
+      "topic": "NIS2 & DORA compliance updates",
+      "category": "regulation",
+      "icon": "⚖️",
+      "frequency": "monthly",
+      "content": "# NIS2 and DORA Compliance Updates for European Companies\n\n## Key Recent Developments\n\n**European Commission Amendments (January 20, 2026):** The Commission proposed targeted amendments to NIS2 to simplify compliance and harmonize technical requirements across Member States[5]. These amendments introduce **certification-based compliance pathways** through \"cyber posture\" certificates—entity-level certifications under a future European scheme—and expand ENISA's role in cross-border supervision with annual risk assessments[5][7].\n\n**Unified Incident Reporting Gateway:** A consolidated EU gateway will replace multiple parallel reporting channels under NIS2, DORA, GDPR, and the CER Directive, streamlining compliance for organizations[15].\n\n## Critical Deadlines\n\n- **October 18, 2024:** NIS2 enforcement began in Member States that completed transposition[1]\n- **2026:** European Parliament and Council negotiations on proposed amendments expected to conclude, with a 12-month transposition period following[5]\n- **24-hour incident notification:** Required for all significant incidents under NIS2[3]\n\n## Penalty Structure\n\n**NIS2 Essential Entities:**\n- Up to **€10 million or 2% of global annual turnover** (whichever is higher)[2][6]\n\n**NIS2 Important Entities:**\n- Up to **€7 million or 1.4% of global annual turnover**[2]\n\n**DORA Financial Entities:**\n- Up to **2% of total worldwide annual turnover** for breaches[4]\n- Critical third-party providers: up to **€5 million**[4]\n- Daily penalties: up to **1% of average daily turnover for up to six months** for continuing non-compliance[4]\n\nBeyond fines, regulators can impose **binding remediation orders, mandatory security audits, public naming of non-compliant organizations, and suspension or restriction of business operations**[2][4].\n\n## Enforcement Actions\n\nNational authorities now possess **harmonized, expanded audit powers** including inspections, documented evidence requests, and compliance verification with audit trails[2]. NIS2 establishes **EU-wide collaboration mechanisms** through enhanced CSIRT roles and EU-CyCLONe for coordinated incident response[2].\n\n## Sectors Most Affected\n\n**Essential Entities (High Criticality):**\n- Energy, transport, health, digital infrastructure, data centers, managed service providers, public electronic communications networks[1][3]\n- Large companies: >249 employees OR >€50 million revenue AND >€43 million balance sheet[8]\n\n**Important Entities (Medium Criticality",
+      "citations": [
+        "https://www.nis-2-directive.com",
+        "https://netwrix.com/en/resources/blog/nis2-compliance/",
+        "https://copla.com/blog/compliance-regulations/from-nis1-to-nis2-how-cybersecurity-compliance-is-changing-in-the-eu/",
+        "https://legalnodes.com/article/guide-to-the-scope-and-practical-aspects-of-dora-compliance",
+        "https://www.globalpolicywatch.com/2026/01/european-commission-proposes-targeted-amendments-to-nis2-to-simplify-compliance-and-align-with-proposed-cybersecurity-act-2/"
+      ],
+      "related_questions": [
+        "What are the specific sectors in Belgium and the Netherlands most affected by NIS2 compliance",
+        "How are Belgian and Dutch companies preparing for the NIS2 enforcement deadlines",
+        "What are the penalties for non-compliance with NIS2 in Belgium and the Netherlands"
+      ],
+      "tokens_used": 618,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "crypto_scams": {
+      "id": "crypto_scams",
+      "topic": "Crypto scam & fraud alerts",
+      "category": "threats",
+      "icon": "🪙",
+      "frequency": "daily",
+      "content": "- **OPCOPRO Scam (Trending \"Truman Show\" WhatsApp Scheme)**: AI-driven fraud lures victims via SMS impersonating Goldman Sachs into WhatsApp groups with fake personas (Professor James, Lily); victims submit ID/selfies and deposit funds for promised 370%-700% returns via fake OPCOPRO app. No specific amounts stolen reported; active as of February 2026 bulletin[1].\n- **Scam Center Strike Force Seizures**: U.S. DOJ/FBI/Secret Service seized >$400M in cryptocurrency from Southeast Asia scam centers (Cambodia, Laos, Myanmar); ongoing operations targeting pig butchering and related schemes[1].\n- **Chainrealm.org (Fraudulent Trading Platform/Pig Butchering)**: TikTok/WhatsApp contact convinces CA victim to deposit crypto; fake profits shown, withdrawal blocked unless more funds added. Website now offline; no recovery, amount unspecified[5].\n- **WHITEWHALE (Solana Meme Coin)**: Jan 20, 2026, top holder sold $1.3M tokens, crashing price 60% (market cap ~$200M to $20-40M); debated as rug pull vs. liquidity event by single wallet[12].\n- **Crypto ATM Scams**: AZ AG alert on kiosks; scammers impersonate authorities to force cash-to-crypto deposits. $170M stolen from AZ victims in prior year (2025); 99% complaint increase per FBI[3].\n- **CA DFPI Crypto Scam Tracker Reports** (Recent, no exact dates but active listings): Fake platforms like topexs.us, cryptomia.aiforexbrain.com (akineprot.vip/Kine Protocol), usdcbtc.cc (TRON wallet TCDmtc4qVdPzmeqmKNZoCW5M2cwxHmD4eb), firepin.io (rug pull, site down); pig butchering via WeChat; xAI token presale fake (official-xai.com, fake Elon Musk video); no specific stolen amounts listed[4].\n\n**Warning Signs**: Unsolicited investment offers/SMS, fake apps/platforms demanding ID/selfies/extra fees for withdrawals, hype on social media/TikTok/Telegram, promises of high returns (370-700%), AI deepfakes/impersonation, pressure to use crypto ATMs or unverified sites[1][3][4][5][8].\n\nRelevance for SDK-HRM browser scam detection: Monitor WhatsApp/TikTok/SMS lures to fake apps/exchanges (e.g., OPCOPRO, chainrealm.org), deepfake videos, and high-return promises; flag crypto ATM directions and unverified platform deposits to block pig butchering/rug pull funnels in real-time.",
+      "citations": [
+        "https://www.f-secure.com/en/partners/insights/f-alert-cyber-threats-bulletin-february-2026",
+        "https://www.britannica.com/money/pump-and-dump-schemes",
+        "https://www.azag.gov/press-release/attorney-general-kris-mayes-issues-cryptocurrency-atm-scam-alert-launches-new-fraud",
+        "https://dfpi.ca.gov/consumers/crypto/crypto-scam-tracker/",
+        "https://dfpi.ca.gov/consumers/crypto/crypto-scam-tracker/chainrealm-org-homepage-fraudulent-platform/"
+      ],
+      "related_questions": [
+        "What are the most common warning signs of a rug pull",
+        "How can I identify a pig butchering scam early",
+        "What steps should I take if I suspect I've been scammed by a fake exchange"
+      ],
+      "tokens_used": 673,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "mica_genius_act": {
+      "id": "mica_genius_act",
+      "topic": "MiCA & GENIUS Act regulatory updates",
+      "category": "regulation",
+      "icon": "📜",
+      "frequency": "weekly",
+      "content": "- **EU MiCA Updates**: Fully in force post-2024 phased rollout; grandfathering for pre-Dec 30, 2024 CASPs ends July 1, 2026 (or earlier per member state); full compliance required by mid-2026, with unauthorized CASPs ceasing EU operations.[1][3]\n- **US GENIUS Act Updates**: Enacted July 18, 2025; establishes federal framework for \"payment stablecoins\" issued by bank subsidiaries or licensed entities; FDIC proposal issued Dec 16, 2025 for licensing procedures (comments due Feb 17, 2026); Treasury rules targeted by July 18, 2026; safe harbor for applications up to Jan 18, 2027 or 120 days post-final regs.[2][4][10][12]\n- **Implementation Timelines**:\n  - MiCA: Stablecoin rules (ARTs/EMTs) effective; CASP authorizations mandatory by July 1, 2026.[1]\n  - GENIUS: FDIC/OCC/Fed/Treasury rulemaking ongoing into 2026; full framework by mid-2027.[2][10]\n- **Compliance for Exchanges**:\n  - MiCA: CASPs (exchanges) need EU authorization for services; stablecoin issuers under tighter reserve/disclosure rules; AML, investor protections, market integrity mandates.[1][3]\n  - GENIUS: Issuers require 1:1 reserves (cash/US Treasuries), redemption policies, BSA/AML programs; exchanges cannot offer non-permitted stablecoins; bank-like supervision.[4][6][12]\n- **Crypto Market Impact in Europe**: Reduces uncertainty, enables cross-EU passporting; boosts investor safety but drives some issuers (e.g., Tether) offshore; fosters euro-stablecoins (e.g., BBVA's Qivalis launch 2026); potential two-track global market vs. US permissiveness.[3][7][11]\n\nThese regulations heighten compliance scrutiny on stablecoin listings and transactions, enabling SDK-HRM to detect unauthorized issuers, AML gaps, and geo-fenced scams in browser-based crypto trades.",
+      "citations": [
+        "https://sumsub.com/blog/crypto-regulations-in-the-european-union-markets-in-crypto-assets-mica/",
+        "https://www.fintechanddigitalassets.com/2026/01/fdic-issues-proposal-to-implement-genius-act/",
+        "https://fintech-intel.com/crypto/mica-in-action-what-eu-crypto-regulation-means-for-the-next-five-years/",
+        "https://www.klgates.com/Crypto-in-2026-The-Democratization-of-Digital-Assets-1-29-2026",
+        "https://www.skadden.com/insights/publications/2026/2026-insights/sector-spotlights/major-jurisdictions-broadly-align"
+      ],
+      "related_questions": [
+        "How will the MiCA regulation impact the adoption of stablecoins in the EU",
+        "What are the key differences between the MiCA regulation and the GENIUS Act",
+        "How are EU member states implementing the MiCA regulation differently"
+      ],
+      "tokens_used": 552,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "lfm2_liquid_ai": {
+      "id": "lfm2_liquid_ai",
+      "topic": "Liquid AI / LFM2 model updates",
+      "category": "technology",
+      "icon": "🧠",
+      "frequency": "monthly",
+      "content": "# Liquid AI Latest Updates (January 2026)\n\n**Liquid AI released LFM2.5-1.2B-Thinking in January 2026**, a 1.2 billion parameter reasoning model designed for on-device deployment that fits within 900 MB of memory on modern smartphones[4][5].\n\n## Model Releases & Specifications\n\n**LFM2.5-1.2B-Thinking** features:\n- **1.17B parameters** with 16 layers (10 double-gated LIV convolution blocks and 6 GQA blocks)[4]\n- **32,768 token context window** and 65,536 vocabulary size[4]\n- **28 trillion token training budget**[4]\n- Text-only, general-purpose architecture with explicit thinking traces for reasoning tasks[3]\n\n**LFM2-VL-3B** (visual language model) represents the most powerful version in the LFM2 series with **30 billion parameters**, combining short-range convolutions and group attention mechanisms for multimodal capabilities[2].\n\n**LFM2.5 family** extends earlier LFM2 architecture with expanded pre-training and multi-stage reinforcement learning optimized for edge deployment[4].\n\n## Benchmark Improvements\n\nLFM2.5-1.2B-Thinking demonstrates significant gains versus LFM2.5-1.2B-Instruct[4]:\n- **MATH 500**: 63 → 88 (math reasoning)\n- **Multi IF**: 61 → 69 (instruction following)\n- **BFCLv3**: 49 → 57 (tool use)\n- **GSM8K**: 85.60[3]\n- **AIME25**: Competitive with Qwen3 1.7B in thinking mode[3]\n\n## Technical Improvements\n\n**Doom looping mitigation**: Multi-stage training pipeline reduces repetitive output errors from 15.74% to 0.36% through n-gram repetition penalties during RLVR (reinforcement learning via verifiable rewards)[4][5].\n\n**Training pipeline**: Midtraining with reasoning traces, supervised fine-tuning, preference alignment (5 sampled + 1 greedy candidate), and RLVR[4].\n\n## Fine-Tuning & Framework Support\n\n- **Fine-tuning tools**: TRL and Unsloth support for LFM2.5[5]\n- **Inference frameworks**: llama.cpp, MLX, vLLM, ONNX Runtime with day-zero support[",
+      "citations": [
+        "https://thoughtminds.ai/blog/liquid-neural-networks-kills-endless-model-retraining",
+        "https://www.oreateai.com/blog/lfm2vl3b-a-leap-towards-edge-ai-with-unmatched-performance/b364dfae177ea16707f08485d79fac42",
+        "https://www.aidevsignals.com/p/liquid-ai-releases-lfm2-5-1-2b-thinking-zhipu-ai-releases-glm-4-7-flash",
+        "https://www.marktechpost.com/2026/01/20/liquid-ai-releases-lfm2-5-1-2b-thinking-a-1-2b-parameter-reasoning-model-that-fits-under-1-gb-on-device/",
+        "https://www.liquid.ai/blog/lfm2-5-1-2b-thinking-on-device-reasoning-under-1gb"
+      ],
+      "related_questions": [
+        "What are the key differences between LFM2.5 and its predecessors",
+        "How does LFM2.5-1.2B-Thinking compare to other 1B parameter models",
+        "What are the main benefits of using Liquid AI's hybrid approach in AI applications"
+      ],
+      "tokens_used": 592,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    },
+    "competitor_extensions": {
+      "id": "competitor_extensions",
+      "topic": "Competitor Chrome security extensions",
+      "category": "competition",
+      "icon": "🔍",
+      "frequency": "weekly",
+      "content": "# Chrome Security Extensions: Current Landscape (February 2026)\n\n## Key Security Extensions & Features\n\n**OWASP Penetration Testing Kit** is the official OWASP browser extension providing comprehensive security testing capabilities including DAST, IAST, SAST, and SCA functions[1]. It detects SQL injection, command injection, XSS vulnerabilities, includes JWT manipulation for authentication testing, and integrates with Swagger.IO for API endpoint testing[1].\n\n**JS Vulnerability Detector** scans JavaScript dependencies against the CVE database in real-time as pages load, identifying known vulnerabilities in third-party libraries with multiple remediation options including script blocking and patch application[1].\n\n**StorageAce** specializes in cookie and storage management with advanced JWT token handling, enabling extraction and analysis of authentication tokens from browser storage and precise cookie blocking with domain, name, and value filters[1].\n\n**Adblock Plus** remains widely adopted with 10M+ users and a 4.4/5 Chrome Web Store rating[3]. Beyond ad blocking, it blocks video/image ads, banners, pop-ups, malware, and prevents cookies from extracting user data[3].\n\n## Privacy & Anti-Tracking Performance\n\nRecent research found **no statistically significant reduction in ad-blocking or anti-tracking effectiveness** between MV3 and MV2 extensions[10]. MV3 extensions actually improved anti-tracking by blocking 1.8 more tracking scripts per website on average than MV2 counterparts[10].\n\n## Critical Security Threats\n\n**Malicious extensions pose severe risks:**\n\n- **Stanley MaaS** ($2,000-$6,000 subscription tiers) guarantees Chrome Web Store publication for phishing extensions that overlay full-screen iframes while keeping legitimate URLs visible in the address bar[2][12]. Operators can enable/disable hijacking rules on demand and push browser notifications to lure users[2].\n\n- **Amazon Ads Blocker** (uploaded January 19, 2026) and similar extensions disguised as note-taking utilities hijack affiliate links, steal data, and exfiltrate ChatGPT authentication tokens[6].\n\n- **NexShield extension** (since removed) was a modified uBlock Origin Lite clone that downloaded Windows RATs onto domain-joined machines after fake browser crash alerts[4].\n\n- **Five coordinated extensions** (DataByCloud 2, Tool Access 11, DataByCloud Access, Data By Cloud 1, Software Access) downloaded by 2,300 users targeted enterprise HR/ERP platforms, stealing cookies, blocking incident response, and preventing password changes[8].\n\n- **16 malicious ChatGPT-themed extensions**",
+      "citations": [
+        "https://strapi.io/blog/chrome-extensions-for-developers",
+        "https://simplysecuregroup.com/new-malware-service-guarantees-phishing-extensions-on-chrome-web-store/",
+        "https://www.gmass.co/blog/best-google-extensions/",
+        "https://www.helpnetsecurity.com/2026/01/19/fake-browser-crash-alert-chrome-edge-extension/",
+        "https://research.aimultiple.com/proxy-chrome-extension/"
+      ],
+      "related_questions": [
+        "What are the top-rated anti-phishing extensions for Chrome",
+        "How do newly launched security extensions compare to established ones",
+        "Are there any free Chrome extensions that offer robust email security"
+      ],
+      "tokens_used": 616,
+      "scanned_at": "2026-02-07T10:11:26.713842+00:00",
+      "model": "sonar"
+    }
+  },
+  "meta": {
+    "last_scan": "2026-02-07T10:11:26.713842+00:00",
+    "total_tokens_this_scan": 4541,
+    "topics_scanned": 8,
+    "total_topics": 8,
+    "scan_duration_sec": 0,
+    "version": "1.0"
+  }
+}
