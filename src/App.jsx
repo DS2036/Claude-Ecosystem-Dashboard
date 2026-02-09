@@ -4163,238 +4163,91 @@ function UseCases() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DUMP BAR — v4.17.0 (vervangt Session Notes v4.5.0)
-// Altijd zichtbaar bovenaan: snelle inbox voor links, YouTube, Instagram, notities
-// Auto-categorisatie + opmerkingen + later analyseren (Gemini/Claude)
-// Opslag: localStorage (ccc-dump-items) + migratie van session-notes
+// DUMP BAR — v4.17.0
+// Simpele inbox bovenaan: plak link/tekst + opmerking, klap open voor items
 // ═══════════════════════════════════════════════════════════════════════════════
 function DumpBar() {
-  const [isOpen, setIsOpen] = useState(false);
-  // Type detectie config
-  const DUMP_TYPES = {
-    youtube: { icon: "🎬", label: "YouTube", color: "#ef4444", bg: "#1a0000", border: "#991b1b" },
-    instagram: { icon: "📸", label: "Instagram", color: "#e879f9", bg: "#1a001a", border: "#86198f" },
-    twitter: { icon: "🐦", label: "Twitter/X", color: "#38bdf8", bg: "#001a2e", border: "#0369a1" },
-    github: { icon: "💻", label: "GitHub", color: "#a78bfa", bg: "#0f0033", border: "#5b21b6" },
-    article: { icon: "📰", label: "Artikel", color: "#fb923c", bg: "#1a0f00", border: "#9a3412" },
-    link: { icon: "🔗", label: "Link", color: "#60a5fa", bg: "#001a33", border: "#1e40af" },
-    note: { icon: "📝", label: "Notitie", color: "#14b8a6", bg: "#0a1a1a", border: "#0f766e" },
-  };
+  var items, setItems, inp, setInp, memo, setMemo, open, setOpen;
+  var _s1 = useState(function() { try { return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]"); } catch(e) { return []; } });
+  items = _s1[0]; setItems = _s1[1];
+  var _s2 = useState(""); inp = _s2[0]; setInp = _s2[1];
+  var _s3 = useState(""); memo = _s3[0]; setMemo = _s3[1];
+  var _s4 = useState(false); open = _s4[0]; setOpen = _s4[1];
 
-  const detectType = (text) => {
-    const t = text.toLowerCase().trim();
-    if (t.includes("youtube.com") || t.includes("youtu.be")) return "youtube";
-    if (t.includes("instagram.com")) return "instagram";
-    if (t.includes("twitter.com") || t.includes("x.com/")) return "twitter";
-    if (t.includes("github.com")) return "github";
-    if (t.includes("medium.com")) return "article";
-    if (/^https?:\/\//.test(t)) return "link";
+  useEffect(function() { localStorage.setItem("ccc-dump-items", JSON.stringify(items)); }, [items]);
+
+  var detectType = function(t) {
+    var l = t.toLowerCase();
+    if (l.indexOf("youtube.com") > -1 || l.indexOf("youtu.be") > -1) return "youtube";
+    if (l.indexOf("instagram.com") > -1) return "instagram";
+    if (l.indexOf("twitter.com") > -1 || l.indexOf("x.com/") > -1) return "twitter";
+    if (l.indexOf("github.com") > -1) return "github";
+    if (l.indexOf("medium.com") > -1) return "article";
+    if (l.indexOf("http") === 0) return "link";
     return "note";
   };
 
-  const [items, setItems] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]");
-    } catch(e) { return []; }
-  });
-  const [filter, setFilter] = useState("all");
-  const [inputContent, setInputContent] = useState("");
-  const [inputMemo, setInputMemo] = useState("");
+  var icons = { youtube: "🎬", instagram: "📸", twitter: "🐦", github: "💻", article: "📰", link: "🔗", note: "📝" };
+  var colors = { youtube: "#ef4444", instagram: "#e879f9", twitter: "#38bdf8", github: "#a78bfa", article: "#fb923c", link: "#60a5fa", note: "#14b8a6" };
 
-  // Persist
-  useEffect(() => {
-    localStorage.setItem("ccc-dump-items", JSON.stringify(items));
-  }, [items]);
-
-  // Add item
-  const addItem = () => {
-    const content = inputContent.trim();
-    if (!content && !inputMemo.trim()) return;
-    const type = detectType(content || inputMemo);
-    const cfg = DUMP_TYPES[type];
-    const newItem = {
-      id: Date.now(),
-      content: content,
-      memo: inputMemo.trim(),
-      type,
-      icon: cfg.icon,
-      created: new Date().toISOString(),
-      pinned: false,
-      analyzed: false,
-      analysis: null
-    };
-    setItems(prev => [newItem, ...prev]);
-    setInputContent("");
-    setInputMemo("");
+  var addItem = function() {
+    var c = inp.trim();
+    var m = memo.trim();
+    if (!c && !m) return;
+    var type = detectType(c || m);
+    var item = { id: Date.now(), content: c, memo: m, type: type, icon: icons[type], created: new Date().toISOString(), pinned: false };
+    setItems(function(prev) { return [item].concat(prev); });
+    setInp(""); setMemo("");
   };
 
-  // Delete item
-  const deleteItem = (id) => setItems(prev => prev.filter(i => i.id !== id));
+  var deleteItem = function(id) { setItems(function(prev) { return prev.filter(function(i) { return i.id !== id; }); }); };
+  var togglePin = function(id) { setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { pinned: !i.pinned }) : i; }); }); };
 
-  // Toggle pin
-  const togglePin = (id) => setItems(prev => prev.map(i => i.id === id ? { ...i, pinned: !i.pinned } : i));
-
-  // Counts per type
-  const typeCounts = {};
-  items.forEach(i => { typeCounts[i.type] = (typeCounts[i.type] || 0) + 1; });
-
-  // Sort: pinned first, then by date
-  const sorted = [...items].sort((a, b) => {
+  var sorted = items.slice().sort(function(a, b) {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
     return new Date(b.created) - new Date(a.created);
   });
 
-  // Filter
-  const filtered = filter === "all" ? sorted : sorted.filter(i => i.type === filter);
-
-  // Active filter types (only show buttons for types that exist)
-  const activeTypes = Object.keys(DUMP_TYPES).filter(t => typeCounts[t] > 0);
-
-  // Extract URL from content for clickable link
-  const extractUrl = (text) => {
-    const match = text.match(/https?:\/\/[^\s]+/);
-    return match ? match[0] : null;
-  };
-
-  // Keyboard: Ctrl+Enter to add
-  const handleKeyDown = (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); addItem(); }
-  };
-
   return (
-    <div style={{ background: "#0a1a1a", border: `1px solid ${isOpen ? "#14b8a6" : "#0f766e55"}`, borderRadius: 10, marginBottom: 0, transition: "all 0.2s" }}>
-      {/* ── COMPACT BAR (altijd zichtbaar) ── */}
+    <div style={{ background: "#0a1a1a", border: "1px solid #0f766e55", borderRadius: 10 }}>
       <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", flexWrap: "wrap" }}>
-        <span style={{ fontSize: 16 }}>📥</span>
+        <span style={{ fontSize: 14 }}>📥</span>
         <span style={{ fontWeight: 700, fontSize: 12, color: "#14b8a6" }}>Dump</span>
-        {items.length > 0 && (
-          <span style={{ fontSize: 10, color: "#6b7280", background: "#0f766e22", padding: "2px 6px", borderRadius: 4 }}>
-            {items.length} items
-            {activeTypes.length > 0 && ` — ${activeTypes.map(t => `${typeCounts[t]}${DUMP_TYPES[t].icon}`).join(" ")}`}
-          </span>
-        )}
-        {/* Inline input — altijd beschikbaar */}
-        <div style={{ flex: 1, display: "flex", gap: 6, alignItems: "center", minWidth: 200 }}>
-          <input
-            type="text"
-            placeholder="Plak URL of tekst..."
-            value={inputContent}
-            onChange={e => setInputContent(e.target.value)}
-            onKeyDown={handleKeyDown}
-            style={{ flex: 1, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#e5e7eb", fontSize: 11, outline: "none" }}
-          />
-          <input
-            type="text"
-            placeholder="Opmerking (optioneel)"
-            value={inputMemo}
-            onChange={e => setInputMemo(e.target.value)}
-            onKeyDown={handleKeyDown}
-            style={{ flex: 1, maxWidth: 200, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, outline: "none" }}
-          />
-          {inputContent.trim() && (
-            <span style={{ fontSize: 14 }}>{DUMP_TYPES[detectType(inputContent)].icon}</span>
-          )}
-          <button onClick={addItem} disabled={!inputContent.trim() && !inputMemo.trim()} style={{
-            padding: "6px 12px", borderRadius: 6, border: "1px solid #14b8a6", background: "#14b8a622",
-            color: "#14b8a6", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap"
-          }}>➕</button>
-        </div>
-        <button onClick={() => setIsOpen(!isOpen)} style={{
-          padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111",
-          color: "#9ca3af", fontSize: 10, cursor: "pointer"
-        }} title={isOpen ? "Inklappen" : "Toon items"}>
-          {isOpen ? "▲" : `▼ ${items.length}`}
-        </button>
+        {items.length > 0 && <span style={{ fontSize: 10, color: "#6b7280", background: "#0f766e22", padding: "2px 6px", borderRadius: 4 }}>{items.length}</span>}
+        <input type="text" placeholder="Plak URL of tekst..." value={inp} onChange={function(e) { setInp(e.target.value); }}
+          onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
+          style={{ flex: 1, minWidth: 120, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#e5e7eb", fontSize: 11, outline: "none" }} />
+        <input type="text" placeholder="Opmerking..." value={memo} onChange={function(e) { setMemo(e.target.value); }}
+          onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
+          style={{ flex: 1, maxWidth: 180, minWidth: 80, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, outline: "none" }} />
+        {inp.trim() && <span style={{ fontSize: 14 }}>{icons[detectType(inp)]}</span>}
+        <button onClick={addItem} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>➕</button>
+        {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>{open ? "▲" : "▼"}</button>}
       </div>
-
-      {/* ── UITGEKLAPT: filter + items grid ── */}
-      {isOpen && (
-        <div style={{ borderTop: "1px solid #0f766e44", padding: 12 }}>
-          {/* Filter bar */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
-            <button onClick={() => setFilter("all")} style={{
-              background: filter === "all" ? "#001a33" : "#111", border: `1px solid ${filter === "all" ? "#1e40af" : "#374151"}`,
-              borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 11,
-              outline: filter === "all" ? "2px solid #60a5fa44" : "none", outlineOffset: 2
-            }}>
-              <span style={{ fontWeight: 800, color: "#60a5fa" }}>{items.length}</span>
-              <span style={{ color: "#60a5facc", marginLeft: 4 }}>Alle</span>
-            </button>
-            {activeTypes.map(t => {
-              const cfg = DUMP_TYPES[t];
-              const active = filter === t;
-              return (
-                <button key={t} onClick={() => setFilter(t)} style={{
-                  background: active ? cfg.bg : "#111", border: `1px solid ${active ? cfg.border : "#374151"}`,
-                  borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 11,
-                  outline: active ? `2px solid ${cfg.color}44` : "none", outlineOffset: 2
-                }}>
-                  <span>{cfg.icon}</span>
-                  <span style={{ fontWeight: 800, color: cfg.color, marginLeft: 4 }}>{typeCounts[t]}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Items grid */}
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 20, color: "#6b7280", fontSize: 12 }}>Nog niets gedumpt</div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
-              {filtered.map(item => {
-                const cfg = DUMP_TYPES[item.type] || DUMP_TYPES.note;
-                const url = extractUrl(item.content);
-                return (
-                  <div key={item.id} style={{
-                    background: cfg.bg, border: `1px solid ${cfg.border}`,
-                    borderRadius: 10, padding: 10, position: "relative",
-                    borderLeft: item.pinned ? `3px solid ${cfg.color}` : `1px solid ${cfg.border}`
-                  }}>
-                    {/* Header */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 14 }}>{cfg.icon}</span>
-                        <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: `${cfg.color}22`, color: cfg.color, fontWeight: 700 }}>{cfg.label}</span>
-                        {item.pinned && <span style={{ fontSize: 10 }}>📌</span>}
-                      </div>
-                      <div style={{ display: "flex", gap: 3 }}>
-                        <button onClick={() => togglePin(item.id)} style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, border: "none", background: "transparent", color: item.pinned ? "#fbbf24" : "#4b5563", cursor: "pointer" }}>{item.pinned ? "📌" : "📍"}</button>
-                        <button onClick={() => deleteItem(item.id)} style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, border: "none", background: "transparent", color: "#ef4444", cursor: "pointer" }}>🗑️</button>
-                      </div>
-                    </div>
-                    {/* Content */}
-                    {item.content && (
-                      <div style={{ marginBottom: 4 }}>
-                        {url ? (
-                          <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: cfg.color, fontSize: 11, wordBreak: "break-all", textDecoration: "none", borderBottom: `1px dashed ${cfg.color}44` }}>
-                            {item.content.length > 80 ? item.content.slice(0, 80) + "..." : item.content}
-                          </a>
-                        ) : (
-                          <div style={{ color: "#d1d5db", fontSize: 11, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                            {item.content.length > 150 ? item.content.slice(0, 150) + "..." : item.content}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {/* Memo */}
-                    {item.memo && (
-                      <div style={{ background: "#00000033", borderRadius: 4, padding: 6, marginBottom: 4, borderLeft: `2px solid ${cfg.color}33` }}>
-                        <div style={{ fontSize: 10, color: "#9ca3af", whiteSpace: "pre-wrap" }}>
-                          {item.memo.length > 200 ? item.memo.slice(0, 200) + "..." : item.memo}
-                        </div>
-                      </div>
-                    )}
-                    {/* Footer */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                      <div style={{ fontSize: 9, color: "#4b5563" }}>{new Date(item.created).toLocaleString("nl-BE")}</div>
-                      <button disabled title="Analyse komt later" style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, border: "1px solid #37415122", background: "transparent", color: "#374151", cursor: "not-allowed" }}>🔍</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      {open && items.length > 0 && (
+        <div style={{ borderTop: "1px solid #0f766e33", padding: 10, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 8 }}>
+          {sorted.map(function(item) {
+            var c = colors[item.type] || "#14b8a6";
+            var isUrl = item.content && item.content.indexOf("http") === 0;
+            return (
+              <div key={item.id} style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10, borderLeft: item.pinned ? "3px solid " + c : "1px solid #1f2937" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12 }}>{item.icon || icons[item.type]} <span style={{ fontSize: 9, color: c, fontWeight: 700 }}>{item.type}</span></span>
+                  <span>
+                    <button onClick={function() { togglePin(item.id); }} style={{ fontSize: 10, border: "none", background: "none", color: item.pinned ? "#fbbf24" : "#4b5563", cursor: "pointer" }}>{item.pinned ? "📌" : "📍"}</button>
+                    <button onClick={function() { deleteItem(item.id); }} style={{ fontSize: 10, border: "none", background: "none", color: "#ef4444", cursor: "pointer" }}>🗑️</button>
+                  </span>
+                </div>
+                {item.content && (isUrl
+                  ? <a href={item.content} target="_blank" rel="noopener noreferrer" style={{ color: c, fontSize: 11, wordBreak: "break-all", textDecoration: "none" }}>{item.content.length > 60 ? item.content.substring(0, 60) + "..." : item.content}</a>
+                  : <div style={{ color: "#d1d5db", fontSize: 11 }}>{item.content.length > 120 ? item.content.substring(0, 120) + "..." : item.content}</div>
+                )}
+                {item.memo && <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 4, padding: "4px 6px", background: "#0a0a0f", borderRadius: 4 }}>{item.memo}</div>}
+                <div style={{ fontSize: 9, color: "#4b5563", marginTop: 4 }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
