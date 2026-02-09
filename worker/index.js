@@ -12,6 +12,8 @@
  * - GET  /api/health      → Health check
  * - GET  /api/dump        → Get all dump items (cloud sync)
  * - POST /api/dump        → Save all dump items (cloud sync)
+ * - GET  /api/tools       → Get tools per machine
+ * - POST /api/tools       → Save tools for a machine
  */
 
 // KV Namespaces (bind in wrangler.toml):
@@ -63,6 +65,12 @@ export default {
       }
       if (path === '/api/dump/add' && request.method === 'POST') {
         return await handleAddDumpItem(request, env);
+      }
+      if (path === '/api/tools' && request.method === 'GET') {
+        return await handleGetTools(request, env);
+      }
+      if (path === '/api/tools' && request.method === 'POST') {
+        return await handleSaveTools(request, env);
       }
       if (path === '/api/health') {
         return jsonResponse({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
@@ -356,6 +364,46 @@ async function handleSaveDump(request, env) {
   };
   await env.LOGS.put(DUMP_KEY, JSON.stringify(data));
   return jsonResponse({ success: true, count: data.items.length, updated: data.updated });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOOLS PER MACHINE
+// ═══════════════════════════════════════════════════════════════════════════════
+const TOOLS_PREFIX = 'tools:';
+
+async function handleGetTools(request, env) {
+  if (!env.LOGS) {
+    return jsonResponse({ error: 'KV not configured' }, 500);
+  }
+  // Get all machines
+  const machines = {};
+  for (const id of ['MM4', 'MBA', 'MM2']) {
+    const value = await env.LOGS.get(TOOLS_PREFIX + id);
+    if (value) {
+      machines[id] = JSON.parse(value);
+    }
+  }
+  return jsonResponse({ machines, updated: new Date().toISOString() });
+}
+
+async function handleSaveTools(request, env) {
+  if (!env.LOGS) {
+    return jsonResponse({ error: 'KV not configured' }, 500);
+  }
+  const body = await request.json();
+  const machine = (body.machine || '').toUpperCase();
+  if (!machine) {
+    return jsonResponse({ error: 'machine required' }, 400);
+  }
+  const data = {
+    plugins: body.plugins || [],
+    mcpServers: body.mcpServers || [],
+    skills: body.skills || [],
+    vercelSkills: body.vercelSkills || [],
+    scannedAt: new Date().toISOString(),
+  };
+  await env.LOGS.put(TOOLS_PREFIX + machine, JSON.stringify(data));
+  return jsonResponse({ success: true, machine, scannedAt: data.scannedAt });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

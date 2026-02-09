@@ -5003,8 +5003,8 @@ function AllToolsPanel({ isPhone }) {
     touchMin: isPhone ? 44 : 28,
     gap: isPhone ? 8 : 6,
     gridMin: isPhone ? 160 : 200,
-    bgCard: isPhone ? "#161625" : "#0a0a1a",
-    bgCardInner: isPhone ? "#1c1c28" : "#111118",
+    bgCard: isPhone ? "#1e1e32" : "#0a0a1a",
+    bgCardInner: isPhone ? "#252538" : "#111118",
     bgInput: isPhone ? "#1c1c2a" : "#111",
   };
 
@@ -5023,10 +5023,10 @@ function AllToolsPanel({ isPhone }) {
   var filtered = filter === "all" ? categories : categories.filter(function(c) { return c.id === filter; });
 
   var statusColors = {
-    installed: { bg: "#052e16", color: "#22c55e", label: "INSTALLED" },
-    connected: { bg: "#052e16", color: "#22c55e", label: "CONNECTED" },
-    error: { bg: "#1a0000", color: "#ef4444", label: "ERROR" },
-    "not-installed": { bg: "#111", color: "#6b7280", label: "NOT INSTALLED" },
+    installed: { bg: "#052e16", color: "#22c55e", label: "INSTALLED", short: "✓" },
+    connected: { bg: "#052e16", color: "#22c55e", label: "CONNECTED", short: "●" },
+    error: { bg: "#1a0000", color: "#ef4444", label: "ERROR", short: "✗" },
+    "not-installed": { bg: "#111", color: "#6b7280", label: "NOT INSTALLED", short: "—" },
   };
 
   return (
@@ -5093,12 +5093,12 @@ function AllToolsPanel({ isPhone }) {
                 background: f.bgCardInner, border: "1px solid #1f2937", borderRadius: 10,
                 padding: f.cardPad, display: "flex", flexDirection: "column", gap: 4,
               }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: isPhone ? 18 : 14 }}>{tool.icon}</span>
-                    <span style={{ fontSize: f.body, fontWeight: 700, color: "#e5e5e5" }}>{tool.name}</span>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: 1 }}>
+                    <span style={{ fontSize: isPhone ? 18 : 14, flexShrink: 0 }}>{tool.icon}</span>
+                    <span style={{ fontSize: f.body, fontWeight: 700, color: "#e5e5e5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tool.name}</span>
                   </div>
-                  <span style={{ fontSize: f.micro, padding: "2px 6px", borderRadius: 4, background: st.bg, color: st.color, fontWeight: 700 }}>{st.label}</span>
+                  <span style={{ fontSize: f.micro, padding: "2px 6px", borderRadius: 4, background: st.bg, color: st.color, fontWeight: 700, flexShrink: 0, whiteSpace: "nowrap" }}>{isPhone ? st.short : st.label}</span>
                 </div>
                 {tool.version && <div style={{ fontSize: f.micro, color: "#6b7280" }}>{tool.version}{tool.author ? " • " + tool.author : ""}</div>}
                 <div style={{ fontSize: f.small, color: "#9ca3af", lineHeight: 1.4 }}>{tool.desc}</div>
@@ -5241,11 +5241,11 @@ export default function ControlCenter() {
     gap: isPhone ? 8 : 4,
     cardPad: isPhone ? 14 : 10,
     statusFont: isPhone ? 13 : 11,
-    bgBody: isPhone ? "#1a1a2e" : "#0f0f18",
-    bgCard: isPhone ? "#161625" : "#0a0a1a",
+    bgBody: isPhone ? "#22223a" : "#0f0f18",
+    bgCard: isPhone ? "#1e1e32" : "#0a0a1a",
     bgInput: isPhone ? "#1c1c2a" : "#111",
-    bgCardInner: isPhone ? "#1c1c28" : "#111118",
-    bgFooter: isPhone ? "#1a1a25" : "#0f0f0f",
+    bgCardInner: isPhone ? "#252538" : "#111118",
+    bgFooter: isPhone ? "#22223a" : "#0f0f0f",
   };
 
   // Log page load
