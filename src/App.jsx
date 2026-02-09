@@ -140,7 +140,7 @@ function logActivity(action, detail, device) {
     const existing = JSON.parse(localStorage.getItem('ccc-activity-log') || '[]');
     existing.unshift(entry);
     localStorage.setItem('ccc-activity-log', JSON.stringify(existing.slice(0, 500))); // Keep 500 entries
-  } catch {}
+  } catch(e) {}
 
   // Also send to API for central logging
   api.log(action, detail, 'activity', 'Dashboard', device || detectDevice());
@@ -441,7 +441,7 @@ function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevic
     try {
       const saved = localStorage.getItem("advisor-current-thread");
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch(e) { return []; }
   });
 
   // ALL questions ever asked - PERSISTENT LOG
@@ -449,7 +449,7 @@ function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevic
     try {
       const saved = localStorage.getItem("advisor-all-questions");
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch(e) { return []; }
   });
 
   // Saved sessions history
@@ -457,7 +457,7 @@ function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevic
     try {
       const saved = localStorage.getItem("advisor-sessions");
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch(e) { return []; }
   });
 
   const summary = issues.filter(i => i.status === STATUS.ERROR || i.status === STATUS.WARN).map(i => `[${i.status === STATUS.ERROR ? "ERR" : "WARN"}] ${i.path}: ${i.detail || i.name}${i.recommendation ? " | Fix: " + i.recommendation : ""}`).join("\n");
@@ -466,19 +466,19 @@ function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevic
   useEffect(() => {
     try {
       localStorage.setItem("advisor-current-thread", JSON.stringify(chatThread));
-    } catch {}
+    } catch(e) {}
   }, [chatThread]);
 
   useEffect(() => {
     try {
       localStorage.setItem("advisor-all-questions", JSON.stringify(allQuestions.slice(0, 200))); // Keep 200
-    } catch {}
+    } catch(e) {}
   }, [allQuestions]);
 
   useEffect(() => {
     try {
       localStorage.setItem("advisor-sessions", JSON.stringify(savedSessions.slice(0, 20)));
-    } catch {}
+    } catch(e) {}
   }, [savedSessions]);
 
   // Detect tab references in answer text
@@ -4192,30 +4192,11 @@ function DumpBar() {
     return "note";
   };
 
-  // Migratie van session-notes
-  const migrateSessionNotes = () => {
+  const [items, setItems] = useState(() => {
     try {
-      const existing = JSON.parse(localStorage.getItem("ccc-dump-items") || "[]");
-      if (existing.length > 0) return existing;
-      const oldNotes = JSON.parse(localStorage.getItem("session-notes") || "[]");
-      if (oldNotes.length === 0) return [];
-      const migrated = oldNotes.map(n => ({
-        id: n.id || Date.now(),
-        content: n.title || "",
-        memo: n.content || "",
-        type: "note",
-        icon: "📝",
-        created: n.created || new Date().toISOString(),
-        pinned: false,
-        analyzed: false,
-        analysis: null,
-        migrated: true
-      }));
-      return migrated;
-    } catch { return []; }
-  };
-
-  const [items, setItems] = useState(() => migrateSessionNotes());
+      return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]");
+    } catch(e) { return []; }
+  });
   const [filter, setFilter] = useState("all");
   const [inputContent, setInputContent] = useState("");
   const [inputMemo, setInputMemo] = useState("");
@@ -4823,7 +4804,7 @@ function CryptoIntelligence() {
 function IssuesPanel({ issues, allItems }) {
   const [filter, setFilter] = useState("all");
   const [resolved, setResolved] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch(e) { return []; }
   });
   const [showBacklog, setShowBacklog] = useState(false);
 
