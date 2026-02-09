@@ -111,7 +111,7 @@ const api = {
 // v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
-// v4.20.0 - Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
+// v4.21.0 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
 // v4.21.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -5016,6 +5016,172 @@ var TOOLS_DATA = {
   ],
 };
 
+
+// ==================== GDPR ARTES TAB ====================
+// v4.21.0 - GDPR/Cookie Compliance Monitoring Dashboard
+function GDPRArtes() {
+  const { S } = React.useContext(DeviceContext);
+  
+  // EU Digital Omnibus wijzigingen
+  const euChanges = [
+    { item: "Browser Privacy Signal (GPC)", status: "VERPLICHT", deadline: "Nu", impact: "Websites moeten GPC/DNT respecteren", color: "#ef4444" },
+    { item: "Datalek melding termijn", status: "Gewijzigd", deadline: "2025", impact: "72u → 96 uur, alleen bij hoog risico", color: "#f59e0b" },
+    { item: "Artikel 88a/88b AVG", status: "Nieuw", deadline: "2025", impact: "Eindapparatuur bescherming naar AVG", color: "#3b82f6" },
+    { item: "Consent Fatigue oplossing", status: "Voorstel", deadline: "2025-2026", impact: "Browser-brede privacy instelling", color: "#8b5cf6" },
+    { item: "DPIA lijst EDPB", status: "Verwacht", deadline: "2025", impact: "Duidelijke hoog-risico verwerkingen", color: "#06b6d4" },
+    { item: "Transparantieplicht Art.13", status: "Versoepeld", deadline: "2025", impact: "Niet informeren wat betrokkene al weet", color: "#22c55e" },
+  ];
+  
+  // Project compliance status
+  const projects = [
+    { name: "BlackFuel Whiskey", type: "E-commerce", gpc: true, consent: true, privacy: true, github: "DS2036/BlackFuelWhiskey" },
+    { name: "IDGS Constructions", type: "B2B Website", gpc: true, consent: true, privacy: true, github: "DS2036/IDGS-Constructions" },
+    { name: "Econation", type: "B2B Tech", gpc: true, consent: true, privacy: false, github: null },
+  ];
+  
+  // Monitoring bronnen
+  const sources = [
+    { name: "Artes.law", url: "https://artes.law", status: "✅", desc: "Belgische juridische updates" },
+    { name: "EDPB", url: "https://edpb.europa.eu/news/news_en", status: "✅", desc: "EU richtsnoeren" },
+    { name: "GBA België", url: "https://gegevensbeschermingsautoriteit.be", status: "✅", desc: "Lokale autoriteit" },
+  ];
+  
+  // Belangrijke deadlines
+  const deadlines = [
+    { wet: "EU AI Act - Verboden praktijken", datum: "Feb 2025", status: "⚠️ Binnenkort" },
+    { wet: "EU Accessibility Act", datum: "Jun 2025", status: "📅 Gepland" },
+    { wet: "EU AI Act - High-risk", datum: "Aug 2025", status: "📅 Gepland" },
+    { wet: "Digital Services Act - Kleine platforms", datum: "Feb 2024", status: "✅ Actief" },
+  ];
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: S.gap }}>
+      
+      {/* Header Card */}
+      <div style={{ gridColumn: "1 / -1", background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #3b82f6" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <h2 style={{ margin: 0, color: "#60a5fa", fontSize: S.h2, display: "flex", alignItems: "center", gap: 10 }}>
+              🔒 GDPR & Cookie Compliance
+              <span style={{ fontSize: 11, background: "#3b82f6", color: "white", padding: "2px 8px", borderRadius: 4 }}>Artes.law</span>
+            </h2>
+            <p style={{ margin: "6px 0 0 0", color: "#9ca3af", fontSize: S.smallFont }}>
+              EU Digital Omnibus (19 nov 2024) • Wekelijkse monitoring actief • Browser Signal Detection geïmplementeerd
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600 }}>🛡️ GPC Actief</span>
+            <span style={{ background: "#3b82f622", color: "#60a5fa", padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600 }}>📅 Maandag 9u</span>
+          </div>
+        </div>
+      </div>
+
+      {/* EU Wijzigingen */}
+      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#f59e0b", fontSize: S.h3 }}>📜 EU Digital Omnibus Wijzigingen</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {euChanges.map((c, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: c.color + "11", borderRadius: 6, borderLeft: "3px solid " + c.color }}>
+              <div>
+                <div style={{ color: "#e5e5e5", fontSize: S.smallFont, fontWeight: 600 }}>{c.item}</div>
+                <div style={{ color: "#9ca3af", fontSize: S.tinyFont }}>{c.impact}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ background: c.color + "33", color: c.color, padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600 }}>{c.status}</span>
+                <div style={{ color: "#6b7280", fontSize: 9, marginTop: 2 }}>{c.deadline}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Project Status */}
+      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: S.h3 }}>✅ Project Compliance Status</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {projects.map((p, i) => (
+            <div key={i} style={{ background: "#111827", borderRadius: 8, padding: 12, border: "1px solid #1f2937" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ color: "#e5e5e5", fontWeight: 600, fontSize: S.smallFont }}>{p.name}</span>
+                <span style={{ color: "#6b7280", fontSize: 10 }}>{p.type}</span>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ background: p.gpc ? "#22c55e22" : "#ef444422", color: p.gpc ? "#22c55e" : "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>
+                  {p.gpc ? "✓" : "✗"} GPC
+                </span>
+                <span style={{ background: p.consent ? "#22c55e22" : "#ef444422", color: p.consent ? "#22c55e" : "#ef4444", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>
+                  {p.consent ? "✓" : "✗"} Consent
+                </span>
+                <span style={{ background: p.privacy ? "#22c55e22" : "#f59e0b22", color: p.privacy ? "#22c55e" : "#f59e0b", padding: "2px 6px", borderRadius: 4, fontSize: 10 }}>
+                  {p.privacy ? "✓" : "⚠"} Privacy
+                </span>
+                {p.github && (
+                  <a href={"https://github.com/" + p.github} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", fontSize: 10, textDecoration: "none" }}>📂 GitHub</a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Deadlines */}
+      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#ef4444", fontSize: S.h3 }}>⏰ Kritieke Deadlines</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {deadlines.map((d, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", background: "#111827", borderRadius: 6 }}>
+              <span style={{ color: "#e5e5e5", fontSize: S.smallFont }}>{d.wet}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ color: "#9ca3af", fontSize: 10 }}>{d.datum}</span>
+                <span style={{ fontSize: 12 }}>{d.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Monitoring Bronnen */}
+      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#06b6d4", fontSize: S.h3 }}>📡 Monitoring Bronnen</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {sources.map((s, i) => (
+            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "#111827", borderRadius: 6, textDecoration: "none", border: "1px solid #1f2937" }}>
+              <div>
+                <div style={{ color: "#60a5fa", fontSize: S.smallFont, fontWeight: 600 }}>{s.name}</div>
+                <div style={{ color: "#6b7280", fontSize: S.tinyFont }}>{s.desc}</div>
+              </div>
+              <span style={{ fontSize: 16 }}>{s.status}</span>
+            </a>
+          ))}
+        </div>
+        <div style={{ marginTop: 12, padding: 10, background: "#1e3a5f22", borderRadius: 6, border: "1px solid #3b82f633" }}>
+          <div style={{ color: "#9ca3af", fontSize: 10 }}>📂 Lokale bestanden</div>
+          <code style={{ color: "#60a5fa", fontSize: 10 }}>~/Projects/GDPR-COMPLIANCE-MODULE/</code>
+        </div>
+      </div>
+
+      {/* Browser Signal Code */}
+      <div style={{ background: S.bgCard, borderRadius: S.borderRadius, padding: S.cardPad, border: "1px solid #374151" }}>
+        <h3 style={{ margin: "0 0 12px 0", color: "#a78bfa", fontSize: S.h3 }}>🛡️ GPC Browser Signal Code</h3>
+        <pre style={{ background: "#0d1117", padding: 12, borderRadius: 6, overflow: "auto", fontSize: 10, color: "#c9d1d9", margin: 0 }}>{`function checkBrowserPrivacySignal() {
+  // Global Privacy Control (EU standaard)
+  if (navigator.globalPrivacyControl === true) 
+    return 'opt-out';
+  // Do Not Track (legacy)
+  if (navigator.doNotTrack === '1') 
+    return 'opt-out';
+  return 'ask-consent';
+}`}</pre>
+        <p style={{ color: "#6b7280", fontSize: 10, marginTop: 8, marginBottom: 0 }}>
+          ✓ Geïmplementeerd in: BlackFuel, IDGS, Econation
+        </p>
+      </div>
+
+    </div>
+  );
+}
+
+
 function AllToolsPanel() {
   const { isPhone, S, reducedMotion } = useDevice();
   var _f = useState("all"), filter = _f[0], setFilter = _f[1];
@@ -5339,6 +5505,7 @@ export default function ControlCenter() {
     { id: "revenue", label: "💰 Revenue", color: "#22c55e", lastUpdated: "7 Feb" },
     { id: "usecases", label: "🎯 Use Cases", color: "#818cf8", lastUpdated: "8 Feb" },
     { id: "alltools", label: "🧰 All Tools", color: "#14b8a6", lastUpdated: "9 Feb" },
+    { id: "gdpr", label: "🔒 GDPR Artes", color: "#3b82f6", lastUpdated: "9 Feb" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa", lastUpdated: "8 Feb" },
   ];
 
@@ -5403,7 +5570,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.20.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.21.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <nav aria-label="Apparaat selectie" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5506,10 +5673,11 @@ export default function ControlCenter() {
       {tab === "revenue" && <RevenueIntelligence />}
       {tab === "usecases" && <UseCases />}
       {tab === "alltools" && <AllToolsPanel />}
+      {tab === "gdpr" && <GDPRArtes />}
 
       {/* Footer */}
       <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #2d3748", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.20.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.21.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
