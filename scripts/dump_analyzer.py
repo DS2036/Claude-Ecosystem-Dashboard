@@ -40,7 +40,7 @@ WORKER_API = "https://claude-control-center.franky-f29.workers.dev"
 ANTHROPIC_API = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL = "claude-sonnet-4-20250514"
-MAX_TOKENS = 1500
+MAX_TOKENS = 2000
 POLL_INTERVAL = 60  # seconds
 # Als geen lokale key, gebruik Worker als proxy
 USE_WORKER_PROXY = not bool(ANTHROPIC_KEY)
@@ -205,112 +205,114 @@ def ask_claude(prompt, max_tokens=MAX_TOKENS):
         log_err(f"Claude API failed: {e}")
         return f"Analyse fout: {e}"
 
-# ── Analyzers per type ──
-def analyze_youtube(item):
-    """Analyseer YouTube video via transcript."""
-    yt_data = fetch_youtube_transcript(item["content"])
+# ── Targeted vs Generic prompt builder ──
+def build_targeted_prompt(memo, content_desc, content_text):
+    """Als memo aanwezig: targeted extraction. Anders: generieke analyse."""
+    if memo and memo.strip():
+        return f"""Je bent een kennisextractor. De gebruiker heeft specifiek aangegeven wat ze zoeken.
 
-    prompt = f"""Analyseer deze YouTube video grondig in het Nederlands. Geef:
+ZOEKFOCUS: {memo}
+
+Extraheer ALLEEN de informatie die relevant is voor bovenstaande focus uit de content hieronder.
+Geef het resultaat in het Nederlands als een gestructureerd overzicht:
+- Kernpunten over het gevraagde onderwerp (bullet points)
+- Concrete details, stappen, of instructies indien aanwezig
+- Eventuele tips of waarschuwingen
+- Als de content NIET over het gevraagde onderwerp gaat, zeg dat kort.
+
+Wees bondig en praktisch. Geen generieke samenvatting — alleen wat de gebruiker zoekt.
+
+{content_desc}
+{content_text}"""
+    else:
+        return f"""Analyseer deze content grondig in het Nederlands. Geef:
 1. Onderwerp en kernboodschap (2-3 zinnen)
 2. Belangrijkste inzichten/takeaways (3-5 bullet points)
 3. Relevantie en bruikbaarheid
 
-Video URL: {item['content']}
+{content_desc}
+{content_text}
+
+Geef een heldere, bruikbare analyse."""
+
+# ── Analyzers per type ──
+def analyze_youtube(item):
+    """Analyseer YouTube video via transcript — targeted als memo aanwezig."""
+    yt_data = fetch_youtube_transcript(item["content"])
+
+    content_desc = f"""Video URL: {item['content']}
 Titel: {yt_data['title']}
-Beschrijving: {yt_data['description'][:300]}
-"""
+Beschrijving: {yt_data['description'][:300]}"""
+
+    content_text = ""
     if yt_data["transcript"]:
-        prompt += f"\nTranscript (fragment): {yt_data['transcript'][:4000]}"
+        content_text = f"\nTranscript (fragment): {yt_data['transcript'][:5000]}"
 
-    if item.get("memo"):
-        prompt += f"\n\nContext van de gebruiker: {item['memo']}"
-
-    prompt += "\n\nGeef een heldere, bruikbare analyse."
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
     return ask_claude(prompt)
 
 def analyze_article(item):
-    """Analyseer artikel/webpagina."""
+    """Analyseer artikel/webpagina — targeted als memo aanwezig."""
     page = fetch_webpage_text(item["content"])
 
-    prompt = f"""Analyseer dit artikel/deze webpagina grondig in het Nederlands. Geef:
-1. Onderwerp en kernboodschap (2-3 zinnen)
-2. Belangrijkste punten (3-5 bullet points)
-3. Relevantie en bruikbaarheid
+    content_desc = f"""URL: {item['content']}
+Titel: {page['title']}"""
+    content_text = f"\nContent: {page['text'][:5000]}"
 
-URL: {item['content']}
-Titel: {page['title']}
-Content: {page['text'][:5000]}
-"""
-    if item.get("memo"):
-        prompt += f"\n\nContext van de gebruiker: {item['memo']}"
-
-    prompt += "\n\nGeef een heldere, bruikbare analyse."
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
     return ask_claude(prompt)
 
 def analyze_link(item):
-    """Analyseer een generieke link."""
+    """Analyseer een generieke link — targeted als memo aanwezig."""
     page = fetch_webpage_text(item["content"])
 
-    prompt = f"""Analyseer deze link/pagina kort en bondig in het Nederlands. Geef:
-1. Wat is dit? (1-2 zinnen)
-2. Relevante info (2-3 bullet points)
+    content_desc = f"""URL: {item['content']}
+Titel: {page['title']}"""
+    content_text = f"\nContent: {page['text'][:3000]}"
 
-URL: {item['content']}
-Titel: {page['title']}
-Content: {page['text'][:3000]}
-"""
-    if item.get("memo"):
-        prompt += f"\nContext: {item['memo']}"
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
     return ask_claude(prompt)
 
 def analyze_instagram(item):
-    """Analyseer Instagram post (beperkt — geen API access)."""
-    prompt = f"""Analyseer deze Instagram post/profiel kort in het Nederlands.
-URL: {item['content']}
-"""
-    if item.get("memo"):
-        prompt += f"Context van de gebruiker: {item['memo']}"
-    prompt += "\nBeschrijf kort wat dit waarschijnlijk is en wat de relevantie kan zijn."
-    return ask_claude(prompt, max_tokens=500)
+    """Analyseer Instagram post — targeted als memo aanwezig."""
+    content_desc = f"Instagram URL: {item['content']}"
+    content_text = ""
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
+    return ask_claude(prompt, max_tokens=800)
 
 def analyze_twitter(item):
-    """Analyseer Twitter/X post."""
-    prompt = f"""Analyseer deze Twitter/X post kort in het Nederlands.
-URL: {item['content']}
-"""
-    if item.get("memo"):
-        prompt += f"Context: {item['memo']}"
-    prompt += "\nBeschrijf kort het onderwerp en de relevantie."
-    return ask_claude(prompt, max_tokens=500)
+    """Analyseer Twitter/X post — targeted als memo aanwezig."""
+    content_desc = f"Twitter/X URL: {item['content']}"
+    content_text = ""
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
+    return ask_claude(prompt, max_tokens=800)
 
 def analyze_github(item):
-    """Analyseer GitHub link."""
+    """Analyseer GitHub link — targeted als memo aanwezig."""
     page = fetch_webpage_text(item["content"])
-    prompt = f"""Analyseer deze GitHub pagina kort in het Nederlands. Geef:
-1. Wat is dit project/repo/issue?
-2. Relevante technische details
-3. Bruikbaarheid
 
-URL: {item['content']}
-Titel: {page['title']}
-Content: {page['text'][:3000]}
-"""
-    if item.get("memo"):
-        prompt += f"\nContext: {item['memo']}"
+    content_desc = f"""GitHub URL: {item['content']}
+Titel: {page['title']}"""
+    content_text = f"\nContent: {page['text'][:3000]}"
+
+    prompt = build_targeted_prompt(item.get("memo", ""), content_desc, content_text)
     return ask_claude(prompt)
 
 def analyze_note(item):
-    """Analyseer een notitie/tekst."""
+    """Analyseer een notitie/tekst — targeted als memo aanwezig."""
     content = item.get("content", "") or item.get("memo", "")
     memo = item.get("memo", "")
 
-    prompt = f"""Analyseer deze notitie kort in het Nederlands.
-Notitie: {content}
-"""
+    # Voor notes is memo vaak de content zelf
     if memo and memo != content:
-        prompt += f"Extra context: {memo}"
-    prompt += "\nBeschrijf kort de kernpunten en eventuele actiepunten."
-    return ask_claude(prompt, max_tokens=500)
+        content_desc = f"Notitie: {content}"
+        content_text = ""
+        prompt = build_targeted_prompt(memo, content_desc, content_text)
+    else:
+        prompt = f"""Analyseer deze notitie kort in het Nederlands.
+Notitie: {content}
+Beschrijf kort de kernpunten en eventuele actiepunten."""
+    return ask_claude(prompt, max_tokens=800)
 
 # Type → analyzer mapping
 ANALYZERS = {
@@ -337,7 +339,8 @@ def analyze_pending(items):
     for item in pending:
         item_type = item.get("type", "note")
         content_preview = (item.get("content", "") or item.get("memo", ""))[:50]
-        log(f"  🔍 [{item_type}] {content_preview}...")
+        mode = "🎯 TARGETED" if item.get("memo", "").strip() else "📋 GENERIC"
+        log(f"  🔍 [{item_type}] {mode} {content_preview}...")
 
         analyzer = ANALYZERS.get(item_type, analyze_note)
         try:

@@ -113,6 +113,7 @@ const api = {
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
 // v4.23.0 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
 // v4.23.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
+// v4.25.0 - Dump upgrade: Re-analyze met custom prompt (🎯 targeted extraction), Route-to-tab (📤), extra analyse lagen, yt-dlp + daemon
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -4322,6 +4323,12 @@ function DumpBar() {
   var deleteItem = function(id) { setItems(function(prev) { return prev.filter(function(i) { return i.id !== id; }); }); setPushCount(function(n) { return n + 1; }); };
   var togglePin = function(id) { setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { pinned: !i.pinned }) : i; }); }); setPushCount(function(n) { return n + 1; }); };
 
+  // State voor re-analyze: welk item is open + custom prompt
+  var _sReanalyze = useState(null); var reanalyzeId = _sReanalyze[0]; var setReanalyzeId = _sReanalyze[1];
+  var _sRePrompt = useState(""); var rePrompt = _sRePrompt[0]; var setRePrompt = _sRePrompt[1];
+  // State voor route-to-tab selector
+  var _sRouteId = useState(null); var routeId = _sRouteId[0]; var setRouteId = _sRouteId[1];
+
   var analyzeItem = function(id) {
     var item = items.find(function(i) { return i.id === id; });
     if (!item || item.analyzing) return;
@@ -4345,6 +4352,84 @@ function DumpBar() {
       setPushCount(function(n) { return n + 1; });
     });
   };
+
+  // Re-analyze: stuur een follow-up prompt op basis van bestaande analyse
+  var reanalyzeItem = function(id, customPrompt) {
+    var item = items.find(function(i) { return i.id === id; });
+    if (!item || item.analyzing || !customPrompt.trim()) return;
+    setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
+    var prompt = "Je bent een kennisextractor. Hieronder staat een eerdere analyse van content. De gebruiker wil nu specifieke info eruit halen.\n\n";
+    prompt += "EERDERE ANALYSE:\n" + (item.analysis || "(geen)") + "\n\n";
+    prompt += "ORIGINELE CONTENT: " + item.content + "\n";
+    if (item.title) prompt += "TITEL: " + item.title + "\n";
+    if (item.memo) prompt += "OORSPRONKELIJKE MEMO: " + item.memo + "\n";
+    prompt += "\nNIEUWE VRAAG/FOCUS: " + customPrompt + "\n\n";
+    prompt += "Geef een gericht antwoord in het Nederlands. Bullet points waar mogelijk. Wees concreet en praktisch.";
+    api.askAI([{ role: "user", content: prompt }]).then(function(r) {
+      var text = "Geen resultaat";
+      if (r && r.content) {
+        text = r.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
+      }
+      // Append als extra analyse laag, bewaar origineel
+      setItems(function(prev) { return prev.map(function(i) {
+        if (i.id !== id) return i;
+        var extraAnalyses = i.extraAnalyses ? i.extraAnalyses.slice() : [];
+        extraAnalyses.push({ prompt: customPrompt, result: text, date: new Date().toISOString() });
+        return Object.assign({}, i, { analyzing: false, extraAnalyses: extraAnalyses });
+      }); });
+      setReanalyzeId(null); setRePrompt("");
+      setPushCount(function(n) { return n + 1; });
+    }).catch(function() {
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false }) : i; }); });
+    });
+  };
+
+  // Route extracted info naar een tab (opslaan als note in die tab's context)
+  var routeToTab = function(id, targetTab) {
+    var item = items.find(function(i) { return i.id === id; });
+    if (!item) return;
+    // Bundel alle analyse info
+    var payload = {
+      source: "dump",
+      sourceId: item.id,
+      sourceUrl: item.content,
+      sourceTitle: item.title || "",
+      analysis: item.analysis || "",
+      extraAnalyses: item.extraAnalyses || [],
+      memo: item.memo || "",
+      routedAt: new Date().toISOString(),
+      targetTab: targetTab,
+    };
+    // Sla op in localStorage per tab
+    var key = "ccc-routed-" + targetTab;
+    try {
+      var existing = JSON.parse(localStorage.getItem(key) || "[]");
+      existing.unshift(payload);
+      localStorage.setItem(key, JSON.stringify(existing));
+    } catch(e) {}
+    // Mark item als gerouteerd
+    setItems(function(prev) { return prev.map(function(i) {
+      if (i.id !== id) return i;
+      var routed = i.routedTo ? i.routedTo.slice() : [];
+      if (routed.indexOf(targetTab) === -1) routed.push(targetTab);
+      return Object.assign({}, i, { routedTo: routed });
+    }); });
+    setRouteId(null);
+    setPushCount(function(n) { return n + 1; });
+    // Push naar cloud
+    api.saveDump(items, "Mac");
+  };
+
+  var routeTargets = [
+    { id: "sdk-hrm", label: "🧠 SDK-HRM", desc: "Scam detection kennis" },
+    { id: "knowledge", label: "📚 Knowledge", desc: "Kennisbank" },
+    { id: "benchmarks", label: "📊 Benchmarks", desc: "Training data" },
+    { id: "crypto", label: "₿ Crypto", desc: "Crypto intel" },
+    { id: "revenue", label: "💰 Revenue", desc: "Business/revenue" },
+    { id: "updates", label: "📰 Updates", desc: "Claude updates" },
+    { id: "tools", label: "🛠️ Tools", desc: "Tools & tech" },
+    { id: "notes", label: "📝 Notes", desc: "Algemene notities" },
+  ];
 
   var sorted = items.slice().sort(function(a, b) {
     if (a.pinned && !b.pinned) return -1;
@@ -4408,9 +4493,53 @@ function DumpBar() {
                 )}
                 {item.memo && <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, padding: "8px 10px", background: "#151520", borderRadius: 6, lineHeight: 1.4 }}>{item.memo}</div>}
                 {item.analysis && <div style={{ fontSize: 13, color: "#22c55e", marginTop: 8, padding: "8px 10px", background: "#052e1644", borderRadius: 6, borderLeft: "3px solid #22c55e44", lineHeight: 1.5 }}>{item.analysis}</div>}
+                {/* Extra analyses (follow-up prompts) */}
+                {item.extraAnalyses && item.extraAnalyses.map(function(ea, idx) {
+                  return (
+                    <div key={idx} style={{ fontSize: 13, marginTop: 6, padding: "8px 10px", background: "#0a1e3a66", borderRadius: 6, borderLeft: "3px solid #3b82f644", lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 700, marginBottom: 4 }}>🎯 {ea.prompt}</div>
+                      <div style={{ color: "#93c5fd" }}>{ea.result}</div>
+                    </div>
+                  );
+                })}
+                {/* Routed indicators */}
+                {item.routedTo && item.routedTo.length > 0 && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
+                    {item.routedTo.map(function(rt) {
+                      var target = routeTargets.find(function(t) { return t.id === rt; });
+                      return <span key={rt} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "#14b8a622", color: "#14b8a6", fontWeight: 600 }}>→ {target ? target.label : rt}</span>;
+                    })}
+                  </div>
+                )}
+                {/* Re-analyze prompt input */}
+                {reanalyzeId === item.id && (
+                  <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                    <input type="text" placeholder="Wat wil je eruit halen? bijv. 'teams setup', 'pricing'..." value={rePrompt} onChange={function(e) { setRePrompt(e.target.value); }}
+                      onKeyDown={function(e) { if (e.key === "Enter") reanalyzeItem(item.id, rePrompt); }}
+                      style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #3b82f644", background: "#1a1a2e", color: "#e5e7eb", fontSize: 13, outline: "none" }} />
+                    <button onClick={function() { reanalyzeItem(item.id, rePrompt); }} disabled={item.analyzing || !rePrompt.trim()} style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #3b82f6", background: "#3b82f622", color: "#3b82f6", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{item.analyzing ? "⏳" : "🎯 Extract"}</button>
+                    <button onClick={function() { setReanalyzeId(null); setRePrompt(""); }} style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#6b7280", fontSize: 13, cursor: "pointer" }}>✕</button>
+                  </div>
+                )}
+                {/* Route-to-tab selector */}
+                {routeId === item.id && (
+                  <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {routeTargets.map(function(rt) {
+                      var alreadyRouted = item.routedTo && item.routedTo.indexOf(rt.id) > -1;
+                      return <button key={rt.id} onClick={function() { if (!alreadyRouted) routeToTab(item.id, rt.id); }} disabled={alreadyRouted}
+                        style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid " + (alreadyRouted ? "#22c55e44" : "#14b8a644"), background: alreadyRouted ? "#22c55e11" : "#14b8a611", color: alreadyRouted ? "#22c55e88" : "#14b8a6", fontSize: 12, fontWeight: 600, cursor: alreadyRouted ? "default" : "pointer" }}>{alreadyRouted ? "✓ " : ""}{rt.label}</button>;
+                    })}
+                    <button onClick={function() { setRouteId(null); }} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #454d60", background: "#1e1e30", color: "#6b7280", fontSize: 12, cursor: "pointer" }}>✕</button>
+                  </div>
+                )}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
                   <div style={{ fontSize: 12, color: "#4b5563" }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
-                  {!item.analysis && <button onClick={function() { analyzeItem(item.id); }} disabled={item.analyzing} style={{ fontSize: 13, padding: "8px 16px", borderRadius: 6, border: "1px solid #14b8a644", background: "#14b8a611", color: item.analyzing ? "#6b7280" : "#14b8a6", cursor: item.analyzing ? "wait" : "pointer", fontWeight: 600 }}>{item.analyzing ? "⏳ Bezig..." : "🔍 Analyseer"}</button>}
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {!item.analysis && <button onClick={function() { analyzeItem(item.id); }} disabled={item.analyzing} style={{ fontSize: 13, padding: "8px 16px", borderRadius: 6, border: "1px solid #14b8a644", background: "#14b8a611", color: item.analyzing ? "#6b7280" : "#14b8a6", cursor: item.analyzing ? "wait" : "pointer", fontWeight: 600 }}>{item.analyzing ? "⏳ Bezig..." : "🔍 Analyseer"}</button>}
+                    {item.analysis && <button onClick={function() { setReanalyzeId(reanalyzeId === item.id ? null : item.id); setRePrompt(""); setRouteId(null); }} style={{ fontSize: 13, padding: "8px 12px", borderRadius: 6, border: "1px solid #3b82f644", background: "#3b82f611", color: "#3b82f6", cursor: "pointer", fontWeight: 600 }}>🎯 Re-analyze</button>}
+                    {item.analysis && <button onClick={function() { setRouteId(routeId === item.id ? null : item.id); setReanalyzeId(null); }} style={{ fontSize: 13, padding: "8px 12px", borderRadius: 6, border: "1px solid #f59e0b44", background: "#f59e0b11", color: "#f59e0b", cursor: "pointer", fontWeight: 600 }}>📤 Route</button>}
+                    {item.analysis && <button onClick={function() { setItems(function(prev) { return prev.map(function(i) { return i.id === item.id ? Object.assign({}, i, { analysis: null, analyzed: false, analyzed_by: null, analyzed_at: null, extraAnalyses: null }) : i; }); }); setPushCount(function(n) { return n + 1; }); }} style={{ fontSize: 13, padding: "8px 12px", borderRadius: 6, border: "1px solid #a855f744", background: "#a855f711", color: "#a855f7", cursor: "pointer", fontWeight: 600 }} title="Wis analyse en laat daemon opnieuw analyseren (nu met yt-dlp transcript)">♻️ Opnieuw</button>}
+                  </div>
                 </div>
               </div>
             );
