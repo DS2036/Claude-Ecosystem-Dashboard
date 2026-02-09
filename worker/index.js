@@ -312,6 +312,24 @@ async function handleGetDump(request, env) {
   return jsonResponse(data);
 }
 
+// ── YouTube oEmbed metadata fetch ──
+async function fetchYouTubeMetadata(url) {
+  try {
+    const oembed = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const r = await fetch(oembed, { headers: { 'User-Agent': 'CCC-Worker/1.0' } });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return {
+      title: data.title || '',
+      author: data.author_name || '',
+      thumbnail: data.thumbnail_url || '',
+    };
+  } catch (e) {
+    console.error('YouTube oEmbed failed:', e);
+    return null;
+  }
+}
+
 async function handleAddDumpItem(request, env) {
   if (!env.LOGS) {
     return jsonResponse({ error: 'KV not configured' }, 500);
@@ -342,6 +360,16 @@ async function handleAddDumpItem(request, env) {
     pinned: false,
     source: body.source || 'shortcut',
   };
+
+  // Enrich YouTube items with metadata (title, author, thumbnail)
+  if (type === 'youtube') {
+    const meta = await fetchYouTubeMetadata(content);
+    if (meta) {
+      item.title = meta.title;
+      item.author = meta.author;
+      item.thumbnail = meta.thumbnail;
+    }
+  }
 
   // Get existing items, add new one at top
   const value = await env.LOGS.get(DUMP_KEY);

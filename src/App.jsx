@@ -4287,6 +4287,19 @@ function DumpBar() {
     if (!c && !m) return;
     var type = detectType(c || m);
     var item = { id: Date.now(), content: c, memo: m, type: type, icon: icons[type], created: new Date().toISOString(), pinned: false };
+    // YouTube: haal metadata op via oEmbed (titel, auteur, thumbnail)
+    if (type === "youtube") {
+      fetch("https://www.youtube.com/oembed?url=" + encodeURIComponent(c) + "&format=json")
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (data) {
+            setItems(function(prev) { return prev.map(function(i) {
+              return i.id === item.id ? Object.assign({}, i, { title: data.title, author: data.author_name, thumbnail: data.thumbnail_url }) : i;
+            }); });
+            setPushCount(function(n) { return n + 1; });
+          }
+        }).catch(function() {});
+    }
     setItems(function(prev) { return [item].concat(prev); });
     setInp(""); setMemo("");
     setPushCount(function(n) { return n + 1; });
@@ -4366,11 +4379,20 @@ function DumpBar() {
                     <button onClick={function() { deleteItem(item.id); }} style={{ fontSize: 18, border: "none", background: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}>🗑️</button>
                   </div>
                 </div>
-                {item.content && (isUrl
+                {/* YouTube enriched card: thumbnail + titel + auteur */}
+                {item.type === "youtube" && (item.title || item.thumbnail) ? (
+                  <a href={item.content} target="_blank" rel="noopener noreferrer" style={{ display: "flex", gap: 12, textDecoration: "none", background: "#222238", borderRadius: 8, padding: 10, marginBottom: 6 }}>
+                    {item.thumbnail && <img src={item.thumbnail} alt="" style={{ width: 120, height: 68, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 13, lineHeight: 1.3, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.title}</div>
+                      {item.author && <div style={{ fontSize: 11, color: "#9ca3af" }}>{item.author}</div>}
+                    </div>
+                  </a>
+                ) : item.content && (isUrl
                   ? <a href={item.content} target="_blank" rel="noopener noreferrer" style={{ color: c, fontSize: 14, wordBreak: "break-all", textDecoration: "none", lineHeight: 1.4 }}>{item.content}</a>
                   : <div style={{ color: "#d1d5db", fontSize: 14, lineHeight: 1.4 }}>{item.content}</div>
                 )}
-                {item.memo && <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, padding: "8px 10px", background: "#0a0a0f", borderRadius: 6, lineHeight: 1.4 }}>{item.memo}</div>}
+                {item.memo && <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, padding: "8px 10px", background: "#151520", borderRadius: 6, lineHeight: 1.4 }}>{item.memo}</div>}
                 {item.analysis && <div style={{ fontSize: 13, color: "#22c55e", marginTop: 8, padding: "8px 10px", background: "#052e1644", borderRadius: 6, borderLeft: "3px solid #22c55e44", lineHeight: 1.5 }}>{item.analysis}</div>}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
                   <div style={{ fontSize: 12, color: "#4b5563" }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
