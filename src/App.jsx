@@ -5003,6 +5003,9 @@ function AllToolsPanel({ isPhone }) {
     touchMin: isPhone ? 44 : 28,
     gap: isPhone ? 8 : 6,
     gridMin: isPhone ? 160 : 200,
+    bgCard: isPhone ? "#161625" : "#0a0a1a",
+    bgCardInner: isPhone ? "#1c1c28" : "#111118",
+    bgInput: isPhone ? "#1c1c2a" : "#111",
   };
 
   var categories = [
@@ -5053,7 +5056,7 @@ function AllToolsPanel({ isPhone }) {
             padding: f.btnPad,
             borderRadius: 8,
             border: "1px solid " + (active ? btn.color + "66" : "#1f2937"),
-            background: active ? btn.color + "22" : "#111",
+            background: active ? btn.color + "22" : f.bgInput,
             color: active ? btn.color : "#6b7280",
             fontSize: f.small,
             fontWeight: 600,
@@ -5066,7 +5069,7 @@ function AllToolsPanel({ isPhone }) {
       {/* Category sections */}
       {filtered.map(function(cat) {
         var isOpen = expanded[cat.id];
-        return <div key={cat.id} style={{ background: "#0a0a1a", border: "1px solid " + cat.color + "33", borderRadius: 12, overflow: "hidden" }}>
+        return <div key={cat.id} style={{ background: f.bgCard, border: "1px solid " + cat.color + "33", borderRadius: 12, overflow: "hidden" }}>
           {/* Section header - clickable */}
           <div onClick={function() { toggle(cat.id); }} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -5087,7 +5090,7 @@ function AllToolsPanel({ isPhone }) {
             {cat.items.map(function(tool) {
               var st = statusColors[tool.status] || statusColors["not-installed"];
               return <div key={tool.id} style={{
-                background: "#111118", border: "1px solid #1f2937", borderRadius: 10,
+                background: f.bgCardInner, border: "1px solid #1f2937", borderRadius: 10,
                 padding: f.cardPad, display: "flex", flexDirection: "column", gap: 4,
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -5238,6 +5241,11 @@ export default function ControlCenter() {
     gap: isPhone ? 8 : 4,
     cardPad: isPhone ? 14 : 10,
     statusFont: isPhone ? 13 : 11,
+    bgBody: isPhone ? "#1a1a2e" : "#0f0f18",
+    bgCard: isPhone ? "#161625" : "#0a0a1a",
+    bgInput: isPhone ? "#1c1c2a" : "#111",
+    bgCardInner: isPhone ? "#1c1c28" : "#111118",
+    bgFooter: isPhone ? "#1a1a25" : "#0f0f0f",
   };
 
   // Log page load
@@ -5286,7 +5294,7 @@ export default function ControlCenter() {
   ];
 
   return (
-    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0f0f18", color: "#e5e5e5", minHeight: "100vh", padding: S.containerPad }}>
+    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: S.bgBody, color: "#e5e5e5", minHeight: "100vh", padding: S.containerPad }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
@@ -5396,7 +5404,7 @@ export default function ControlCenter() {
             padding: S.tabPad,
             borderRadius: 8,
             border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
-            background: tab === t.id ? t.color + "22" : "#111",
+            background: tab === t.id ? t.color + "22" : S.bgInput,
             color: tab === t.id ? t.color : "#6b7280",
             fontSize: S.tabFont,
             fontWeight: 600,
@@ -5440,7 +5448,7 @@ export default function ControlCenter() {
       {tab === "alltools" && <AllToolsPanel isPhone={isPhone} />}
 
       {/* Footer */}
-      <div style={{ marginTop: 16, padding: S.containerPad, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
+      <div style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
         <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.19.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
