@@ -5018,206 +5018,322 @@ var TOOLS_DATA = {
 
 
 // ==================== GDPR ARTES TAB ====================
-// v4.22.0 - Complete EU Digital Omnibus + Data Act info van Artes.law
+// v4.23.0 - Live GDPR Command Center met GitHub data sync
 function GDPRArtes() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [activeSection, setActiveSection] = React.useState("overview");
+  const [updatesLog, setUpdatesLog] = React.useState([]);
+
+  // Fetch live data van GitHub
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dashboardRes, updatesRes] = await Promise.all([
+          fetch("https://raw.githubusercontent.com/DS2036/GDPR-COMPLIANCE-MODULE/main/data/dashboard-data.json"),
+          fetch("https://raw.githubusercontent.com/DS2036/GDPR-COMPLIANCE-MODULE/main/data/updates-log.json")
+        ]);
+        
+        if (dashboardRes.ok) {
+          const dashboardData = await dashboardRes.json();
+          setData(dashboardData);
+        }
+        if (updatesRes.ok) {
+          const updates = await updatesRes.json();
+          setUpdatesLog(updates.updates || []);
+        }
+        setLoading(false);
+      } catch (err) {
+        setError("Kon data niet laden");
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const sections = [
+    { id: "overview", label: "Overzicht", color: "#3b82f6" },
+    { id: "updates", label: "Updates Log", color: "#22c55e" },
+    { id: "regulations", label: "Regelgeving", color: "#f59e0b" },
+    { id: "actions", label: "Acties", color: "#ef4444" },
+  ];
+
+  const statusColors = {
+    "VERPLICHT": "#ef4444", "NIEUW": "#3b82f6", "GEWIJZIGD": "#f59e0b",
+    "VERDUIDELIJKT": "#8b5cf6", "VERSOEPELD": "#22c55e", "UITGEBREID": "#06b6d4",
+    "BEPERKT": "#a855f7", "STRENGER": "#f59e0b", "VERPLAATST": "#14b8a6"
+  };
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>Loading GDPR data from GitHub...</div>;
+
   return (
-    <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
+    <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
       
-      {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #1e1e34 100%)", borderRadius: 12, padding: 24, marginBottom: 24, border: "2px solid #3b82f6" }}>
-        <h2 style={{ margin: 0, color: "#60a5fa", fontSize: 22 }}>EU Digital Omnibus Voorstel</h2>
-        <p style={{ margin: "6px 0 0 0", color: "#f59e0b", fontSize: 13, fontWeight: 600 }}>Gepubliceerd: 19 november 2024 - Bron: Artes.law</p>
-        <p style={{ margin: "12px 0 0 0", color: "#d1d5db", fontSize: 12, lineHeight: 1.6 }}>
-          Europa beseft dat de veelheid aan regulering belemmerend werkt voor ondernemingen. Men wil de lasten vereenvoudigen door wetgeving te versoepelen, verduidelijken en coherent te maken. Regels mogen innovatie niet belemmeren.
-        </p>
-        <p style={{ margin: "10px 0 0 0", color: "#22c55e", fontSize: 12, fontWeight: 600 }}>
-          5 wetten worden samengevoegd tot 2 teksten: de Data Act en de GDPR
-        </p>
-        <p style={{ margin: "4px 0 0 0", color: "#9ca3af", fontSize: 11 }}>
-          Verdwijnen wegens overlap: Free Flow of Non-Personal Data Act, Data Governance Act, Platform to Business Regulation
-        </p>
-      </div>
-
-      {/* GDPR WIJZIGINGEN */}
-      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #f59e0b" }}>
-        <h3 style={{ margin: "0 0 16px 0", color: "#f59e0b", fontSize: 16, borderBottom: "2px solid #f59e0b", paddingBottom: 8 }}>GDPR Wijzigingen</h3>
-        
-        <div style={{ marginBottom: 16, padding: 12, background: "#ef444411", borderRadius: 8, borderLeft: "4px solid #ef4444" }}>
-          <div style={{ color: "#ef4444", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>1. Consent Fatigue - Browser Privacy Signal</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Men erkent dat er consent fatigue bestaat bij consumenten die constant cookiebanners moeten wegklikken. De oplossing: een technische browser-instelling (GPC/DNT) waarmee websitehouders rekening MOETEN houden.
+      {/* Command Header */}
+      <div style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)", borderRadius: 12, padding: 20, marginBottom: 16, border: "2px solid #3b82f6" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <h2 style={{ margin: 0, color: "#60a5fa", fontSize: 20 }}>GDPR Compliance Command Center</h2>
+            <p style={{ margin: "4px 0 0 0", color: "#9ca3af", fontSize: 11 }}>Live data van GitHub - Artes.law monitoring - Website control</p>
           </div>
-          <div style={{ marginTop: 8 }}><span style={{ background: "#ef4444", color: "white", padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>VERPLICHT - NU IMPLEMENTEREN</span></div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#f59e0b11", borderRadius: 8, borderLeft: "4px solid #f59e0b" }}>
-          <div style={{ color: "#f59e0b", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>2. Datalek Meldingen</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Datalekken aan de GBA moeten alleen gemeld worden als ze waarschijnlijk een HOOG RISICO inhouden voor datasubjecten (zelfde drempel als melding aan betrokkenen zelf). De termijn wordt opgetrokken van 72 naar 96 uur.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#3b82f611", borderRadius: 8, borderLeft: "4px solid #3b82f6" }}>
-          <div style={{ color: "#3b82f6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>3. Artikel 88a en 88b AVG (NIEUW)</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Bescherming van eindapparatuur van datasubjecten. De bepalingen uit de e-Privacy Richtlijn worden overgeheveld naar de AVG. Toegang tot en gebruik van gegevens op gsm en PC blijven onderworpen aan toestemming, maar de wettelijke bepalingen verhuizen naar de AVG voor coherentie.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#8b5cf611", borderRadius: 8, borderLeft: "4px solid #8b5cf6" }}>
-          <div style={{ color: "#8b5cf6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>4. Notie Persoonsgegevens Verduidelijkt</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Verduidelijking wat verstaan wordt onder een identificeerbaar data subject. Indien een entiteit dit niet redelijkerwijs kan (rekening houdend met beschikbare tools), vallen de data BUITEN het toepassingsgebied van de AVG. Minder verwerkingen onder AVG, maar meer interpretatiegeschillen verwacht.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#22c55e11", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
-          <div style={{ color: "#22c55e", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>5. Wetenschappelijk Onderzoek</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Persoonsgegevens voor wetenschappelijk onderzoek makkelijker te verwerken. Afweging tussen privacy en wetenschappelijke vrijheid. Verwerking veelal op basis van gerechtvaardigd belang mogelijk.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#06b6d411", borderRadius: 8, borderLeft: "4px solid #06b6d4" }}>
-          <div style={{ color: "#06b6d4", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>6. Artikel 9.2 AVG Uitgebreid (Bijzondere Gegevens)</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Uitzonderingen worden uitgebreid: gezondheidsgegevens verwerken op basis van gerechtvaardigd belang wordt toegestaan mits bepaalde waarborgen. AI systemen werken op data - verwerking mag innovatie niet belemmeren.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#ec489911", borderRadius: 8, borderLeft: "4px solid #ec4899" }}>
-          <div style={{ color: "#ec4899", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>7. DPIA Lijsten van EDPB</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Er komt een lijst van de EDPB die duidelijk maakt welke hoog risico-verwerkingen aan een DPIA onderworpen moeten worden en volgens welk stramien. Ook een lijst welke verwerkingen GEEN hoog risico zijn. Meer rechtszekerheid.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#a855f711", borderRadius: 8, borderLeft: "4px solid #a855f7" }}>
-          <div style={{ color: "#a855f7", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>8. Inzagerecht Artikel 15 AVG Beperkt</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Misbruik van inzagerecht wordt moeilijker gemaakt. Verzoeken voor andere doeleinden dan controle op verwerkingen (chantage, buitensporige verzoeken) worden aan banden gelegd.
-          </div>
-        </div>
-
-        <div style={{ padding: 12, background: "#14b8a611", borderRadius: 8, borderLeft: "4px solid #14b8a6" }}>
-          <div style={{ color: "#14b8a6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>9. Transparantieplicht Artikel 13 AVG Versoepeld</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Wat een datasubject al weet, of redelijkerwijs weet gelet op de band tussen verwerkingsverantwoordelijke en datasubject, daarover hoeft men niet meer te informeren.
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {data?.lastCheck && (
+              <span style={{ background: "#22c55e22", color: "#22c55e", padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600 }}>
+                Laatste check: {data.lastCheck.date} {data.lastCheck.time}
+              </span>
+            )}
+            {data?.nextCheck && (
+              <span style={{ background: "#3b82f622", color: "#60a5fa", padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600 }}>
+                Volgende: {data.nextCheck}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* DATA ACT */}
-      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #22c55e" }}>
-        <h3 style={{ margin: "0 0 16px 0", color: "#22c55e", fontSize: 16, borderBottom: "2px solid #22c55e", paddingBottom: 8 }}>Data Act Wijzigingen</h3>
-        
-        <div style={{ marginBottom: 16, padding: 12, background: "#22c55e11", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
-          <div style={{ color: "#22c55e", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>1. Bedrijfsgeheimen Beter Beschermd</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Nieuwe weigeringsgrond: houders van data hoeven geheimen niet meer te delen als er risico bestaat op onrechtvaardige verkrijging. Delen met derde landen zonder gelijkaardige waarborgen wordt ingeperkt.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#3b82f611", borderRadius: 8, borderLeft: "4px solid #3b82f6" }}>
-          <div style={{ color: "#3b82f6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>2. Data Delen Bedrijven-Overheden</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Alleen noodzakelijk bij publieke noodzaak (voorheen al bij exceptionele nood). Strengere voorwaarden.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#f59e0b11", borderRadius: 8, borderLeft: "4px solid #f59e0b" }}>
-          <div style={{ color: "#f59e0b", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>3. Artikel 23 - Overstappen Cloudproviders</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Wegnemen obstakels voor effectief overstappen tussen dataverwerkingsdiensten (cloudproviders). Klanten kunnen eenvoudig wisselen zonder belemmeringen. Afspraken over data-export, functionaliteit en opzegging verplicht.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#8b5cf611", borderRadius: 8, borderLeft: "4px solid #8b5cf6" }}>
-          <div style={{ color: "#8b5cf6", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>4. Artikel 31 + 31a - Maatwerk Cloudoplossingen</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Lichter regime voor maatwerk cloud afgestemd op individuele klant (niet commercieel op grote schaal). Bepaalde verplichtingen gelden niet, wel informatieplicht. Artikel 31a: andere regels voor contracten gesloten voor inwerkingtreding Data Act (12/9/25). Kleine aanbieders (geen gatekeepers) mogen boetebedingen opnemen voor vroegtijdige beeindiging.
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 16, padding: 12, background: "#06b6d411", borderRadius: 8, borderLeft: "4px solid #06b6d4" }}>
-          <div style={{ color: "#06b6d4", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>5. Free Flow Non-Personal Data naar Hoofdstuk VIIb</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Ondernemingen en overheden kunnen data vrij opslaan, verwerken en verplaatsen binnen EER. Geen verplichte data-opslaglocatie door lidstaten. Vrij verkeer van niet-persoonsgebonden data (big data, IoT-data) binnen EU. Overheden behouden toegang voor controle. Portabiliteit tussen clouddiensten.
-          </div>
-        </div>
-
-        <div style={{ padding: 12, background: "#ec489911", borderRadius: 8, borderLeft: "4px solid #ec4899" }}>
-          <div style={{ color: "#ec4899", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>6. European Data Innovation Board</div>
-          <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-            Adviseert Europese Commissie over consistente handhaving Data Act. Coordinerende rol voor beleid inzake data-economie.
-          </div>
-        </div>
+      {/* Section Tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {sections.map(s => (
+          <button key={s.id} onClick={() => setActiveSection(s.id)} style={{
+            padding: "8px 16px", borderRadius: 8, border: "1px solid " + (activeSection === s.id ? s.color : "#374151"),
+            background: activeSection === s.id ? s.color + "22" : "#1a1a2e",
+            color: activeSection === s.id ? s.color : "#9ca3af",
+            fontSize: 12, fontWeight: 600, cursor: "pointer"
+          }}>{s.label}</button>
+        ))}
       </div>
 
-      {/* AI ACT */}
-      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #a855f7" }}>
-        <h3 style={{ margin: "0 0 10px 0", color: "#a855f7", fontSize: 16 }}>AI Act</h3>
-        <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.7 }}>
-          De AI Act wordt herzien voor dezelfde doeleinden (vereenvoudiging, coherentie), maar de wijzigingen zijn het voorwerp van een apart voorstel.
-        </div>
-      </div>
+      {/* OVERVIEW */}
+      {activeSection === "overview" && (
+        <div>
+          {/* Quick Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 16 }}>
+            <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #22c55e", textAlign: "center" }}>
+              <div style={{ color: "#22c55e", fontSize: 28, fontWeight: 700 }}>{data?.projects?.filter(p => p.gpc).length || 0}/{data?.projects?.length || 0}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10 }}>GPC Compliant</div>
+            </div>
+            <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #3b82f6", textAlign: "center" }}>
+              <div style={{ color: "#3b82f6", fontSize: 28, fontWeight: 700 }}>96u</div>
+              <div style={{ color: "#9ca3af", fontSize: 10 }}>Datalek Termijn</div>
+            </div>
+            <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #f59e0b", textAlign: "center" }}>
+              <div style={{ color: "#f59e0b", fontSize: 28, fontWeight: 700 }}>{data?.sources?.filter(s => s.status === "ok").length || 0}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10 }}>Bronnen OK</div>
+            </div>
+            <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #a855f7", textAlign: "center" }}>
+              <div style={{ color: "#a855f7", fontSize: 28, fontWeight: 700 }}>{updatesLog.length}</div>
+              <div style={{ color: "#9ca3af", fontSize: 10 }}>Updates Logged</div>
+            </div>
+          </div>
 
-      {/* PROJECT STATUS */}
-      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #06b6d4" }}>
-        <h3 style={{ margin: "0 0 16px 0", color: "#06b6d4", fontSize: 16 }}>Project Compliance Status</h3>
-        
-        <div style={{ marginBottom: 12, background: "#111827", borderRadius: 8, padding: 14 }}>
-          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>BlackFuel Whiskey</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy OK</span>
+          {/* Sources Status */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, marginBottom: 16, border: "1px solid #374151" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#60a5fa", fontSize: 14 }}>Monitoring Bronnen Status</h3>
+            {data?.sources?.map((s, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 10, background: "#111827", borderRadius: 8, marginBottom: 8 }}>
+                <div>
+                  <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>{s.name}</a>
+                  <div style={{ color: "#6b7280", fontSize: 10, marginTop: 2 }}>Gevonden: {s.foundTerms || "geen"}</div>
+                </div>
+                <span style={{ background: s.status === "ok" ? "#22c55e22" : "#ef444422", color: s.status === "ok" ? "#22c55e" : "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 10 }}>
+                  {s.status === "ok" ? "✓ Online" : "✗ Offline"}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Projects Status */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, marginBottom: 16, border: "1px solid #374151" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: 14 }}>Website Compliance Status</h3>
+            {data?.projects?.map((p, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, background: "#111827", borderRadius: 8, marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                <div>
+                  <div style={{ color: "#e5e5e5", fontWeight: 600, fontSize: 13 }}>{p.name}</div>
+                  {p.repo && <a href={"https://github.com/" + p.repo} target="_blank" rel="noopener noreferrer" style={{ color: "#6b7280", fontSize: 10 }}>github.com/{p.repo}</a>}
+                  <div style={{ color: "#6b7280", fontSize: 9 }}>Laatste check: {p.lastCheck}</div>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <span style={{ background: p.gpc ? "#22c55e22" : "#ef444422", color: p.gpc ? "#22c55e" : "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 10 }}>GPC {p.gpc ? "OK" : "!"}</span>
+                  <span style={{ background: p.consent ? "#22c55e22" : "#ef444422", color: p.consent ? "#22c55e" : "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 10 }}>Consent {p.consent ? "OK" : "!"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Script Paths */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#f59e0b", fontSize: 14 }}>Monitoring Scripts</h3>
+            <div style={{ display: "grid", gap: 8 }}>
+              <div style={{ background: "#111827", borderRadius: 6, padding: 10 }}>
+                <div style={{ color: "#22c55e", fontSize: 11, fontWeight: 600 }}>Main Script</div>
+                <code style={{ color: "#9ca3af", fontSize: 10 }}>{data?.monitoringConfig?.scriptPath}</code>
+              </div>
+              <div style={{ background: "#111827", borderRadius: 6, padding: 10 }}>
+                <div style={{ color: "#3b82f6", fontSize: 11, fontWeight: 600 }}>Reports</div>
+                <code style={{ color: "#9ca3af", fontSize: 10 }}>{data?.monitoringConfig?.reportsPath}</code>
+              </div>
+              <div style={{ background: "#111827", borderRadius: 6, padding: 10 }}>
+                <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 600 }}>Schedule</div>
+                <code style={{ color: "#9ca3af", fontSize: 10 }}>{data?.monitoringConfig?.schedule} ({data?.monitoringConfig?.launchAgent})</code>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        <div style={{ marginBottom: 12, background: "#111827", borderRadius: 8, padding: 14 }}>
-          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>IDGS Constructions</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy OK</span>
+      {/* UPDATES LOG */}
+      {activeSection === "updates" && (
+        <div>
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, marginBottom: 16, border: "1px solid #22c55e" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#22c55e", fontSize: 14 }}>Wekelijkse Updates Log</h3>
+            <p style={{ color: "#6b7280", fontSize: 10, marginBottom: 12 }}>Automatisch bijgewerkt elke maandag 09:00 - Data van GitHub</p>
+            
+            {updatesLog.length === 0 ? (
+              <div style={{ color: "#6b7280", fontSize: 12, padding: 20, textAlign: "center" }}>Nog geen updates gelogd</div>
+            ) : (
+              updatesLog.map((u, i) => (
+                <div key={i} style={{ marginBottom: 12, padding: 14, background: "#111827", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                    <div>
+                      <span style={{ color: "#e5e5e5", fontWeight: 600, fontSize: 12 }}>{u.date}</span>
+                      <span style={{ color: "#6b7280", fontSize: 10, marginLeft: 8 }}>{u.time} - {u.source}</span>
+                    </div>
+                    <span style={{ background: "#22c55e22", color: "#22c55e", padding: "2px 8px", borderRadius: 4, fontSize: 9 }}>{u.status}</span>
+                  </div>
+                  <div style={{ color: "#d1d5db", fontSize: 11, marginBottom: 6 }}>{u.summary}</div>
+                  {u.sources_checked && (
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {u.sources_checked.map((s, j) => (
+                        <span key={j} style={{ background: "#374151", color: "#9ca3af", padding: "2px 6px", borderRadius: 3, fontSize: 9 }}>{s}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* GitHub Links */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#60a5fa", fontSize: 14 }}>Data Bronnen (GitHub)</h3>
+            <a href="https://github.com/DS2036/GDPR-COMPLIANCE-MODULE" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 8, textDecoration: "none", marginBottom: 8 }}>
+              <div style={{ color: "#60a5fa", fontSize: 12, fontWeight: 600 }}>GDPR-COMPLIANCE-MODULE Repository</div>
+              <div style={{ color: "#6b7280", fontSize: 10 }}>Scripts, reports en dashboard data</div>
+            </a>
+            <a href="https://raw.githubusercontent.com/DS2036/GDPR-COMPLIANCE-MODULE/main/data/dashboard-data.json" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 8, textDecoration: "none", marginBottom: 8 }}>
+              <div style={{ color: "#22c55e", fontSize: 12, fontWeight: 600 }}>dashboard-data.json</div>
+              <div style={{ color: "#6b7280", fontSize: 10 }}>Live compliance data</div>
+            </a>
+            <a href="https://raw.githubusercontent.com/DS2036/GDPR-COMPLIANCE-MODULE/main/data/updates-log.json" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 8, textDecoration: "none" }}>
+              <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 600 }}>updates-log.json</div>
+              <div style={{ color: "#6b7280", fontSize: 10 }}>Historische updates</div>
+            </a>
           </div>
         </div>
+      )}
 
-        <div style={{ background: "#111827", borderRadius: 8, padding: 14 }}>
-          <div style={{ color: "#e5e5e5", fontWeight: 600, marginBottom: 8, fontSize: 14 }}>Econation</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>GPC OK</span>
-            <span style={{ background: "#22c55e22", color: "#22c55e", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Consent OK</span>
-            <span style={{ background: "#f59e0b22", color: "#f59e0b", padding: "3px 8px", borderRadius: 4, fontSize: 11 }}>Privacy !</span>
+      {/* REGULATIONS */}
+      {activeSection === "regulations" && (
+        <div>
+          {/* GDPR */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, marginBottom: 16, border: "1px solid #f59e0b" }}>
+            <h3 style={{ margin: "0 0 14px 0", color: "#f59e0b", fontSize: 14 }}>GDPR Wijzigingen (EU Digital Omnibus)</h3>
+            {data?.regulations?.gdpr?.map((r, i) => (
+              <div key={i} style={{ marginBottom: 10, padding: 12, background: (statusColors[r.status] || "#374151") + "11", borderRadius: 8, borderLeft: "4px solid " + (statusColors[r.status] || "#374151") }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <div style={{ color: statusColors[r.status] || "#e5e5e5", fontSize: 12, fontWeight: 600 }}>{r.title}</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <span style={{ background: (statusColors[r.status] || "#374151") + "33", color: statusColors[r.status] || "#e5e5e5", padding: "2px 8px", borderRadius: 4, fontSize: 9 }}>{r.status}</span>
+                    {r.deadline && <span style={{ background: "#37415133", color: "#9ca3af", padding: "2px 8px", borderRadius: 4, fontSize: 9 }}>{r.deadline}</span>}
+                    {r.implemented !== undefined && (
+                      <span style={{ background: r.implemented ? "#22c55e22" : "#6b728022", color: r.implemented ? "#22c55e" : "#6b7280", padding: "2px 8px", borderRadius: 4, fontSize: 9 }}>
+                        {r.implemented ? "Geimplementeerd" : "Todo"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Data Act */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #22c55e" }}>
+            <h3 style={{ margin: "0 0 14px 0", color: "#22c55e", fontSize: 14 }}>Data Act Wijzigingen</h3>
+            {data?.regulations?.dataAct?.map((r, i) => (
+              <div key={i} style={{ marginBottom: 10, padding: 12, background: (statusColors[r.status] || "#374151") + "11", borderRadius: 8, borderLeft: "4px solid " + (statusColors[r.status] || "#374151") }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <div style={{ color: statusColors[r.status] || "#e5e5e5", fontSize: 12, fontWeight: 600 }}>{r.title}</div>
+                  <span style={{ background: (statusColors[r.status] || "#374151") + "33", color: statusColors[r.status] || "#e5e5e5", padding: "2px 8px", borderRadius: 4, fontSize: 9 }}>{r.status}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* MONITORING */}
-      <div style={{ background: "#1a1a2e", borderRadius: 12, padding: 20, border: "1px solid #374151" }}>
-        <h3 style={{ margin: "0 0 12px 0", color: "#60a5fa", fontSize: 16 }}>Monitoring Bronnen</h3>
-        
-        <div style={{ marginBottom: 10 }}>
-          <a href="https://artes.law" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none", marginBottom: 8 }}>
-            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>Artes.law</div>
-            <div style={{ color: "#9ca3af", fontSize: 11 }}>Belgische juridische updates</div>
-          </a>
-          <a href="https://edpb.europa.eu" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none", marginBottom: 8 }}>
-            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>EDPB</div>
-            <div style={{ color: "#9ca3af", fontSize: 11 }}>EU richtsnoeren</div>
-          </a>
-          <a href="https://gegevensbeschermingsautoriteit.be" target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: 12, background: "#111827", borderRadius: 6, textDecoration: "none" }}>
-            <div style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600 }}>GBA Belgie</div>
-            <div style={{ color: "#9ca3af", fontSize: 11 }}>Lokale autoriteit</div>
-          </a>
-        </div>
+      {/* ACTIONS */}
+      {activeSection === "actions" && (
+        <div>
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, marginBottom: 16, border: "1px solid #ef4444" }}>
+            <h3 style={{ margin: "0 0 14px 0", color: "#ef4444", fontSize: 14 }}>Snelle Acties</h3>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Monitoring Script Handmatig Uitvoeren</div>
+              <div style={{ background: "#111827", borderRadius: 8, padding: 12 }}>
+                <code style={{ color: "#22c55e", fontSize: 11 }}>~/Projects/GDPR-COMPLIANCE-MODULE/gdpr-monitor.sh</code>
+                <p style={{ color: "#6b7280", fontSize: 10, margin: "8px 0 0 0" }}>Voert compliance check uit, update JSON data, pusht naar GitHub</p>
+              </div>
+            </div>
 
-        <div style={{ marginTop: 16, padding: 12, background: "#22c55e11", borderRadius: 8, border: "1px solid #22c55e33" }}>
-          <div style={{ color: "#22c55e", fontSize: 12, fontWeight: 600 }}>Automatische monitoring: Elke maandag 09:00</div>
-          <div style={{ color: "#6b7280", fontSize: 11, marginTop: 4 }}>Locatie: ~/Projects/GDPR-COMPLIANCE-MODULE/</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Website GPC Code Updaten</div>
+              <div style={{ background: "#111827", borderRadius: 8, padding: 12 }}>
+                <div style={{ color: "#9ca3af", fontSize: 10, marginBottom: 8 }}>Voeg dit toe aan CookieConsent component:</div>
+                <pre style={{ color: "#60a5fa", fontSize: 10, margin: 0, whiteSpace: "pre-wrap" }}>{`function checkBrowserPrivacySignal() {
+  if (navigator.globalPrivacyControl === true) return 'opt-out';
+  if (navigator.doNotTrack === '1') return 'opt-out';
+  return 'ask-consent';
+}`}</pre>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Bij Datalek (96u termijn)</div>
+              <div style={{ background: "#ef444422", borderRadius: 8, padding: 12, border: "1px solid #ef444466" }}>
+                <ol style={{ color: "#d1d5db", fontSize: 11, margin: 0, paddingLeft: 16, lineHeight: 1.8 }}>
+                  <li>Documenteer het lek (wat, wanneer, hoeveel betrokkenen)</li>
+                  <li>Beoordeel risico voor betrokkenen</li>
+                  <li>Bij HOOG risico: meld binnen 96u aan GBA</li>
+                  <li>Bij HOOG risico: informeer ook betrokkenen</li>
+                  <li>Log alles in incident register</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Links to Websites */}
+          <div style={{ background: "#1a1a2e", borderRadius: 10, padding: 16, border: "1px solid #374151" }}>
+            <h3 style={{ margin: "0 0 12px 0", color: "#60a5fa", fontSize: 14 }}>Website Repositories</h3>
+            {[
+              { name: "BlackFuel Whiskey", repo: "DS2036/BlackFuelWhiskey" },
+              { name: "IDGS Constructions", repo: "DS2036/IDGS-Constructions" },
+              { name: "Econation", repo: null, note: "Nog geen GitHub repo" },
+            ].map((p, i) => (
+              <div key={i} style={{ padding: 12, background: "#111827", borderRadius: 8, marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#e5e5e5", fontSize: 12, fontWeight: 600 }}>{p.name}</span>
+                  {p.repo ? (
+                    <a href={"https://github.com/" + p.repo} target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa", fontSize: 10 }}>Open GitHub</a>
+                  ) : (
+                    <span style={{ color: "#f59e0b", fontSize: 10 }}>{p.note}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
