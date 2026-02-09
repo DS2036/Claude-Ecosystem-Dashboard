@@ -65,8 +65,8 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.18.0
-// Complete Dashboard: 20 tabs voor volledig ecosysteem beheer
+// CLAUDE CONTROL CENTER v4.19.0
+// Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
 // LOCATION: /Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/
@@ -105,6 +105,7 @@ const api = {
 // v4.16.0 - Issues filter fix: alle knoppen werken, OK klikbaar, collectAllItems, visuele feedback
 // v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
+// v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -440,7 +441,7 @@ function TreeNode({ node, depth = 0, searchTerm }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.9 COMPONENT: AI ADVISOR - Persistent Q&A log + Delete + Navigation links
 // ═══════════════════════════════════════════════════════════════════════════════
-function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevice }) {
+function AIAdvisor({ issues, compact = false, onExpand, onNavigate, currentDevice, isPhone }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [question, setQuestion] = useState("");
@@ -925,7 +926,7 @@ Antwoord in het Nederlands. Wees kort maar actionable. Bij vervolgvragen, bouw v
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: MEMORY CENTER
 // ═══════════════════════════════════════════════════════════════════════════════
-function MemoryCenter() {
+function MemoryCenter({ isPhone }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [stats, setStats] = useState(null);
@@ -1177,7 +1178,7 @@ function SessionsArchive() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: GIT & DEPLOY CENTER
 // ═══════════════════════════════════════════════════════════════════════════════
-function GitDeployCenter() {
+function GitDeployCenter({ isPhone }) {
   const [repos] = useState([
     { name: "Claude-Ecosystem-Dashboard", status: "clean", branch: "main", lastPush: "now", cloudflare: "claude-ecosystem-dashboard.pages.dev" },
     { name: "Claude-Code-Mac-Sync", status: "clean", branch: "main", lastPush: "1 day ago", cloudflare: null },
@@ -1222,7 +1223,7 @@ function GitDeployCenter() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: VERSION SNAPSHOTS
 // ═══════════════════════════════════════════════════════════════════════════════
-function VersionSnapshots() {
+function VersionSnapshots({ isPhone }) {
   const [snapshots, setSnapshots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newSnapshot, setNewSnapshot] = useState({ name: "", project: "Claude-Ecosystem-Dashboard" });
@@ -1296,7 +1297,7 @@ function VersionSnapshots() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: ACTIVITY LOG
 // ═══════════════════════════════════════════════════════════════════════════════
-function ActivityLog() {
+function ActivityLog({ isPhone }) {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -1355,7 +1356,7 @@ function ActivityLog() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V2 TAB: STAGING & VARIANTS
 // ═══════════════════════════════════════════════════════════════════════════════
-function StagingVariants() {
+function StagingVariants({ isPhone }) {
   const [projects] = useState([
     { name: "Claude-Ecosystem-Dashboard", production: "claude-ecosystem-dashboard.pages.dev", staging: "claude-ecosystem-staging.pages.dev", variants: [] },
     { name: "Econation", production: "econation.be", staging: "econation-b-dev.franky-f29.workers.dev", variants: [] },
@@ -1416,7 +1417,7 @@ function StagingVariants() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: CROSS-DEVICE SYNC STATUS
 // ═══════════════════════════════════════════════════════════════════════════════
-function CrossDeviceSync() {
+function CrossDeviceSync({ isPhone }) {
   const [devices] = useState([
     { id: "mba", name: "MacBook Air", type: "💻", lastSync: new Date(), memoryVersion: "2026-02-06T12:00:00", pendingUpdates: 0, isOnline: true, lastActivity: "SDK-HRM InfraNodus analyse" },
     { id: "mm4", name: "Mac Mini (MM4)", type: "🖥️", lastSync: new Date(Date.now() - 1000 * 60 * 60 * 2), memoryVersion: "2026-02-06T09:30:00", pendingUpdates: 3, isOnline: true, lastActivity: "SDK-HRM Training prep" },
@@ -1521,7 +1522,7 @@ function CrossDeviceSync() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: INFRANODUS DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
-function InfraNodusDashboard() {
+function InfraNodusDashboard({ isPhone }) {
   const [filter, setFilter] = useState("all");
   const graphs = [
     { name: "SDK-HRM-vision", type: "STANDARD", date: "6 Feb", cat: "core", tags: ["Leerkurve", "Per-contact"] },
@@ -1609,7 +1610,7 @@ function InfraNodusDashboard() {
 // V3.1 TAB: SYSTEM KNOWLEDGE BASE (Backup voor als claude-mem niet beschikbaar is)
 // Dit is de CENTRALE WAARHEID - onafhankelijk van externe memory systemen
 // ═══════════════════════════════════════════════════════════════════════════════
-function SystemKnowledgeBase() {
+function SystemKnowledgeBase({ isPhone }) {
   // KRITIEKE REGELS - NOOIT VERGETEN
   const kritiekRegels = [
     { id: "r1", regel: "Cloud Control Center LOCATIE", waarde: "/Users/franky13m3/Projects/Claude-Ecosystem-Dashboard/", type: "path", prioriteit: "critical" },
@@ -1925,7 +1926,7 @@ function SystemKnowledgeBase() {
 // V3.6 TAB: CLAUDE UPDATES - Dagelijkse updates over nieuwe features
 // Franky wil NIET 7000 video's kijken - Claude moet dit zelf bijhouden
 // ═══════════════════════════════════════════════════════════════════════════════
-function ClaudeUpdates() {
+function ClaudeUpdates({ isPhone }) {
   // Recente Claude/Anthropic updates (handmatig bijgehouden tot API beschikbaar)
   const [updates] = useState([
     { id: 1, date: "2026-02-06", type: "feature", title: "Claude Code CLI v2.1.32", description: "Nieuwe versie met verbeterde context handling", relevance: "high", implemented: true },
@@ -2050,7 +2051,7 @@ function ClaudeUpdates() {
 // Evolutie: ClawdBot → MoldBot → OpenClaw
 // Franky heeft 3 agents gebouwd maar afgebouwd - dit bereidt de infrastructuur voor
 // ═══════════════════════════════════════════════════════════════════════════════
-function OpenClaudeBot() {
+function OpenClaudeBot({ isPhone }) {
   // Agent configuraties (voorbereid, nog niet actief)
   const [agents] = useState([
     { id: "agent-1", name: "Telegram Commander", status: "planned", description: "Commands via Telegram terwijl Franky onderweg is", platform: "Telegram", mm4Required: true },
@@ -2178,7 +2179,7 @@ function OpenClaudeBot() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // V3.1 TAB: AGENT HIERARCHY (voor 10-100 agenten orchestratie)
 // ═══════════════════════════════════════════════════════════════════════════════
-function AgentHierarchy() {
+function AgentHierarchy({ isPhone }) {
   const [agents] = useState([
     { id: "orch-1", name: "Main Orchestrator", role: "orchestrator", status: "working", currentTask: "Coördineren SDK-HRM deployment", completedTasks: 47, successRate: 98.5 },
     { id: "spec-sdk", name: "SDK-HRM Specialist", role: "specialist", status: "working", currentTask: "Model transfer naar MM4", completedTasks: 23, successRate: 95.2 },
@@ -2278,7 +2279,7 @@ function AgentHierarchy() {
 // V4.1 TAB: SDK-HRM — Volledig overzicht Sapient-HRM project
 // Aparte tab met expandable/collapsible secties en volledige uitleg teksten
 // ═══════════════════════════════════════════════════════════════════════════════
-function SDKHRMHub() {
+function SDKHRMHub({ isPhone }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -2943,7 +2944,7 @@ function MiniChart({ data, width = 500, height = 180, color = "#ef4444", label =
   );
 }
 
-function TrainingBenchmarks() {
+function TrainingBenchmarks({ isPhone }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -3452,7 +3453,7 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-function RevenueIntelligence() {
+function RevenueIntelligence({ isPhone }) {
   const [expanded, setExpanded] = useState({});
   const [feed, setFeed] = useState(null);
   const [feedLoading, setFeedLoading] = useState(false);
@@ -4001,7 +4002,7 @@ function RevenueIntelligence() {
 // Concrete doelstellingen, use cases, en roadmap richting
 // Wat SDK-HRM doet voor eindgebruikers — georganiseerd per fase
 // ═══════════════════════════════════════════════════════════════════════════════
-function UseCases() {
+function UseCases({ isPhone }) {
   const [expanded, setExpanded] = useState({});
   const toggle = id => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
@@ -4182,7 +4183,8 @@ function UseCases() {
 // DUMP BAR — v4.18.0
 // Simpele inbox bovenaan: plak link/tekst + opmerking, klap open voor items
 // ═══════════════════════════════════════════════════════════════════════════════
-function DumpBar() {
+function DumpBar(props) {
+  var isPhone = props && props.isPhone;
   var items, setItems, inp, setInp, memo, setMemo, open, setOpen, syncing, setSyncing, lastSync, setLastSync;
   var _s1 = useState(function() { try { return JSON.parse(localStorage.getItem("ccc-dump-items") || "[]"); } catch(e) { return []; } });
   items = _s1[0]; setItems = _s1[1];
@@ -4375,7 +4377,7 @@ function DumpBar() {
 // Franky's crypto expertise: 10+ jaar ervaring, trading, DeFi, stablecoins
 // Nuanced classificatie: scam vs legitimate crypto activiteit
 // ═══════════════════════════════════════════════════════════════════════════════
-function CryptoIntelligence() {
+function CryptoIntelligence({ isPhone }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -4770,7 +4772,7 @@ function CryptoIntelligence() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ISSUES PANEL — Klikbare filters + opgelost/backlog functie
 // ═══════════════════════════════════════════════════════════════════════════════
-function IssuesPanel({ issues, allItems }) {
+function IssuesPanel({ issues, allItems, isPhone }) {
   const [filter, setFilter] = useState("all");
   const [resolved, setResolved] = useState(() => {
     try { return JSON.parse(localStorage.getItem("ccc-resolved-issues") || "[]"); } catch(e) { return []; }
@@ -4919,6 +4921,200 @@ function IssuesPanel({ issues, allItems }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ALL TOOLS PANEL — Overzicht van alle tools, plugins, MCP, skills
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var TOOLS_DATA = {
+  builtin: [
+    { id: "bash", name: "Bash", desc: "Terminal command uitvoering", icon: "🖥️", status: "installed" },
+    { id: "edit", name: "Edit", desc: "Bestanden bewerken", icon: "✏️", status: "installed" },
+    { id: "read", name: "Read", desc: "Bestanden lezen (tekst, afbeeldingen, PDF)", icon: "📖", status: "installed" },
+    { id: "write", name: "Write", desc: "Bestanden schrijven", icon: "📝", status: "installed" },
+    { id: "glob", name: "Glob", desc: "Bestanden zoeken op patroon", icon: "🔍", status: "installed" },
+    { id: "grep", name: "Grep", desc: "Zoeken in bestandsinhoud (ripgrep)", icon: "🔎", status: "installed" },
+    { id: "websearch", name: "WebSearch", desc: "Web zoeken met AI", icon: "🌐", status: "installed" },
+    { id: "webfetch", name: "WebFetch", desc: "URL ophalen en verwerken", icon: "📡", status: "installed" },
+    { id: "agent", name: "Agent", desc: "Sub-agent taken delegeren", icon: "🤖", status: "installed" },
+    { id: "todowrite", name: "TodoWrite", desc: "Takenlijst beheer", icon: "✅", status: "installed" },
+    { id: "listmcpresources", name: "ListMcpResources", desc: "MCP resources oplijsten", icon: "📋", status: "installed" },
+    { id: "readmcpresource", name: "ReadMcpResource", desc: "MCP resource uitlezen", icon: "📄", status: "installed" },
+    { id: "notebookedit", name: "NotebookEdit", desc: "Jupyter notebooks bewerken", icon: "📓", status: "installed" },
+    { id: "taskoutput", name: "TaskOutput", desc: "Achtergrondtaak output lezen", icon: "📊", status: "installed" },
+    { id: "askuser", name: "AskUserQuestion", desc: "Gebruiker een vraag stellen", icon: "❓", status: "installed" },
+  ],
+  plugins: [
+    { id: "claude-mem", name: "claude-mem", version: "v9.0.17", author: "thedotmack", desc: "Persistent memory met hooks, MCP server, 2 commands", icon: "🧠", status: "installed", url: "https://github.com/thedotmack/claude-mem", devices: ["MM4"] },
+  ],
+  mcpServers: [
+    { id: "claude-mem-mcp", name: "claude-mem:mcp-search", type: "stdio", desc: "Memory search via Chroma vector DB", icon: "🔍", status: "connected", tools: ["search", "timeline", "get_observations"], devices: ["MM4"] },
+    { id: "infranodus", name: "infranodus", type: "stdio (npx)", desc: "Knowledge graphs, text analysis, SEO, research", icon: "🕸️", status: "connected", tools: ["generate_knowledge_graph", "create_knowledge_graph", "search", "+20 meer"], devices: ["MM4"] },
+    { id: "screencast", name: "Screencast (Chrome)", type: "stdio", desc: "Browser automation, screenshots, DOM interactie", icon: "🖥️", status: "connected", tools: ["read_page", "find", "navigate", "computer", "+10 meer"], devices: ["MM4"] },
+  ],
+  skills: [
+    { id: "make-plan", name: "/make-plan", source: "claude-mem", desc: "Implementatieplan maken met subagents", icon: "📐", status: "installed", devices: ["MM4"] },
+    { id: "do", name: "/do", source: "claude-mem", desc: "Plan uitvoeren met subagent orchestratie", icon: "▶️", status: "installed", devices: ["MM4"] },
+    { id: "feature-dev", name: "/feature-dev", source: "marketplace", desc: "Feature development workflow", icon: "🛠️", status: "installed" },
+    { id: "code-review", name: "/code-review", source: "marketplace", desc: "Code review uitvoeren", icon: "👀", status: "installed" },
+    { id: "revise-claude-md", name: "/revise-claude-md", source: "marketplace", desc: "CLAUDE.md revisie", icon: "📄", status: "installed" },
+    { id: "create-plugin", name: "/create-plugin", source: "marketplace", desc: "Plugin aanmaken", icon: "🔌", status: "installed" },
+    { id: "review-pr", name: "/review-pr", source: "marketplace", desc: "Pull request reviewen", icon: "🔀", status: "installed" },
+    { id: "new-sdk-app", name: "/new-sdk-app", source: "marketplace", desc: "SDK app bootstrappen", icon: "📦", status: "installed" },
+    { id: "commit-push-pr", name: "/commit-push-pr", source: "marketplace", desc: "Commit, push, PR in 1 stap", icon: "🚀", status: "installed" },
+    { id: "ralph-loop", name: "/ralph-loop", source: "marketplace", desc: "Iterative development loop", icon: "🔄", status: "installed" },
+    { id: "analyze-video", name: "/analyze-video", source: "custom", desc: "Video analyse", icon: "🎬", status: "installed" },
+    { id: "smart-tools", name: "/smart-tools", source: "custom", desc: "Slimme tools beheer", icon: "🧰", status: "installed" },
+    { id: "wiggins-loop", name: "/wiggins-loop", source: "custom", desc: "Wiggins development loop", icon: "🔁", status: "installed" },
+    { id: "serena-herstel", name: "/serena-herstel", source: "custom", desc: "Serena herstel procedure", icon: "🔧", status: "error" },
+  ],
+  vercelSkills: [
+    { id: "react-best-practices", name: "React Best Practices", version: "v1.0.0", author: "Vercel Engineering", desc: "40+ React/Next.js optimalisatie regels (8 categorieeen, CRITICAL→LOW)", icon: "⚛️", status: "installed", url: "https://github.com/vercel-labs/agent-skills", devices: ["MM4"] },
+    { id: "web-design-guidelines", name: "Web Design Guidelines", version: "v1.0.0", author: "Vercel Engineering", desc: "100+ UI audit regels (accessibility, performance, UX)", icon: "🎨", status: "installed", url: "https://github.com/vercel-labs/agent-skills", devices: ["MM4"] },
+    { id: "composition-patterns", name: "Composition Patterns", version: "v1.0.0", author: "Vercel Engineering", desc: "Scalable React component architectuur, anti-prop drilling", icon: "🧩", status: "installed", url: "https://github.com/vercel-labs/agent-skills", devices: ["MM4"] },
+    { id: "react-native-skills", name: "React Native Guidelines", version: "v1.0.0", author: "Vercel Engineering", desc: "16 regels voor React Native/Expo mobile apps", icon: "📱", status: "installed", url: "https://github.com/vercel-labs/agent-skills", devices: ["MM4"] },
+  ],
+  marketplaces: [
+    { id: "official", name: "claude-plugins-official", org: "Anthropic", desc: "Officieel Anthropic plugin repository", icon: "🏛️", status: "connected", url: "https://github.com/anthropics/claude-plugins-official" },
+    { id: "thedotmack", name: "thedotmack", org: "Community", desc: "Community plugins (claude-mem, etc.)", icon: "🌍", status: "connected", url: "https://github.com/thedotmack" },
+    { id: "vercel-labs", name: "vercel-labs/agent-skills", org: "Vercel", desc: "AI agent skills (React, Design, Native)", icon: "▲", status: "connected", url: "https://github.com/vercel-labs/agent-skills" },
+  ],
+};
+
+function AllToolsPanel({ isPhone }) {
+  var _f = useState("all"), filter = _f[0], setFilter = _f[1];
+  var _e = useState({ builtin: false, plugins: true, mcpServers: true, skills: true, vercelSkills: true, marketplaces: true }), expanded = _e[0], setExpanded = _e[1];
+
+  function toggle(id) {
+    setExpanded(function(prev) {
+      var next = {};
+      for (var k in prev) next[k] = prev[k];
+      next[id] = !prev[id];
+      return next;
+    });
+  }
+
+  var f = {
+    title: isPhone ? 20 : 16,
+    body: isPhone ? 14 : 12,
+    small: isPhone ? 12 : 10,
+    micro: isPhone ? 10 : 8,
+    input: isPhone ? 16 : 13,
+    btnPad: isPhone ? "10px 16px" : "6px 12px",
+    cardPad: isPhone ? 14 : 10,
+    touchMin: isPhone ? 44 : 28,
+    gap: isPhone ? 8 : 6,
+    gridMin: isPhone ? 160 : 200,
+  };
+
+  var categories = [
+    { id: "builtin", label: "Built-in Tools", icon: "🔧", color: "#60a5fa", items: TOOLS_DATA.builtin },
+    { id: "plugins", label: "Plugins", icon: "🔌", color: "#a78bfa", items: TOOLS_DATA.plugins },
+    { id: "mcpServers", label: "MCP Servers", icon: "🔗", color: "#22c55e", items: TOOLS_DATA.mcpServers },
+    { id: "skills", label: "Skills & Commands", icon: "⚡", color: "#f97316", items: TOOLS_DATA.skills },
+    { id: "vercelSkills", label: "Vercel Agent Skills", icon: "▲", color: "#00d4ff", items: TOOLS_DATA.vercelSkills },
+    { id: "marketplaces", label: "Marketplaces", icon: "🏪", color: "#06b6d4", items: TOOLS_DATA.marketplaces },
+  ];
+
+  var totalTools = 0;
+  categories.forEach(function(c) { totalTools += c.items.length; });
+
+  var filtered = filter === "all" ? categories : categories.filter(function(c) { return c.id === filter; });
+
+  var statusColors = {
+    installed: { bg: "#052e16", color: "#22c55e", label: "INSTALLED" },
+    connected: { bg: "#052e16", color: "#22c55e", label: "CONNECTED" },
+    error: { bg: "#1a0000", color: "#ef4444", label: "ERROR" },
+    "not-installed": { bg: "#111", color: "#6b7280", label: "NOT INSTALLED" },
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #0a1628, #0f1a2e)", border: "1px solid #1e3a5f", borderRadius: 12, padding: f.cardPad + 4 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: f.title, fontWeight: 800, color: "#14b8a6" }}>🧰 All Tools</div>
+            <div style={{ fontSize: f.small, color: "#6b7280", marginTop: 2 }}>{totalTools} tools actief op dit systeem</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {[{ c: TOOLS_DATA.builtin.length, label: "Built-in", color: "#60a5fa" }, { c: TOOLS_DATA.plugins.length, label: "Plugins", color: "#a78bfa" }, { c: TOOLS_DATA.mcpServers.length, label: "MCP", color: "#22c55e" }, { c: TOOLS_DATA.skills.length + TOOLS_DATA.vercelSkills.length, label: "Skills", color: "#f97316" }].map(function(s, i) {
+              return <div key={i} style={{ padding: isPhone ? "6px 10px" : "3px 8px", borderRadius: 6, background: s.color + "15", border: "1px solid " + s.color + "33", fontSize: f.small }}>
+                <span style={{ color: s.color, fontWeight: 800 }}>{s.c}</span> <span style={{ color: s.color + "99" }}>{s.label}</span>
+              </div>;
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Filter buttons */}
+      <div style={{ display: "flex", gap: f.gap, flexWrap: "wrap" }}>
+        {[{ id: "all", label: "Alle", color: "#14b8a6" }].concat(categories.map(function(c) { return { id: c.id, label: c.label, color: c.color }; })).map(function(btn) {
+          var active = filter === btn.id;
+          return <button key={btn.id} onClick={function() { setFilter(btn.id); }} style={{
+            padding: f.btnPad,
+            borderRadius: 8,
+            border: "1px solid " + (active ? btn.color + "66" : "#1f2937"),
+            background: active ? btn.color + "22" : "#111",
+            color: active ? btn.color : "#6b7280",
+            fontSize: f.small,
+            fontWeight: 600,
+            cursor: "pointer",
+            minHeight: f.touchMin,
+          }}>{btn.label}</button>;
+        })}
+      </div>
+
+      {/* Category sections */}
+      {filtered.map(function(cat) {
+        var isOpen = expanded[cat.id];
+        return <div key={cat.id} style={{ background: "#0a0a1a", border: "1px solid " + cat.color + "33", borderRadius: 12, overflow: "hidden" }}>
+          {/* Section header - clickable */}
+          <div onClick={function() { toggle(cat.id); }} style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: isPhone ? "14px 16px" : "10px 14px",
+            cursor: "pointer", background: cat.color + "0a",
+            minHeight: f.touchMin,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: isPhone ? 20 : 16 }}>{cat.icon}</span>
+              <span style={{ fontSize: isPhone ? 16 : 14, fontWeight: 700, color: cat.color }}>{cat.label}</span>
+              <span style={{ fontSize: f.small, color: "#6b7280" }}>({cat.items.length})</span>
+            </div>
+            <span style={{ fontSize: isPhone ? 16 : 12, color: "#6b7280" }}>{isOpen ? "▾" : "▸"}</span>
+          </div>
+
+          {/* Items grid */}
+          {isOpen && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(" + f.gridMin + "px, 1fr))", gap: f.gap, padding: f.cardPad }}>
+            {cat.items.map(function(tool) {
+              var st = statusColors[tool.status] || statusColors["not-installed"];
+              return <div key={tool.id} style={{
+                background: "#111118", border: "1px solid #1f2937", borderRadius: 10,
+                padding: f.cardPad, display: "flex", flexDirection: "column", gap: 4,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: isPhone ? 18 : 14 }}>{tool.icon}</span>
+                    <span style={{ fontSize: f.body, fontWeight: 700, color: "#e5e5e5" }}>{tool.name}</span>
+                  </div>
+                  <span style={{ fontSize: f.micro, padding: "2px 6px", borderRadius: 4, background: st.bg, color: st.color, fontWeight: 700 }}>{st.label}</span>
+                </div>
+                {tool.version && <div style={{ fontSize: f.micro, color: "#6b7280" }}>{tool.version}{tool.author ? " • " + tool.author : ""}</div>}
+                <div style={{ fontSize: f.small, color: "#9ca3af", lineHeight: 1.4 }}>{tool.desc}</div>
+                {tool.source && <div style={{ fontSize: f.micro, color: "#4b5563" }}>bron: {tool.source}</div>}
+                {tool.devices && <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+                  {tool.devices.map(function(d) { return <span key={d} style={{ fontSize: f.micro, padding: "1px 5px", borderRadius: 3, background: "#22c55e15", color: "#4ade80", border: "1px solid #16653433" }}>{d}</span>; })}
+                </div>}
+                {tool.tools && <div style={{ fontSize: f.micro, color: "#4b5563", marginTop: 2 }}>tools: {tool.tools.join(", ")}</div>}
+                {tool.url && <a href={tool.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: f.micro, color: cat.color, textDecoration: "none", marginTop: 2 }}>GitHub →</a>}
+              </div>;
+            })}
+          </div>}
+        </div>;
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ECOSYSTEM GRID — Blokken met expandable children (alle niveaus zichtbaar)
 // ═══════════════════════════════════════════════════════════════════════════════
 function EcoChildItem({ node, depth = 0 }) {
@@ -4956,11 +5152,11 @@ function EcoChildItem({ node, depth = 0 }) {
   );
 }
 
-function EcosystemGrid({ search, setSearch }) {
+function EcosystemGrid({ search, setSearch, isPhone }) {
   return (
     <>
-      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Zoek in ecosystem..." style={{ width: "100%", padding: isPhone ? "14px 16px" : "10px 14px", borderRadius: 10, border: "1px solid #1f2937", background: "#111", color: "#e5e5e5", fontSize: isPhone ? 16 : 13, outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(" + (isPhone ? 240 : 280) + "px, 1fr))", gap: 10 }}>
         {ECOSYSTEM.filter(n => {
           if (!search) return true;
           const s = search.toLowerCase();
@@ -5023,6 +5219,27 @@ export default function ControlCenter() {
   const [currentDevice, setCurrentDevice] = useState(() => detectDevice());
   const [showDeviceSelector, setShowDeviceSelector] = useState(() => needsDeviceSelection());
 
+  // iPhone responsive scaling
+  const isPhone = currentDevice === 'iPhone';
+  const S = {
+    tabFont: isPhone ? 13 : 10,
+    tabPad: isPhone ? "10px 14px 8px" : "6px 10px 4px",
+    tabMinWidth: isPhone ? 120 : 100,
+    bodyFont: isPhone ? 15 : 13,
+    smallFont: isPhone ? 12 : 10,
+    microFont: isPhone ? 10 : 8,
+    tinyFont: isPhone ? 9 : 7,
+    headerFont: isPhone ? 22 : 20,
+    inputFont: isPhone ? 16 : 13,
+    buttonPad: isPhone ? "12px 18px" : "8px 14px",
+    smallButtonPad: isPhone ? "8px 14px" : "6px 10px",
+    containerPad: isPhone ? 16 : 12,
+    touchMin: isPhone ? 44 : 28,
+    gap: isPhone ? 8 : 4,
+    cardPad: isPhone ? 14 : 10,
+    statusFont: isPhone ? 13 : 11,
+  };
+
   // Log page load
   useEffect(() => {
     logActivity("page_load", `Dashboard opened on ${currentDevice}`, currentDevice);
@@ -5056,6 +5273,7 @@ export default function ControlCenter() {
     { id: "crypto", label: "🪙 Crypto", color: "#f59e0b", lastUpdated: "7 Feb" },
     { id: "revenue", label: "💰 Revenue", color: "#22c55e", lastUpdated: "7 Feb" },
     { id: "usecases", label: "🎯 Use Cases", color: "#818cf8", lastUpdated: "8 Feb" },
+    { id: "alltools", label: "🧰 All Tools", color: "#14b8a6", lastUpdated: "9 Feb" },
     { id: "advisor", label: "🤖 Advisor", color: "#a78bfa", lastUpdated: "8 Feb" },
   ];
 
@@ -5068,7 +5286,7 @@ export default function ControlCenter() {
   ];
 
   return (
-    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0f0f18", color: "#e5e5e5", minHeight: "100vh", padding: 12 }}>
+    <div style={{ fontFamily: "'SF Pro Text', -apple-system, sans-serif", background: "#0f0f18", color: "#e5e5e5", minHeight: "100vh", padding: S.containerPad }}>
 
       {/* Device Selector Modal - Eerste keer op nieuwe desktop */}
       {showDeviceSelector && (
@@ -5117,8 +5335,8 @@ export default function ControlCenter() {
       <div style={{ background: "linear-gradient(135deg, #0f0f23, #1a0a2e, #0a1628)", border: "1px solid #1e1b4b", borderRadius: 16, padding: "16px 20px", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.18.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.19.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5129,8 +5347,8 @@ export default function ControlCenter() {
                   key={d.id}
                   onClick={() => setDeviceManually(d.id)}
                   style={{
-                    fontSize: 10,
-                    padding: "4px 10px",
+                    fontSize: S.smallFont,
+                    padding: S.smallButtonPad,
                     borderRadius: 6,
                     background: isActive ? "#22c55e22" : "#37415122",
                     color: isActive ? "#4ade80" : "#6b7280",
@@ -5147,9 +5365,9 @@ export default function ControlCenter() {
           </div>
         </div>
         {/* Status Bar */}
-        <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: S.gap, marginTop: 10, flexWrap: "wrap" }}>
           {[{ k: "OK", ...STATUS.OK, c: counts.OK }, { k: "WARN", ...STATUS.WARN, c: counts.WARN }, { k: "ERROR", ...STATUS.ERROR, c: counts.ERROR }, { k: "PENDING", ...STATUS.PENDING, c: counts.PENDING }].map(s => (
-            <div key={s.k} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, background: `${s.color}15`, border: `1px solid ${s.color}33`, fontSize: 11 }}>
+            <div key={s.k} style={{ display: "flex", alignItems: "center", gap: 4, padding: isPhone ? "6px 12px" : "3px 8px", borderRadius: 6, background: `${s.color}15`, border: `1px solid ${s.color}33`, fontSize: S.statusFont }}>
               <span style={{ color: s.color, fontWeight: 800 }}>{s.c}</span>
               <span style={{ color: s.color }}>{s.icon}</span>
             </div>
@@ -5161,26 +5379,26 @@ export default function ControlCenter() {
       </div>
 
       {/* DUMP - Altijd zichtbaar bovenaan */}
-      <DumpBar />
+      <DumpBar isPhone={isPhone} />
 
       {/* ADVISOR - Prominent bar (always visible) */}
-      <AIAdvisor issues={issues} compact={true} onNavigate={setTab} currentDevice={currentDevice} />
+      <AIAdvisor issues={issues} compact={true} onNavigate={setTab} currentDevice={currentDevice} isPhone={isPhone} />
 
       {/* Tabs - Responsive grid layout (wraps instead of scrolling) */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-        gap: 4,
+        gridTemplateColumns: "repeat(auto-fill, minmax(" + S.tabMinWidth + "px, 1fr))",
+        gap: S.gap,
         marginBottom: 12
       }}>
         {tabs.filter(t => t.id !== "advisor").map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: "6px 10px 4px",
+            padding: S.tabPad,
             borderRadius: 8,
             border: `1px solid ${tab === t.id ? t.color + "66" : "#1f2937"}`,
             background: tab === t.id ? t.color + "22" : "#111",
             color: tab === t.id ? t.color : "#6b7280",
-            fontSize: 10,
+            fontSize: S.tabFont,
             fontWeight: 600,
             cursor: "pointer",
             whiteSpace: "nowrap",
@@ -5188,42 +5406,44 @@ export default function ControlCenter() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 1
+            gap: 1,
+            minHeight: S.touchMin
           }}>
             <span>{t.label}</span>
-            {t.lastUpdated && <span style={{ fontSize: 7, color: tab === t.id ? t.color + "99" : "#374151", fontWeight: 400 }}>{t.lastUpdated}</span>}
+            {t.lastUpdated && <span style={{ fontSize: S.tinyFont, color: tab === t.id ? t.color + "99" : "#374151", fontWeight: 400 }}>{t.lastUpdated}</span>}
           </button>
         ))}
       </div>
 
       {/* Content */}
-      {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} />}
+      {tab === "ecosystem" && <EcosystemGrid search={search} setSearch={setSearch} isPhone={isPhone} />}
 
-      {tab === "issues" && <IssuesPanel issues={issues} allItems={allItems} />}
+      {tab === "issues" && <IssuesPanel issues={issues} allItems={allItems} isPhone={isPhone} />}
 
-      {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} />}
-      {tab === "memory" && <MemoryCenter />}
-      {tab === "git" && <GitDeployCenter />}
-      {tab === "versions" && <VersionSnapshots />}
-      {tab === "activity" && <ActivityLog />}
-      {tab === "staging" && <StagingVariants />}
-      {tab === "sync" && <CrossDeviceSync />}
-      {tab === "infranodus" && <InfraNodusDashboard />}
-      {tab === "agents" && <AgentHierarchy />}
-      {tab === "knowledge" && <SystemKnowledgeBase />}
-      {tab === "updates" && <ClaudeUpdates />}
-      {tab === "openbot" && <OpenClaudeBot />}
-      {tab === "sdkhrm" && <SDKHRMHub />}
-      {tab === "benchmarks" && <TrainingBenchmarks />}
-      {tab === "crypto" && <CryptoIntelligence />}
-      {tab === "revenue" && <RevenueIntelligence />}
-      {tab === "usecases" && <UseCases />}
+      {tab === "advisor" && <AIAdvisor issues={issues} onNavigate={setTab} currentDevice={currentDevice} isPhone={isPhone} />}
+      {tab === "memory" && <MemoryCenter isPhone={isPhone} />}
+      {tab === "git" && <GitDeployCenter isPhone={isPhone} />}
+      {tab === "versions" && <VersionSnapshots isPhone={isPhone} />}
+      {tab === "activity" && <ActivityLog isPhone={isPhone} />}
+      {tab === "staging" && <StagingVariants isPhone={isPhone} />}
+      {tab === "sync" && <CrossDeviceSync isPhone={isPhone} />}
+      {tab === "infranodus" && <InfraNodusDashboard isPhone={isPhone} />}
+      {tab === "agents" && <AgentHierarchy isPhone={isPhone} />}
+      {tab === "knowledge" && <SystemKnowledgeBase isPhone={isPhone} />}
+      {tab === "updates" && <ClaudeUpdates isPhone={isPhone} />}
+      {tab === "openbot" && <OpenClaudeBot isPhone={isPhone} />}
+      {tab === "sdkhrm" && <SDKHRMHub isPhone={isPhone} />}
+      {tab === "benchmarks" && <TrainingBenchmarks isPhone={isPhone} />}
+      {tab === "crypto" && <CryptoIntelligence isPhone={isPhone} />}
+      {tab === "revenue" && <RevenueIntelligence isPhone={isPhone} />}
+      {tab === "usecases" && <UseCases isPhone={isPhone} />}
+      {tab === "alltools" && <AllToolsPanel isPhone={isPhone} />}
 
       {/* Footer */}
-      <div style={{ marginTop: 16, padding: 12, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 10, color: "#4b5563" }}>Claude Control Center v4.18.0 • {total} nodes • 20 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+      <div style={{ marginTop: 16, padding: S.containerPad, background: "#0f0f0f", border: "1px solid #1f2937", borderRadius: 10, textAlign: "center" }}>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.19.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
-          {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
+          {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
       </div>
     </div>
