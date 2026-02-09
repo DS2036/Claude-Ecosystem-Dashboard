@@ -61,6 +61,9 @@ export default {
       if (path === '/api/dump' && request.method === 'POST') {
         return await handleSaveDump(request, env);
       }
+      if (path === '/api/dump/add' && request.method === 'POST') {
+        return await handleAddDumpItem(request, env);
+      }
       if (path === '/api/health') {
         return jsonResponse({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
       }
@@ -299,6 +302,46 @@ async function handleGetDump(request, env) {
   }
   const data = JSON.parse(value);
   return jsonResponse(data);
+}
+
+async function handleAddDumpItem(request, env) {
+  if (!env.LOGS) {
+    return jsonResponse({ error: 'KV not configured' }, 500);
+  }
+  const body = await request.json();
+  const content = (body.content || body.url || body.text || '').trim();
+  const memo = (body.memo || body.note || '').trim();
+  if (!content && !memo) {
+    return jsonResponse({ error: 'content or memo required' }, 400);
+  }
+  // Auto-detect type
+  const l = content.toLowerCase();
+  let type = 'note', icon = '📝';
+  if (l.includes('youtube.com') || l.includes('youtu.be')) { type = 'youtube'; icon = '🎬'; }
+  else if (l.includes('instagram.com')) { type = 'instagram'; icon = '📸'; }
+  else if (l.includes('twitter.com') || l.includes('x.com/')) { type = 'twitter'; icon = '🐦'; }
+  else if (l.includes('github.com')) { type = 'github'; icon = '💻'; }
+  else if (l.includes('medium.com')) { type = 'article'; icon = '📰'; }
+  else if (l.startsWith('http')) { type = 'link'; icon = '🔗'; }
+
+  const item = {
+    id: Date.now(),
+    content,
+    memo,
+    type,
+    icon,
+    created: new Date().toISOString(),
+    pinned: false,
+    source: body.source || 'shortcut',
+  };
+
+  // Get existing items, add new one at top
+  const value = await env.LOGS.get(DUMP_KEY);
+  const existing = value ? JSON.parse(value) : { items: [] };
+  const items = [item, ...(existing.items || [])];
+  await env.LOGS.put(DUMP_KEY, JSON.stringify({ items, updated: new Date().toISOString(), source: 'shortcut' }));
+
+  return jsonResponse({ success: true, item, total: items.length });
 }
 
 async function handleSaveDump(request, env) {
