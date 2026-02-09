@@ -4311,45 +4311,55 @@ function DumpBar() {
   });
 
   return (
-    <div style={{ background: "#0a1a1a", border: "1px solid #0f766e55", borderRadius: 10 }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", flexWrap: "wrap" }}>
-        <span style={{ fontSize: 14 }}>📥</span>
-        <span style={{ fontWeight: 700, fontSize: 12, color: "#14b8a6" }}>Dump</span>
-        {items.length > 0 && <span style={{ fontSize: 10, color: "#6b7280", background: "#0f766e22", padding: "2px 6px", borderRadius: 4 }}>{items.length}</span>}
-        <input type="text" placeholder="Plak URL of tekst..." value={inp} onChange={function(e) { setInp(e.target.value); }}
-          onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
-          style={{ flex: 1, minWidth: 120, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#e5e7eb", fontSize: 11, outline: "none" }} />
-        <input type="text" placeholder="Opmerking..." value={memo} onChange={function(e) { setMemo(e.target.value); }}
-          onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
-          style={{ flex: 1, maxWidth: 180, minWidth: 80, padding: "6px 10px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 11, outline: "none" }} />
-        {inp.trim() && <span style={{ fontSize: 14 }}>{icons[detectType(inp)]}</span>}
-        <button onClick={addItem} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #14b8a6", background: "#14b8a622", color: "#14b8a6", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>➕</button>
-        <button onClick={syncNow} disabled={syncing} style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #14b8a6", background: syncing ? "#111" : "#14b8a622", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 12, fontWeight: 700, cursor: syncing ? "wait" : "pointer" }}>{syncing ? "⏳ Sync..." : "🔄 Sync"}</button>
-        {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 10, cursor: "pointer" }}>{open ? "▲" : "▼"}</button>}
+    <div style={{ background: "#0a1a1a", border: "1px solid #0f766e55", borderRadius: 12 }}>
+      <div style={{ padding: "12px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 20 }}>📥</span>
+            <span style={{ fontWeight: 700, fontSize: 16, color: "#14b8a6" }}>Dump</span>
+            {items.length > 0 && <span style={{ fontSize: 13, color: "#6b7280", background: "#0f766e22", padding: "3px 8px", borderRadius: 6, fontWeight: 600 }}>{items.length}</span>}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={syncNow} disabled={syncing} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #14b8a6", background: syncing ? "#111" : "#14b8a622", color: syncing ? "#6b7280" : "#14b8a6", fontSize: 14, fontWeight: 700, cursor: syncing ? "wait" : "pointer" }}>{syncing ? "⏳" : "🔄 Sync"}</button>
+            {items.length > 0 && <button onClick={function() { setOpen(!open); }} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{open ? "▲ Dicht" : "▼ " + items.length + " items"}</button>}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input type="text" placeholder="Plak URL of tekst..." value={inp} onChange={function(e) { setInp(e.target.value); }}
+            onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
+            style={{ flex: 1, minWidth: 150, padding: "12px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#e5e7eb", fontSize: 16, outline: "none" }} />
+          {inp.trim() && <span style={{ fontSize: 22, alignSelf: "center" }}>{icons[detectType(inp)]}</span>}
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <input type="text" placeholder="Opmerking / wat wil je eruit halen..." value={memo} onChange={function(e) { setMemo(e.target.value); }}
+            onKeyDown={function(e) { if (e.key === "Enter") { addItem(); } }}
+            style={{ flex: 1, padding: "12px 14px", borderRadius: 8, border: "1px solid #374151", background: "#111", color: "#9ca3af", fontSize: 15, outline: "none" }} />
+          <button onClick={addItem} style={{ padding: "12px 20px", borderRadius: 8, border: "1px solid #14b8a6", background: "#14b8a633", color: "#14b8a6", fontSize: 16, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>➕ Dump</button>
+        </div>
       </div>
       {open && items.length > 0 && (
-        <div style={{ borderTop: "1px solid #0f766e33", padding: 10, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 8 }}>
+        <div style={{ borderTop: "1px solid #0f766e33", padding: 12, display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
           {sorted.map(function(item) {
             var c = colors[item.type] || "#14b8a6";
             var isUrl = item.content && item.content.indexOf("http") === 0;
             return (
-              <div key={item.id} style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 8, padding: 10, borderLeft: item.pinned ? "3px solid " + c : "1px solid #1f2937" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 12 }}>{item.icon || icons[item.type]} <span style={{ fontSize: 9, color: c, fontWeight: 700 }}>{item.type}</span></span>
-                  <span>
-                    <button onClick={function() { togglePin(item.id); }} style={{ fontSize: 10, border: "none", background: "none", color: item.pinned ? "#fbbf24" : "#4b5563", cursor: "pointer" }}>{item.pinned ? "📌" : "📍"}</button>
-                    <button onClick={function() { deleteItem(item.id); }} style={{ fontSize: 10, border: "none", background: "none", color: "#ef4444", cursor: "pointer" }}>🗑️</button>
-                  </span>
+              <div key={item.id} style={{ background: "#111", border: "1px solid #1f2937", borderRadius: 10, padding: 14, borderLeft: "3px solid " + c }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 16 }}>{item.icon || icons[item.type]} <span style={{ fontSize: 13, color: c, fontWeight: 700 }}>{item.type}</span></span>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button onClick={function() { togglePin(item.id); }} style={{ fontSize: 18, border: "none", background: "none", color: item.pinned ? "#fbbf24" : "#4b5563", cursor: "pointer", padding: 4 }}>{item.pinned ? "📌" : "📍"}</button>
+                    <button onClick={function() { deleteItem(item.id); }} style={{ fontSize: 18, border: "none", background: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}>🗑️</button>
+                  </div>
                 </div>
                 {item.content && (isUrl
-                  ? <a href={item.content} target="_blank" rel="noopener noreferrer" style={{ color: c, fontSize: 11, wordBreak: "break-all", textDecoration: "none" }}>{item.content.length > 60 ? item.content.substring(0, 60) + "..." : item.content}</a>
-                  : <div style={{ color: "#d1d5db", fontSize: 11 }}>{item.content.length > 120 ? item.content.substring(0, 120) + "..." : item.content}</div>
+                  ? <a href={item.content} target="_blank" rel="noopener noreferrer" style={{ color: c, fontSize: 14, wordBreak: "break-all", textDecoration: "none", lineHeight: 1.4 }}>{item.content}</a>
+                  : <div style={{ color: "#d1d5db", fontSize: 14, lineHeight: 1.4 }}>{item.content}</div>
                 )}
-                {item.memo && <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 4, padding: "4px 6px", background: "#0a0a0f", borderRadius: 4 }}>{item.memo}</div>}
-                {item.analysis && <div style={{ fontSize: 10, color: "#22c55e", marginTop: 4, padding: "4px 6px", background: "#052e1644", borderRadius: 4, borderLeft: "2px solid #22c55e44" }}>{item.analysis}</div>}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                  <div style={{ fontSize: 9, color: "#4b5563" }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
-                  {!item.analysis && <button onClick={function() { analyzeItem(item.id); }} disabled={item.analyzing} style={{ fontSize: 9, padding: "2px 8px", borderRadius: 4, border: "1px solid #14b8a644", background: "#14b8a611", color: item.analyzing ? "#6b7280" : "#14b8a6", cursor: item.analyzing ? "wait" : "pointer" }}>{item.analyzing ? "⏳..." : "🔍 Analyseer"}</button>}
+                {item.memo && <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, padding: "8px 10px", background: "#0a0a0f", borderRadius: 6, lineHeight: 1.4 }}>{item.memo}</div>}
+                {item.analysis && <div style={{ fontSize: 13, color: "#22c55e", marginTop: 8, padding: "8px 10px", background: "#052e1644", borderRadius: 6, borderLeft: "3px solid #22c55e44", lineHeight: 1.5 }}>{item.analysis}</div>}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+                  <div style={{ fontSize: 12, color: "#4b5563" }}>{new Date(item.created).toLocaleDateString("nl-BE")}</div>
+                  {!item.analysis && <button onClick={function() { analyzeItem(item.id); }} disabled={item.analyzing} style={{ fontSize: 13, padding: "8px 16px", borderRadius: 6, border: "1px solid #14b8a644", background: "#14b8a611", color: item.analyzing ? "#6b7280" : "#14b8a6", cursor: item.analyzing ? "wait" : "pointer", fontWeight: 600 }}>{item.analyzing ? "⏳ Bezig..." : "🔍 Analyseer"}</button>}
                 </div>
               </div>
             );
