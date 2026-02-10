@@ -70,6 +70,16 @@ const api = {
       return await r.json();
     } catch (e) { console.error("Scrape failed:", e); return null; }
   },
+  async analyzeDump(url, memo, title) {
+    try {
+      const r = await authFetch(WORKER_API + "/api/dump/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, memo, title }),
+      });
+      return await r.json();
+    } catch (e) { console.error("Dump analyze failed:", e); return null; }
+  },
   async getDump() {
     try {
       const r = await authFetch(WORKER_API + "/api/dump");
@@ -4525,85 +4535,59 @@ function DumpBar() {
     if (!item || item.analyzing) return;
     setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
 
-    var isUrl = item.content && item.content.indexOf("http") === 0;
-    var doAnalyze = function(scrapedText, scrapedTitle, scrapedDesc) {
-      var prompt = "KORT en BONDIG in het Nederlands. Max 4-5 bullet points. Geen inleidingen, geen conclusies, alleen kern-items.\n";
-      if (item.memo) prompt += "FOCUS: " + item.memo + "\nExtraheer alleen wat relevant is voor bovenstaande focus.\n";
-      prompt += "URL: " + item.content;
-      if (item.title || scrapedTitle) prompt += "\nTitel: " + (item.title || scrapedTitle);
-      if (scrapedDesc) prompt += "\nBeschrijving: " + scrapedDesc;
-      if (scrapedText) prompt += "\n\nGescrapete pagina-inhoud:\n" + scrapedText;
-      else if (!isUrl) prompt += "\nContent: " + item.content;
-
-      api.askAI([{ role: "user", content: prompt }]).then(function(r) {
-        var text = "Analyse niet beschikbaar";
-        if (r && r.content) {
-          text = r.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
+    // Server-side analyse: worker scraped + analyseert in één call
+    api.analyzeDump(item.content, item.memo || "", item.title || "").then(function(result) {
+      if (!result) { throw new Error("Geen response"); }
+      setItems(function(prev) { return prev.map(function(i) {
+        if (i.id !== id) return i;
+        var upd = { analyzing: false, analysis: result.analysis || "Analyse niet beschikbaar", analyzed: true, analyzed_by: "Claude", analyzed_at: new Date().toISOString() };
+        if (result.meta) {
+          if (result.meta.title && !i.title) upd.title = result.meta.title;
+          if (result.meta.image && !i.thumbnail) upd.thumbnail = result.meta.image;
+          if (result.meta.author && !i.author) upd.author = result.meta.author;
         }
-        // Update item met analyse + eventueel scraped metadata
-        setItems(function(prev) { return prev.map(function(i) {
-          if (i.id !== id) return i;
-          var upd = { analyzing: false, analysis: text };
-          if (scrapedTitle && !i.title) upd.title = scrapedTitle;
-          if (scrapedDesc && !i.memo) upd.memo = scrapedDesc;
-          return Object.assign({}, i, upd);
-        }); });
-        setPushCount(function(n) { return n + 1; });
-      }).catch(function() {
-        setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "Fout bij analyse" }) : i; }); });
-        setPushCount(function(n) { return n + 1; });
-      });
-    };
-
-    // Als het een URL is: eerst scrapen voor context, dan analyseren
-    if (isUrl) {
-      api.scrapeUrl(item.content).then(function(scraped) {
-        doAnalyze(scraped && scraped.text ? scraped.text : "", scraped && scraped.title ? scraped.title : "", scraped && scraped.description ? scraped.description : "");
-      }).catch(function() { doAnalyze("", "", ""); });
-    } else {
-      doAnalyze("", "", "");
-    }
+        return Object.assign({}, i, upd);
+      }); });
+      setPushCount(function(n) { return n + 1; });
+    }).catch(function(err) {
+      console.error("Analyse fout:", err);
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "Fout bij analyse" }) : i; }); });
+      setPushCount(function(n) { return n + 1; });
+    });
   };
 
-  // Re-analyze: follow-up op bestaande analyse — memo + extra prompt + scrape
+  // Re-analyze: follow-up — werkt ook zonder extra prompt (= gewoon opnieuw analyseren met scrape)
   var reanalyzeItem = function(id, customPrompt) {
     var item = items.find(function(i) { return i.id === id; });
-    if (!item || item.analyzing || !customPrompt.trim()) return;
+    if (!item || item.analyzing) return;
+    var prompt = (customPrompt || "").trim();
+    // Als geen custom prompt: gewoon opnieuw analyseren
+    if (!prompt) {
+      analyzeItem(id);
+      setReanalyzeId(null); setRePrompt("");
+      return;
+    }
     setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: true }) : i; }); });
 
-    var doReAnalyze = function(scrapedText) {
-      var prompt = "KORT en BONDIG. Max 4-5 bullet points. Geen inleidingen, geen proza.\n\n";
-      prompt += "CONTENT: " + item.content + "\n";
-      if (item.title) prompt += "TITEL: " + item.title + "\n";
-      if (item.memo) prompt += "ORIGINELE OPMERKING: " + item.memo + "\n";
-      if (item.analysis) prompt += "EERDERE ANALYSE: " + item.analysis + "\n";
-      if (scrapedText) prompt += "PAGINA-INHOUD: " + scrapedText + "\n";
-      prompt += "\nEXTRA VRAAG: " + customPrompt + "\n";
-      prompt += "\nGeef alleen bullet points in het Nederlands. Concreet, praktisch, geen opvulling.";
-      api.askAI([{ role: "user", content: prompt }]).then(function(r) {
-        var text = "Geen resultaat";
-        if (r && r.content) {
-          text = r.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
-        }
-        setItems(function(prev) { return prev.map(function(i) {
-          if (i.id !== id) return i;
-          var extraAnalyses = i.extraAnalyses ? i.extraAnalyses.slice() : [];
-          extraAnalyses.push({ prompt: customPrompt, result: text, date: new Date().toISOString() });
-          return Object.assign({}, i, { analyzing: false, extraAnalyses: extraAnalyses });
-        }); });
-        setReanalyzeId(null); setRePrompt("");
-        setPushCount(function(n) { return n + 1; });
-      }).catch(function() {
-        setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false }) : i; }); });
-      });
-    };
-
-    var isUrl = item.content && item.content.indexOf("http") === 0;
-    if (isUrl) {
-      api.scrapeUrl(item.content).then(function(s) { doReAnalyze(s && s.text ? s.text : ""); }).catch(function() { doReAnalyze(""); });
-    } else {
-      doReAnalyze("");
-    }
+    // Server-side scrape + AI voor re-analyse met extra vraag
+    api.analyzeDump(
+      item.content,
+      "EERDERE ANALYSE: " + (item.analysis || "geen") + "\n\nEXTRA VRAAG: " + prompt,
+      item.title || ""
+    ).then(function(result) {
+      if (!result) { throw new Error("Geen response"); }
+      var text = result.analysis || "Geen resultaat";
+      setItems(function(prev) { return prev.map(function(i) {
+        if (i.id !== id) return i;
+        var extraAnalyses = i.extraAnalyses ? i.extraAnalyses.slice() : [];
+        extraAnalyses.push({ prompt: prompt, result: text, date: new Date().toISOString() });
+        return Object.assign({}, i, { analyzing: false, extraAnalyses: extraAnalyses });
+      }); });
+      setReanalyzeId(null); setRePrompt("");
+      setPushCount(function(n) { return n + 1; });
+    }).catch(function() {
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false }) : i; }); });
+    });
   };
 
   // Route extracted info naar een tab (opslaan als note in die tab's context)

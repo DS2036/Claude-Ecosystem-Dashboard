@@ -148,6 +148,7 @@ export default {
       if (path === '/api/dump' && request.method === 'POST') return await handleSaveDump(request, env);
       if (path === '/api/dump/add' && request.method === 'POST') return await handleAddDumpItem(request, env);
       if (path === '/api/scrape' && request.method === 'POST') return await handleScrape(request, env);
+      if (path === '/api/dump/analyze' && request.method === 'POST') return await handleDumpAnalyze(request, env);
       if (path === '/api/tools' && request.method === 'GET') return await handleGetTools(request, env);
       if (path === '/api/tools' && request.method === 'POST') return await handleSaveTools(request, env);
       if (path === '/api/search' && request.method === 'GET') return await handleSearch(request, env);
@@ -597,6 +598,84 @@ async function handleScrape(request, env) {
     });
   } catch (e) {
     return jsonResponse({ error: e.message, text: '' });
+  }
+}
+
+// Server-side dump analyse: scrape URL + AI analyse in één call
+async function handleDumpAnalyze(request, env) {
+  const body = await request.json();
+  const url = (body.url || '').trim();
+  const memo = (body.memo || '').trim();
+  const title = (body.title || '').trim();
+
+  // Stap 1: Scrape als het een URL is
+  let scrapedContent = '';
+  let scrapedMeta = {};
+  if (url && url.startsWith('http')) {
+    try {
+      const r = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+          'Accept': 'text/html',
+          'Accept-Language': 'en-US,en;q=0.9,nl;q=0.8',
+        },
+        redirect: 'follow',
+      });
+      if (r.ok) {
+        const html = await r.text();
+        const getOG = (prop) => {
+          const m = html.match(new RegExp(`<meta[^>]*property=["']og:${prop}["'][^>]*content=["']([^"']*)["']`, 'i'))
+            || html.match(new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:${prop}["']`, 'i'));
+          return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&#064;/g, '@') : '';
+        };
+        scrapedMeta.title = getOG('title') || (html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || '';
+        scrapedMeta.description = getOG('description');
+        scrapedMeta.image = getOG('image');
+        scrapedMeta.author = getOG('site_name') || '';
+        scrapedContent = scrapedMeta.description || scrapedMeta.title || '';
+      }
+    } catch (e) { /* scrape failed, continue with URL only */ }
+  }
+
+  // Stap 2: Bouw prompt
+  let prompt = 'KORT en BONDIG in het Nederlands. Max 4-5 bullet points. Geen inleidingen, geen conclusies, alleen kern-items.\n';
+  if (memo) prompt += 'FOCUS: ' + memo + '\nExtraheer alleen wat relevant is voor bovenstaande focus.\n';
+  if (url) prompt += 'URL: ' + url + '\n';
+  if (title) prompt += 'Titel: ' + title + '\n';
+  if (scrapedContent) prompt += '\nInhoud van de pagina:\n' + scrapedContent + '\n';
+  else if (!url.startsWith('http')) prompt += 'Content: ' + url + '\n';
+
+  // Stap 3: AI call
+  try {
+    const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const aiData = await aiResp.json();
+    const analysisText = (aiData.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    return jsonResponse({
+      success: true,
+      analysis: analysisText || 'Analyse niet beschikbaar',
+      meta: {
+        title: (scrapedMeta.title || '').substring(0, 200),
+        image: scrapedMeta.image || '',
+        author: scrapedMeta.author || '',
+        description: (scrapedMeta.description || '').substring(0, 300),
+      },
+      tokens: aiData.usage || {},
+    });
+  } catch (e) {
+    return jsonResponse({ success: false, error: e.message, analysis: 'Fout bij analyse: ' + e.message });
   }
 }
 
