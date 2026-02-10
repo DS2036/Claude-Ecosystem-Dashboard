@@ -130,7 +130,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.30.1
+// CLAUDE CONTROL CENTER v4.30.0
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -5743,14 +5743,7 @@ function CCCSettings() {
   var settings = _s[0]; var setSettings = _s[1];
   var defaults = { dumpEnabled: true, dumpAutoSync: true, dumpAnalysisDaemon: true, universalSearch: true, knowledgeSync: true, vectorizeEnabled: true, advisorEnabled: true, activityLogging: true, deviceSelector: true, workerApi: "https://claude-control-center.franky-f29.workers.dev", syncInterval: 120, analyseLanguage: "NL", maxAnalyseBullets: 5 };
   var cfg = Object.assign({}, defaults, settings);
-  var update = function(key, val) {
-    // ALTIJD lezen vanuit localStorage (niet React state) om race conditions te voorkomen
-    var current = {};
-    try { current = JSON.parse(localStorage.getItem("ccc-settings") || "{}"); } catch(e) {}
-    current[key] = val;
-    setSettings(current);
-    localStorage.setItem("ccc-settings", JSON.stringify(current));
-  };
+  var update = function(key, val) { var next = Object.assign({}, settings); next[key] = val; setSettings(next); localStorage.setItem("ccc-settings", JSON.stringify(next)); };
   var _sH = useState(null); var health = _sH[0]; var setHealth = _sH[1];
   var _sS = useState(null); var stats = _sS[0]; var setStats = _sS[1];
   var _sL = useState(false); var loading = _sL[0]; var setLoading = _sL[1];
@@ -5864,7 +5857,7 @@ function CCCSettings() {
           <label style={{ fontSize: 12, color: "#9ca3af", fontWeight: 600, display: "block", marginBottom: 4 }}>🔒 API Key</label>
           <div style={{ display: "flex", gap: 8 }}>
             <input type="text" autoComplete="off" data-lpignore="true" data-1p-ignore value={cfg.apiKey || ""} onChange={function(e) { update("apiKey", e.target.value); }} placeholder="Plak je API key hier..." style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid " + (cfg.apiKey ? "#22c55e44" : "#ef444444"), background: "#1e1e30", color: "#e5e5e5", fontSize: 13, outline: "none", boxSizing: "border-box", WebkitTextSecurity: "disc" }} />
-            <button onClick={function() { if (cfg.apiKey) { var cur = {}; try { cur = JSON.parse(localStorage.getItem("ccc-settings") || "{}"); } catch(e) {} cur.apiKey = cfg.apiKey; localStorage.setItem("ccc-settings", JSON.stringify(cur)); setSettings(cur); alert("✅ API Key opgeslagen!"); } }} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid " + (cfg.apiKey ? "#22c55e" : "#454d60"), background: cfg.apiKey ? "#22c55e22" : "#1e1e30", color: cfg.apiKey ? "#22c55e" : "#6b7280", fontSize: 13, fontWeight: 700, cursor: cfg.apiKey ? "pointer" : "default", whiteSpace: "nowrap" }}>💾 Save</button>
+            <button onClick={function() { if (cfg.apiKey) { localStorage.setItem("ccc-settings", JSON.stringify(Object.assign({}, settings, { apiKey: cfg.apiKey }))); alert("✅ API Key opgeslagen!"); } }} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid " + (cfg.apiKey ? "#22c55e" : "#454d60"), background: cfg.apiKey ? "#22c55e22" : "#1e1e30", color: cfg.apiKey ? "#22c55e" : "#6b7280", fontSize: 13, fontWeight: 700, cursor: cfg.apiKey ? "pointer" : "default", whiteSpace: "nowrap" }}>💾 Save</button>
           </div>
           <div style={{ fontSize: 10, color: cfg.apiKey ? "#22c55e" : "#ef4444", marginTop: 3 }}>{cfg.apiKey ? "✅ Key ingesteld — API beveiligd" : "⚠️ Geen key — API onbeveiligd"}</div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * CLAUDE CONTROL CENTER - CLOUDFLARE WORKER v3.2.0
+ * CLAUDE CONTROL CENTER - CLOUDFLARE WORKER v3.3.0
  * Universal Knowledge Graph: alle data gevectorized en doorzoekbaar
  *
  * Endpoints:
@@ -466,7 +466,7 @@ async function fetchOGMetadata(url) {
   try {
     const r = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         'Accept': 'text/html',
         'Accept-Language': 'en-US,en;q=0.9,nl;q=0.8',
       },
@@ -548,7 +548,7 @@ async function handleScrape(request, env) {
   try {
     const r = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         'Accept': 'text/html',
         'Accept-Language': 'en-US,en;q=0.9,nl;q=0.8',
       },
@@ -608,52 +608,74 @@ async function handleDumpAnalyze(request, env) {
   const memo = (body.memo || '').trim();
   const title = (body.title || '').trim();
 
-  // Stap 1: Scrape als het een URL is
+  // Helper: extract tekst en meta uit HTML
+  function extractFromHTML(html) {
+    const getOG = (prop) => {
+      const m = html.match(new RegExp(`<meta[^>]*property=["']og:${prop}["'][^>]*content=["']([^"']*)["']`, 'i'))
+        || html.match(new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:${prop}["']`, 'i'));
+      return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"') : '';
+    };
+    const meta = {
+      title: getOG('title') || (html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || '',
+      description: getOG('description'),
+      image: getOG('image'),
+      author: getOG('site_name') || '',
+    };
+    let text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+      .replace(/<header[\s\S]*?<\/header>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
+    if (text.length > 5000) text = text.substring(0, 5000) + '...';
+    return { meta, text };
+  }
+
+  // Stap 1: Scrape URL (3 methodes: direct → Jina Reader → alleen URL)
   let scrapedContent = '';
   let scrapedMeta = {};
   if (url && url.startsWith('http')) {
+    // Methode 1: Directe fetch met browser user-agent
     try {
       const r = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-          'Accept': 'text/html',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
           'Accept-Language': 'en-US,en;q=0.9,nl;q=0.8',
         },
         redirect: 'follow',
       });
       if (r.ok) {
         const html = await r.text();
-        const getOG = (prop) => {
-          const m = html.match(new RegExp(`<meta[^>]*property=["']og:${prop}["'][^>]*content=["']([^"']*)["']`, 'i'))
-            || html.match(new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:${prop}["']`, 'i'));
-          return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&#064;/g, '@') : '';
-        };
-        scrapedMeta.title = getOG('title') || (html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || '';
-        scrapedMeta.description = getOG('description');
-        scrapedMeta.image = getOG('image');
-        scrapedMeta.author = getOG('site_name') || '';
-
-        // Extract volledige zichtbare tekst uit HTML (niet alleen OG description!)
-        let bodyText = html
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?<\/style>/gi, '')
-          .replace(/<nav[\s\S]*?<\/nav>/gi, '')
-          .replace(/<footer[\s\S]*?<\/footer>/gi, '')
-          .replace(/<header[\s\S]*?<\/header>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&#x27;/g, "'")
-          .replace(/&quot;/g, '"')
-          .replace(/\s+/g, ' ')
-          .trim();
-        // Beperk tot 4000 chars voor AI tokens
-        if (bodyText.length > 4000) bodyText = bodyText.substring(0, 4000) + '...';
-        scrapedContent = bodyText || scrapedMeta.description || scrapedMeta.title || '';
+        // Check of het GEEN Cloudflare challenge is
+        if (!html.includes('Just a moment...') && !html.includes('challenge-platform') && html.length > 1000) {
+          const extracted = extractFromHTML(html);
+          scrapedMeta = extracted.meta;
+          scrapedContent = extracted.text || extracted.meta.description || '';
+        }
       }
-    } catch (e) { /* scrape failed, continue with URL only */ }
+    } catch (e) { /* direct fetch failed */ }
+
+    // Methode 2: Jina Reader API als fallback (gratis, omzeilt veel bot-protection)
+    if (!scrapedContent || scrapedContent.length < 100) {
+      try {
+        const jr = await fetch('https://r.jina.ai/' + url, {
+          headers: { 'Accept': 'application/json', 'X-No-Cache': 'true' },
+        });
+        if (jr.ok) {
+          const jd = await jr.json();
+          if (jd.data && jd.data.content && jd.data.content.length > 100 && !jd.data.content.includes('Verify you are human')) {
+            scrapedContent = jd.data.content.substring(0, 5000);
+            if (!scrapedMeta.title && jd.data.title) scrapedMeta.title = jd.data.title;
+            if (!scrapedMeta.description && jd.data.description) scrapedMeta.description = jd.data.description;
+            if (!scrapedMeta.image && jd.data.image) scrapedMeta.image = jd.data.image;
+          }
+        }
+      } catch (e) { /* jina fallback failed */ }
+    }
   }
 
   // Stap 2: Bouw prompt
@@ -661,8 +683,14 @@ async function handleDumpAnalyze(request, env) {
   if (memo) prompt += 'FOCUS: ' + memo + '\nExtraheer alleen wat relevant is voor bovenstaande focus.\n';
   if (url) prompt += 'URL: ' + url + '\n';
   if (title) prompt += 'Titel: ' + title + '\n';
-  if (scrapedContent) prompt += '\nInhoud van de pagina:\n' + scrapedContent + '\n';
-  else if (!url.startsWith('http')) prompt += 'Content: ' + url + '\n';
+  if (scrapedContent) {
+    prompt += '\nInhoud van de pagina:\n' + scrapedContent + '\n';
+  } else if (url.startsWith('http')) {
+    // Geen content beschikbaar — vraag AI om op basis van URL + eigen kennis te analyseren
+    prompt += '\nDe pagina kon niet gescraped worden (bot-protectie). Analyseer op basis van de URL en je eigen kennis over dit onderwerp. Geef je beste analyse.\n';
+  } else {
+    prompt += 'Content: ' + url + '\n';
+  }
 
   // Stap 3: AI call
   try {
