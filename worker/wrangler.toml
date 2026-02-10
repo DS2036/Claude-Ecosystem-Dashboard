@@ -11,6 +11,25 @@ id = "6c68e20288c9448abdcb1009c035ecc9"
 binding = "SNAPSHOTS"
 id = "fab10ff962e5416bbed9dfb29df6f2d6"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "ccc-database"
+database_id = "87b221a5-afe3-4420-b0aa-8d330568a3ef"
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "ccc-vectors"
+
+[[queues.producers]]
+queue = "ccc-analyze-queue"
+binding = "ANALYZE_QUEUE"
+
+[[queues.consumers]]
+queue = "ccc-analyze-queue"
+
+[ai]
+binding = "AI"
+
 [vars]
 ENVIRONMENT = "production"
 

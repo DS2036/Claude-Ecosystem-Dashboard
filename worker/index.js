@@ -27,7 +27,24 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// D1 helper: schrijf mee naar D1 zonder KV te breken
+async function d1Safe(fn) {
+  try { return await fn(); } catch (e) { console.error('D1 error (non-fatal):', e.message); return null; }
+}
+
 export default {
+  // Queue consumer: verwerk analyse-klare items
+  async queue(batch, env) {
+    for (const msg of batch.messages) {
+      const { itemId, action } = msg.body;
+      if (action === 'vectorize' && env.DB) {
+        const item = await d1Safe(() => env.DB.prepare('SELECT * FROM dump_items WHERE id = ?').bind(itemId).first());
+        if (item) await vectorizeItem(env, item);
+      }
+      msg.ack();
+    }
+  },
+
   async fetch(request, env, ctx) {
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
@@ -72,8 +89,20 @@ export default {
       if (path === '/api/tools' && request.method === 'POST') {
         return await handleSaveTools(request, env);
       }
+      if (path === '/api/search' && request.method === 'GET') {
+        return await handleSearch(request, env);
+      }
+      if (path === '/api/route' && request.method === 'POST') {
+        return await handleRoute(request, env);
+      }
+      if (path === '/api/stats' && request.method === 'GET') {
+        return await handleStats(request, env);
+      }
+      if (path === '/api/semantic-search' && request.method === 'GET') {
+        return await handleSemanticSearch(request, env);
+      }
       if (path === '/api/health') {
-        return jsonResponse({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
+        return jsonResponse({ status: 'ok', timestamp: new Date().toISOString(), version: '2.0.0', d1: !!env.DB, vectorize: !!env.VECTORIZE, queue: !!env.ANALYZE_QUEUE, ai: !!env.AI });
       }
 
       return jsonResponse({ error: 'Not found' }, 404);
@@ -129,19 +158,26 @@ async function handleAIProxy(request, env) {
 // LOGGING SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════
 async function logActivity(env, activity) {
-  if (!env.LOGS) return;
-  
   const entry = {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     ...activity,
   };
 
-  // Store with timestamp key for ordering
-  const key = `log:${Date.now()}:${entry.id}`;
-  await env.LOGS.put(key, JSON.stringify(entry), {
-    expirationTtl: 60 * 60 * 24 * 30, // 30 days
-  });
+  // KV (bestaand — blijft werken)
+  if (env.LOGS) {
+    const key = `log:${Date.now()}:${entry.id}`;
+    await env.LOGS.put(key, JSON.stringify(entry), {
+      expirationTtl: 60 * 60 * 24 * 30,
+    });
+  }
+
+  // D1 (nieuw — schrijft mee, faalt niet-fataal)
+  if (env.DB) {
+    await d1Safe(() => env.DB.prepare(
+      'INSERT INTO activity_logs (id, timestamp, type, action, detail, source, mac, project, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(entry.id, entry.timestamp, entry.type || 'action', entry.action || '', entry.detail || '', entry.source || 'Unknown', entry.mac || 'Unknown', entry.project || '', JSON.stringify(entry.metadata || null)).run());
+  }
 
   return entry;
 }
@@ -163,32 +199,45 @@ async function handleLog(request, env) {
 }
 
 async function handleGetLogs(request, env) {
-  if (!env.LOGS) {
-    return jsonResponse({ logs: [], error: 'LOGS KV not configured' });
-  }
-
   const url = new URL(request.url);
   const limit = parseInt(url.searchParams.get('limit')) || 100;
   const type = url.searchParams.get('type');
   const source = url.searchParams.get('source');
 
-  // List all logs (newest first)
+  // Probeer D1 eerst (sneller, SQL filtering)
+  if (env.DB) {
+    const d1Result = await d1Safe(async () => {
+      let sql = 'SELECT * FROM activity_logs WHERE 1=1';
+      const params = [];
+      if (type) { sql += ' AND type = ?'; params.push(type); }
+      if (source) { sql += ' AND source = ?'; params.push(source); }
+      sql += ' ORDER BY timestamp DESC LIMIT ?';
+      params.push(limit);
+      const stmt = env.DB.prepare(sql);
+      return params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+    });
+    if (d1Result && d1Result.results) {
+      return jsonResponse({ logs: d1Result.results, total: d1Result.results.length, source: 'd1' });
+    }
+  }
+
+  // Fallback: KV (bestaand)
+  if (!env.LOGS) {
+    return jsonResponse({ logs: [], error: 'No storage configured' });
+  }
   const list = await env.LOGS.list({ prefix: 'log:', limit: limit * 2 });
-  
   const logs = [];
   for (const key of list.keys.reverse()) {
     const value = await env.LOGS.get(key.name);
     if (value) {
       const log = JSON.parse(value);
-      // Filter if needed
       if (type && log.type !== type) continue;
       if (source && log.source !== source) continue;
       logs.push(log);
       if (logs.length >= limit) break;
     }
   }
-
-  return jsonResponse({ logs, total: list.keys.length });
+  return jsonResponse({ logs, total: list.keys.length, source: 'kv' });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -301,8 +350,27 @@ async function handleRestore(request, env) {
 const DUMP_KEY = 'dump:items';
 
 async function handleGetDump(request, env) {
+  // Probeer D1 eerst
+  if (env.DB) {
+    const d1Result = await d1Safe(async () => {
+      return await env.DB.prepare('SELECT * FROM dump_items ORDER BY created DESC').all();
+    });
+    if (d1Result && d1Result.results && d1Result.results.length > 0) {
+      // D1 rows → items format (extra_analyses en routed_to zijn JSON strings)
+      const items = d1Result.results.map(r => ({
+        ...r,
+        analyzed: !!r.analyzed,
+        pinned: !!r.pinned,
+        extraAnalyses: r.extra_analyses ? JSON.parse(r.extra_analyses) : undefined,
+        routedTo: r.routed_to ? JSON.parse(r.routed_to) : undefined,
+      }));
+      return jsonResponse({ items, updated: new Date().toISOString(), source: 'd1' });
+    }
+  }
+
+  // Fallback: KV
   if (!env.LOGS) {
-    return jsonResponse({ items: [], error: 'KV not configured' });
+    return jsonResponse({ items: [], error: 'No storage configured' });
   }
   const value = await env.LOGS.get(DUMP_KEY);
   if (!value) {
@@ -371,27 +439,73 @@ async function handleAddDumpItem(request, env) {
     }
   }
 
-  // Get existing items, add new one at top
-  const value = await env.LOGS.get(DUMP_KEY);
-  const existing = value ? JSON.parse(value) : { items: [] };
-  const items = [item, ...(existing.items || [])];
-  await env.LOGS.put(DUMP_KEY, JSON.stringify({ items, updated: new Date().toISOString(), source: 'shortcut' }));
+  // KV (bestaand)
+  if (env.LOGS) {
+    const value = await env.LOGS.get(DUMP_KEY);
+    const existing = value ? JSON.parse(value) : { items: [] };
+    const items = [item, ...(existing.items || [])];
+    await env.LOGS.put(DUMP_KEY, JSON.stringify({ items, updated: new Date().toISOString(), source: 'shortcut' }));
+  }
 
-  return jsonResponse({ success: true, item, total: items.length });
+  // D1 (nieuw)
+  if (env.DB) {
+    await d1Safe(() => env.DB.prepare(`
+      INSERT INTO dump_items (id, content, memo, type, icon, title, author, thumbnail, pinned, source, created)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+    `).bind(item.id, item.content, item.memo || '', type, icon, item.title || null, item.author || null, item.thumbnail || null, item.source || 'shortcut', item.created).run());
+  }
+
+  return jsonResponse({ success: true, item });
 }
 
 async function handleSaveDump(request, env) {
-  if (!env.LOGS) {
-    return jsonResponse({ error: 'KV not configured' }, 500);
-  }
   const body = await request.json();
+  const items = body.items || [];
   const data = {
-    items: body.items || [],
+    items,
     updated: new Date().toISOString(),
     source: body.source || 'unknown',
   };
-  await env.LOGS.put(DUMP_KEY, JSON.stringify(data));
-  return jsonResponse({ success: true, count: data.items.length, updated: data.updated });
+
+  // KV (bestaand)
+  if (env.LOGS) {
+    await env.LOGS.put(DUMP_KEY, JSON.stringify(data));
+  }
+
+  // D1 (nieuw — upsert elk item individueel)
+  if (env.DB) {
+    await d1Safe(async () => {
+      for (const item of items) {
+        await env.DB.prepare(`
+          INSERT OR REPLACE INTO dump_items (id, content, memo, type, icon, title, author, thumbnail, analysis, analyzed, analyzed_by, analyzed_at, extra_analyses, routed_to, pinned, source, created)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          item.id, item.content || '', item.memo || '', item.type || 'note', item.icon || '📝',
+          item.title || null, item.author || null, item.thumbnail || null,
+          item.analysis || null, item.analyzed ? 1 : 0, item.analyzed_by || null, item.analyzed_at || null,
+          item.extraAnalyses ? JSON.stringify(item.extraAnalyses) : null,
+          item.routedTo ? JSON.stringify(item.routedTo) : null,
+          item.pinned ? 1 : 0, item.source || 'unknown', item.created || new Date().toISOString()
+        ).run();
+      }
+    });
+  }
+
+  // Vectorize geanalyseerde items (via queue of direct)
+  if (env.ANALYZE_QUEUE) {
+    const analyzed = items.filter(i => i.analyzed && i.analysis);
+    for (const item of analyzed) {
+      await d1Safe(() => env.ANALYZE_QUEUE.send({ itemId: item.id, action: 'vectorize' }));
+    }
+  } else if (env.VECTORIZE && env.AI) {
+    // Direct vectorize als geen queue beschikbaar
+    const analyzed = items.filter(i => i.analyzed && i.analysis);
+    for (const item of analyzed) {
+      ctx && ctx.waitUntil(vectorizeItem(env, item));
+    }
+  }
+
+  return jsonResponse({ success: true, count: items.length, updated: data.updated });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -415,9 +529,6 @@ async function handleGetTools(request, env) {
 }
 
 async function handleSaveTools(request, env) {
-  if (!env.LOGS) {
-    return jsonResponse({ error: 'KV not configured' }, 500);
-  }
   const body = await request.json();
   const machine = (body.machine || '').toUpperCase();
   if (!machine) {
@@ -430,9 +541,148 @@ async function handleSaveTools(request, env) {
     vercelSkills: body.vercelSkills || [],
     scannedAt: new Date().toISOString(),
   };
-  await env.LOGS.put(TOOLS_PREFIX + machine, JSON.stringify(data));
+
+  // KV
+  if (env.LOGS) {
+    await env.LOGS.put(TOOLS_PREFIX + machine, JSON.stringify(data));
+  }
+
+  // D1
+  if (env.DB) {
+    await d1Safe(() => env.DB.prepare(`
+      INSERT OR REPLACE INTO machine_tools (machine, plugins, mcp_servers, skills, vercel_skills, scanned_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(machine, JSON.stringify(data.plugins), JSON.stringify(data.mcpServers), JSON.stringify(data.skills), JSON.stringify(data.vercelSkills), data.scannedAt).run());
+  }
+
   return jsonResponse({ success: true, machine, scannedAt: data.scannedAt });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEARCH — D1 SQL queries op dump items + analyses
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleSearch(request, env) {
+  if (!env.DB) return jsonResponse({ error: 'D1 not configured', results: [] });
+  const url = new URL(request.url);
+  const q = url.searchParams.get('q') || '';
+  const type = url.searchParams.get('type');
+  const tab = url.searchParams.get('tab');
+  const limit = parseInt(url.searchParams.get('limit')) || 20;
+
+  if (q) {
+    // Zoek in content, memo, title, analysis
+    const results = await d1Safe(async () => {
+      let sql = `SELECT * FROM dump_items WHERE (content LIKE ? OR memo LIKE ? OR title LIKE ? OR analysis LIKE ?)`;
+      const params = [`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`];
+      if (type) { sql += ' AND type = ?'; params.push(type); }
+      sql += ' ORDER BY created DESC LIMIT ?';
+      params.push(limit);
+      return await env.DB.prepare(sql).bind(...params).all();
+    });
+    return jsonResponse({ results: results?.results || [], query: q });
+  }
+
+  if (tab) {
+    // Haal routed items op voor een specifieke tab
+    const results = await d1Safe(async () => {
+      return await env.DB.prepare('SELECT * FROM routed_items WHERE target_tab = ? ORDER BY routed_at DESC LIMIT ?').bind(tab, limit).all();
+    });
+    return jsonResponse({ results: results?.results || [], tab });
+  }
+
+  return jsonResponse({ error: 'q or tab parameter required', results: [] });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE — Sla gerouteerde analyse op in D1
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleRoute(request, env) {
+  if (!env.DB) return jsonResponse({ error: 'D1 not configured' }, 500);
+  const body = await request.json();
+  const result = await d1Safe(() => env.DB.prepare(`
+    INSERT INTO routed_items (source_id, source_url, source_title, analysis, extra_analyses, memo, target_tab)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    body.sourceId || null, body.sourceUrl || '', body.sourceTitle || '',
+    body.analysis || '', body.extraAnalyses ? JSON.stringify(body.extraAnalyses) : null,
+    body.memo || '', body.targetTab
+  ).run());
+  return jsonResponse({ success: !!result, routed: body.targetTab });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS — Dashboard statistieken vanuit D1
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleStats(request, env) {
+  if (!env.DB) return jsonResponse({ error: 'D1 not configured' });
+  const stats = await d1Safe(async () => {
+    const dumps = await env.DB.prepare('SELECT COUNT(*) as total, SUM(CASE WHEN analyzed=1 THEN 1 ELSE 0 END) as analyzed FROM dump_items').first();
+    const logs = await env.DB.prepare('SELECT COUNT(*) as total FROM activity_logs').first();
+    const routes = await env.DB.prepare('SELECT target_tab, COUNT(*) as count FROM routed_items GROUP BY target_tab').all();
+    const types = await env.DB.prepare('SELECT type, COUNT(*) as count FROM dump_items GROUP BY type ORDER BY count DESC').all();
+    return { dumps, logs, routes: routes?.results || [], types: types?.results || [] };
+  });
+  return jsonResponse(stats || { error: 'Query failed' });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VECTORIZE — Semantic search op analyses
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleSemanticSearch(request, env) {
+  if (!env.VECTORIZE || !env.AI || !env.DB) {
+    return jsonResponse({ error: 'Vectorize/AI/D1 not configured', results: [] });
+  }
+  const url = new URL(request.url);
+  const q = url.searchParams.get('q');
+  if (!q) return jsonResponse({ error: 'q parameter required', results: [] });
+
+  // Genereer embedding voor de query
+  const embedding = await d1Safe(async () => {
+    const resp = await env.AI.run('@cf/baai/bge-large-en-v1.5', { text: [q] });
+    return resp?.data?.[0];
+  });
+  if (!embedding) return jsonResponse({ error: 'Embedding generation failed', results: [] });
+
+  // Zoek nearest neighbors in Vectorize
+  const matches = await d1Safe(async () => {
+    return await env.VECTORIZE.query(embedding, { topK: 10, returnMetadata: 'all' });
+  });
+  if (!matches || !matches.matches) return jsonResponse({ results: [] });
+
+  // Haal volledige items op uit D1
+  const results = [];
+  for (const match of matches.matches) {
+    const item = await d1Safe(() => env.DB.prepare('SELECT * FROM dump_items WHERE id = ?').bind(parseInt(match.id)).first());
+    if (item) {
+      results.push({ ...item, score: match.score });
+    }
+  }
+  return jsonResponse({ results, query: q });
+}
+
+// Vectorize: index een dump item (roep aan na analyse)
+async function vectorizeItem(env, item) {
+  if (!env.VECTORIZE || !env.AI) return;
+  // Combineer alle tekst voor embedding
+  const text = [item.title, item.content, item.memo, item.analysis].filter(Boolean).join(' ').substring(0, 2000);
+  if (!text) return;
+  await d1Safe(async () => {
+    const resp = await env.AI.run('@cf/baai/bge-large-en-v1.5', { text: [text] });
+    const embedding = resp?.data?.[0];
+    if (embedding) {
+      await env.VECTORIZE.upsert([{
+        id: String(item.id),
+        values: embedding,
+        metadata: { type: item.type, title: item.title || '', analyzed: item.analyzed ? 1 : 0 },
+      }]);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUEUE CONSUMER — Verwerk analyse requests
+// ═══════════════════════════════════════════════════════════════════════════════
+// Queue consumer wordt geregistreerd in de export default
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS
