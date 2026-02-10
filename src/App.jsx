@@ -4537,10 +4537,13 @@ function DumpBar() {
 
     // Server-side analyse: worker scraped + analyseert in één call
     api.analyzeDump(item.content, item.memo || "", item.title || "").then(function(result) {
-      if (!result) { throw new Error("Geen response"); }
+      if (!result || result.error || !result.analysis) {
+        var errMsg = (result && result.error) ? result.error : "Geen analyse ontvangen";
+        throw new Error(errMsg);
+      }
       setItems(function(prev) { return prev.map(function(i) {
         if (i.id !== id) return i;
-        var upd = { analyzing: false, analysis: result.analysis || "Analyse niet beschikbaar", analyzed: true, analyzed_by: "Claude", analyzed_at: new Date().toISOString() };
+        var upd = { analyzing: false, analysis: result.analysis, analyzed: true, analyzed_by: "Claude", analyzed_at: new Date().toISOString() };
         if (result.meta) {
           if (result.meta.title && !i.title) upd.title = result.meta.title;
           if (result.meta.image && !i.thumbnail) upd.thumbnail = result.meta.image;
@@ -4551,7 +4554,7 @@ function DumpBar() {
       setPushCount(function(n) { return n + 1; });
     }).catch(function(err) {
       console.error("Analyse fout:", err);
-      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "Fout bij analyse" }) : i; }); });
+      setItems(function(prev) { return prev.map(function(i) { return i.id === id ? Object.assign({}, i, { analyzing: false, analysis: "⚠️ " + (err.message || "Analyse mislukt") }) : i; }); });
       setPushCount(function(n) { return n + 1; });
     });
   };
