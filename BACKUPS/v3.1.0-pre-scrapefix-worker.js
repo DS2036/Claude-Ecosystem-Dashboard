@@ -1,5 +1,5 @@
 /**
- * CLAUDE CONTROL CENTER - CLOUDFLARE WORKER v3.2.0
+ * CLAUDE CONTROL CENTER - CLOUDFLARE WORKER v3.1.0
  * Universal Knowledge Graph: alle data gevectorized en doorzoekbaar
  *
  * Endpoints:
@@ -632,26 +632,7 @@ async function handleDumpAnalyze(request, env) {
         scrapedMeta.description = getOG('description');
         scrapedMeta.image = getOG('image');
         scrapedMeta.author = getOG('site_name') || '';
-
-        // Extract volledige zichtbare tekst uit HTML (niet alleen OG description!)
-        let bodyText = html
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?<\/style>/gi, '')
-          .replace(/<nav[\s\S]*?<\/nav>/gi, '')
-          .replace(/<footer[\s\S]*?<\/footer>/gi, '')
-          .replace(/<header[\s\S]*?<\/header>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&#x27;/g, "'")
-          .replace(/&quot;/g, '"')
-          .replace(/\s+/g, ' ')
-          .trim();
-        // Beperk tot 4000 chars voor AI tokens
-        if (bodyText.length > 4000) bodyText = bodyText.substring(0, 4000) + '...';
-        scrapedContent = bodyText || scrapedMeta.description || scrapedMeta.title || '';
+        scrapedContent = scrapedMeta.description || scrapedMeta.title || '';
       }
     } catch (e) { /* scrape failed, continue with URL only */ }
   }
