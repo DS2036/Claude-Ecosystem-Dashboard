@@ -67,10 +67,39 @@ const api = {
       });
     } catch (e) { console.error("Save dump failed:", e); }
   },
+  async search(query, type) {
+    try {
+      var url = WORKER_API + "/api/search?q=" + encodeURIComponent(query);
+      if (type) url += "&type=" + type;
+      var r = await fetch(url);
+      return await r.json();
+    } catch (e) { console.error("Search failed:", e); return { results: [] }; }
+  },
+  async semanticSearch(query) {
+    try {
+      var r = await fetch(WORKER_API + "/api/semantic-search?q=" + encodeURIComponent(query));
+      return await r.json();
+    } catch (e) { console.error("Semantic search failed:", e); return { results: [] }; }
+  },
+  async getStats() {
+    try {
+      var r = await fetch(WORKER_API + "/api/stats");
+      return await r.json();
+    } catch (e) { console.error("Stats failed:", e); return {}; }
+  },
+  async routeToTab(payload) {
+    try {
+      await fetch(WORKER_API + "/api/route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) { console.error("Route failed:", e); }
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.25.1
+// CLAUDE CONTROL CENTER v4.26.0
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -111,9 +140,10 @@ const api = {
 // v4.18.0 - Dump cloud sync: items syncen tussen iPhone en Mac Mini via Cloudflare Worker KV
 // v4.17.0 - Dump tab vervangt Notes: snelle inbox met auto-categorisatie + opmerkingen + migratie
 // v4.19.0 - All Tools tab (tooling overzicht) + iPhone responsive scaling + Vercel Agent Skills
-// v4.25.1 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
-// v4.25.1 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
+// v4.26.0 - GDPR Artes Tab + Vercel Skills Audit: DeviceContext, aria-labels, semantic buttons, URL hash, useMemo, focus-visible, reduced-motion
+// v4.26.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
 // v4.25.0 - Dump upgrade: Re-analyze met custom prompt (🎯 targeted extraction), Route-to-tab (📤), extra analyse lagen, yt-dlp + daemon
+// v4.26.0 - Universal Search (D1 SQL + Vectorize semantic), Worker v2.0.0 (D1+Vectorize+Queue+AI), cross-tab zoeken
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -4197,6 +4227,117 @@ function UseCases() {
 // DUMP BAR — v4.18.0
 // Simpele inbox bovenaan: plak link/tekst + opmerking, klap open voor items
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIVERSAL SEARCH — zoek over alles heen (D1 SQL + Vectorize semantic)
+// v4.26.0 — Cross-tab search, semantic matching, gerelateerde items
+// ═══════════════════════════════════════════════════════════════════════════════
+function UniversalSearch({ onNavigate }) {
+  var _dev = useDevice(), isPhone = _dev.isPhone, S = _dev.S;
+  var _sq = useState(""); var query = _sq[0]; var setQuery = _sq[1];
+  var _sr = useState(null); var results = _sr[0]; var setResults = _sr[1];
+  var _sl = useState(false); var loading = _sl[0]; var setLoading = _sl[1];
+  var _sm = useState("smart"); var mode = _sm[0]; var setMode = _sm[1]; // smart, sql, semantic
+  var _so = useState(false); var isOpen = _so[0]; var setIsOpen = _so[1];
+
+  var doSearch = function() {
+    var q = query.trim();
+    if (!q) { setResults(null); return; }
+    setLoading(true);
+    if (mode === "semantic") {
+      api.semanticSearch(q).then(function(data) {
+        setResults({ type: "semantic", items: data.results || [], query: q });
+        setLoading(false);
+      }).catch(function() { setLoading(false); });
+    } else if (mode === "sql") {
+      api.search(q).then(function(data) {
+        setResults({ type: "sql", items: data.results || [], query: q });
+        setLoading(false);
+      }).catch(function() { setLoading(false); });
+    } else {
+      // Smart: beide tegelijk, merge
+      Promise.all([
+        api.search(q).catch(function() { return { results: [] }; }),
+        api.semanticSearch(q).catch(function() { return { results: [] }; })
+      ]).then(function(both) {
+        var sqlItems = both[0].results || [];
+        var semItems = both[1].results || [];
+        // Merge: dedup by id, semantic items krijgen score
+        var byId = {};
+        sqlItems.forEach(function(i) { byId[i.id] = Object.assign({}, i, { matchType: "exact" }); });
+        semItems.forEach(function(i) {
+          if (byId[i.id]) { byId[i.id].score = i.score; byId[i.id].matchType = "both"; }
+          else { byId[i.id] = Object.assign({}, i, { matchType: "semantic" }); }
+        });
+        var merged = Object.keys(byId).map(function(k) { return byId[k]; });
+        // Sorteer: 'both' eerst, dan op score
+        merged.sort(function(a, b) {
+          if (a.matchType === "both" && b.matchType !== "both") return -1;
+          if (b.matchType === "both" && a.matchType !== "both") return 1;
+          return (b.score || 0) - (a.score || 0);
+        });
+        setResults({ type: "smart", items: merged, query: q });
+        setLoading(false);
+      });
+    }
+  };
+
+  var matchColors = { exact: "#22c55e", semantic: "#818cf8", both: "#f59e0b" };
+  var matchLabels = { exact: "📝 exact", semantic: "🧠 semantic", both: "⚡ both" };
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <input type="text" placeholder="🔍 Zoek over alles heen..." value={query}
+            onChange={function(e) { setQuery(e.target.value); if (!e.target.value.trim()) setResults(null); }}
+            onKeyDown={function(e) { if (e.key === "Enter") doSearch(); }}
+            onFocus={function() { setIsOpen(true); }}
+            style={{ width: "100%", padding: "10px 14px 10px 14px", borderRadius: 10, border: "1px solid #2d2a5e", background: "#1a1a2e", color: "#e5e7eb", fontSize: S.inputFont, outline: "none", boxSizing: "border-box" }} />
+        </div>
+        <div style={{ display: "flex", gap: 4 }}>
+          {[{ id: "smart", label: "⚡", title: "Smart (SQL + Semantic)" }, { id: "sql", label: "📝", title: "SQL (exact match)" }, { id: "semantic", label: "🧠", title: "Semantic (betekenis)" }].map(function(m) {
+            return <button key={m.id} onClick={function() { setMode(m.id); }} title={m.title} style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid " + (mode === m.id ? "#a78bfa" : "#454d60"), background: mode === m.id ? "#a78bfa22" : "#1e1e30", color: mode === m.id ? "#a78bfa" : "#6b7280", fontSize: 14, cursor: "pointer" }}>{m.label}</button>;
+          })}
+        </div>
+        <button onClick={doSearch} disabled={loading || !query.trim()} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #a78bfa44", background: "#a78bfa22", color: loading ? "#6b7280" : "#a78bfa", fontSize: 14, fontWeight: 700, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳" : "Zoek"}</button>
+      </div>
+      {/* Results dropdown */}
+      {isOpen && results && results.items.length > 0 && (
+        <div style={{ marginTop: 6, background: "#1a1a2e", border: "1px solid #2d2a5e", borderRadius: 10, padding: 10, maxHeight: 300, overflowY: "auto" }}>
+          <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 6 }}>
+            {results.items.length} resultaten voor "{results.query}" ({results.type})
+            <button onClick={function() { setIsOpen(false); setResults(null); setQuery(""); }} style={{ float: "right", border: "none", background: "none", color: "#6b7280", cursor: "pointer", fontSize: 12 }}>✕ sluiten</button>
+          </div>
+          {results.items.slice(0, 10).map(function(item) {
+            var typeColors = { youtube: "#ef4444", article: "#fb923c", link: "#60a5fa", note: "#14b8a6", github: "#a78bfa", instagram: "#e879f9", twitter: "#38bdf8" };
+            var c = typeColors[item.type] || "#9ca3af";
+            return (
+              <div key={item.id} style={{ padding: "8px 10px", borderRadius: 6, background: "#222238", marginBottom: 4, borderLeft: "3px solid " + c, cursor: "pointer" }}
+                onClick={function() { onNavigate("dump"); setIsOpen(false); }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 13, color: "#e5e5e5", fontWeight: 600 }}>{item.title || (item.content || "").substring(0, 60)}</div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {item.matchType && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: (matchColors[item.matchType] || "#6b7280") + "22", color: matchColors[item.matchType] || "#6b7280" }}>{matchLabels[item.matchType] || item.matchType}</span>}
+                    {item.score && <span style={{ fontSize: 10, color: "#818cf8" }}>{Math.round(item.score * 100)}%</span>}
+                  </div>
+                </div>
+                {item.analysis && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.analysis.substring(0, 120)}...</div>}
+                <div style={{ fontSize: 10, color: "#4b5563", marginTop: 2 }}>{item.type} • {item.created ? new Date(item.created).toLocaleDateString("nl-BE") : ""}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {isOpen && results && results.items.length === 0 && (
+        <div style={{ marginTop: 6, padding: "10px 14px", background: "#1a1a2e", border: "1px solid #2d2a5e", borderRadius: 10, fontSize: 13, color: "#6b7280" }}>
+          Geen resultaten voor "{results.query}".
+          <button onClick={function() { setIsOpen(false); setResults(null); }} style={{ marginLeft: 8, border: "none", background: "none", color: "#6b7280", cursor: "pointer", fontSize: 12 }}>✕</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DumpBar() {
   var _dev = useDevice(), isPhone = _dev.isPhone, S = _dev.S;
   var items, setItems, inp, setInp, memo, setMemo, open, setOpen, syncing, setSyncing, lastSync, setLastSync;
@@ -5689,7 +5830,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.25.1 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.26.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <nav aria-label="Apparaat selectie" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -5731,6 +5872,9 @@ export default function ControlCenter() {
           {[{ c: counts.OK, color: STATUS.OK.color }, { c: counts.WARN, color: STATUS.WARN.color }, { c: counts.ERROR, color: STATUS.ERROR.color }, { c: counts.PENDING, color: STATUS.PENDING.color }].map((s, i) => <div key={i} style={{ width: `${(s.c / total) * 100}%`, background: s.color }} />)}
         </div>
       </div>
+
+      {/* UNIVERSAL SEARCH — zoek over alles heen (D1 SQL + Vectorize semantic) */}
+      <UniversalSearch onNavigate={setTab} />
 
       {/* DUMP - Altijd zichtbaar bovenaan */}
       <DumpBar />
@@ -5796,7 +5940,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #2d3748", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.25.1 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.26.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
