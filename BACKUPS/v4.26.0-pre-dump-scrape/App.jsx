@@ -119,7 +119,7 @@ const api = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLAUDE CONTROL CENTER v4.29.0
+// CLAUDE CONTROL CENTER v4.28.0
 // Complete Dashboard: 21 tabs voor volledig ecosysteem beheer
 //
 // CLOUDFLARE: https://claude-ecosystem-dashboard.pages.dev
@@ -164,7 +164,6 @@ const api = {
 // v4.28.0 - Lichter thema: alle achtergronden en borders opgehelderd, lijnen→blokken in Updates/OpenClaw/Agents, Activity tab switch logging
 // v4.25.0 - Dump upgrade: Re-analyze met custom prompt (🎯 targeted extraction), Route-to-tab (📤), extra analyse lagen, yt-dlp + daemon
 // v4.28.0 - Universal Search (D1 SQL + Vectorize semantic), Worker v2.0.0 (D1+Vectorize+Queue+AI), cross-tab zoeken
-// v4.29.0 - Dump: specifiekere datums (dag+maand+uur), URL scraping voor AI analyse, OG metadata voor Instagram/Twitter/articles, Save knop API key, auto-refresh 30s, enriched cards voor alle URL types
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── DEVICE DETECTION ───
@@ -5791,7 +5790,7 @@ function CCCSettings() {
       <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#9ca3af" }}>⚙️ Settings</h2>
-          <div style={{ fontSize: 12, color: "#4b5563", marginTop: 2 }}>CCC v4.29.0 • Worker v3.1.0</div>
+          <div style={{ fontSize: 12, color: "#4b5563", marginTop: 2 }}>CCC v4.28.0 • Worker v3.0.0</div>
         </div>
         <button onClick={fetchStatus} disabled={loading} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #3b82f644", background: "#3b82f611", color: "#3b82f6", fontSize: 12, fontWeight: 700, cursor: loading ? "wait" : "pointer" }}>{loading ? "⏳ Laden..." : "🔄 Refresh Status"}</button>
       </div>
@@ -6433,7 +6432,7 @@ export default function ControlCenter() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: S.headerFont, fontWeight: 800, margin: 0, background: "linear-gradient(90deg, #a78bfa, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Claude Control Center</h1>
-            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.29.0 | {new Date().toLocaleDateString("nl-BE")}</div>
+            <div style={{ fontSize: S.smallFont, color: "#6b7280", marginTop: 2 }}>DS2036 — Franky | v4.28.0 | {new Date().toLocaleDateString("nl-BE")}</div>
           </div>
           {/* Device indicators - ACTIVE device is GREEN */}
           <nav aria-label="Apparaat selectie" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -6546,7 +6545,7 @@ export default function ControlCenter() {
 
       {/* Footer */}
       <footer style={{ marginTop: 16, padding: S.containerPad, background: S.bgFooter, border: "1px solid #2d3748", borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.29.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
+        <div style={{ fontSize: S.smallFont, color: "#4b5563" }}>Claude Control Center v4.28.0 • {total} nodes • 21 tabs • Perplexity Intelligence • Device: {currentDevice} • Cloudflare: claude-ecosystem-dashboard.pages.dev</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
           {Object.entries(STATUS).filter(([k]) => k !== "SYNCING").map(([k, s]) => <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: S.microFont, color: s.color }}><span style={{ fontWeight: 800 }}>{s.icon}</span> {s.label}</div>)}
         </div>
